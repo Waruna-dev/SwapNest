@@ -2,11 +2,17 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import morgan from "morgan";
+import { fileURLToPath } from "url";
+import path from "path";
 
 import connectDB from "./config/db.js";
 import itemRoutes from "./router/itemRoutes.js";
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, ".env") });
+process.env.MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ecoswap";
 connectDB();
 
 const app = express();
