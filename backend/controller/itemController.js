@@ -15,21 +15,43 @@ export const createItem = async (req, res) => {
       ownerId,
     } = req.body;
 
-    if (!title || !price || !category || !lat || !lng) {
+    const hasLat = lat !== undefined && lat !== null && lat !== "";
+    const hasLng = lng !== undefined && lng !== null && lng !== "";
+
+    if (!title || price === undefined || price === null || !category || !hasLat || !hasLng) {
       return res.status(400).json({ message: "Required fields missing" });
+    }
+
+    const latNum = Number(lat);
+    const lngNum = Number(lng);
+    const priceNum = Number(price);
+
+    if (
+      Number.isNaN(latNum) ||
+      Number.isNaN(lngNum) ||
+      latNum < -90 ||
+      latNum > 90 ||
+      lngNum < -180 ||
+      lngNum > 180
+    ) {
+      return res.status(400).json({ message: "Invalid coordinates" });
+    }
+
+    if (Number.isNaN(priceNum) || priceNum < 0) {
+      return res.status(400).json({ message: "Invalid price" });
     }
 
     const newItem = await Item.create({
       title,
       description,
-      price,
+      price: priceNum,
       category,
       image,
       contact,
       ownerId: ownerId || "anonymous",
       location: {
         type: "Point",
-        coordinates: [lng, lat],
+        coordinates: [lngNum, latNum],
       },
     });
 
@@ -66,7 +88,46 @@ export const updateItem = async (req, res) => {
     const item = await Item.findById(req.params.id);
     if (!item) return res.status(404).json({ message: "Item not found" });
 
-    Object.assign(item, req.body);
+    const payload = { ...req.body };
+
+    if (payload.price !== undefined) {
+      const priceNum = Number(payload.price);
+      if (Number.isNaN(priceNum) || priceNum < 0) {
+        return res.status(400).json({ message: "Invalid price" });
+      }
+      payload.price = priceNum;
+    }
+
+    const hasLat = payload.lat !== undefined && payload.lat !== null && payload.lat !== "";
+    const hasLng = payload.lng !== undefined && payload.lng !== null && payload.lng !== "";
+    if (hasLat || hasLng) {
+      if (!hasLat || !hasLng) {
+        return res.status(400).json({ message: "Both lat and lng are required for location update" });
+      }
+
+      const latNum = Number(payload.lat);
+      const lngNum = Number(payload.lng);
+      if (
+        Number.isNaN(latNum) ||
+        Number.isNaN(lngNum) ||
+        latNum < -90 ||
+        latNum > 90 ||
+        lngNum < -180 ||
+        lngNum > 180
+      ) {
+        return res.status(400).json({ message: "Invalid coordinates" });
+      }
+
+      payload.location = {
+        type: "Point",
+        coordinates: [lngNum, latNum],
+      };
+    }
+
+    delete payload.lat;
+    delete payload.lng;
+
+    Object.assign(item, payload);
     const updated = await item.save();
 
     res.json(updated);
@@ -94,13 +155,30 @@ export const getNearbyItems = async (req, res) => {
     const { lat, lng, distance } = req.query;
 
     const km = distance ? Number(distance) : 10;
+    const latNum = Number(lat);
+    const lngNum = Number(lng);
+
+    if (
+      Number.isNaN(latNum) ||
+      Number.isNaN(lngNum) ||
+      latNum < -90 ||
+      latNum > 90 ||
+      lngNum < -180 ||
+      lngNum > 180
+    ) {
+      return res.status(400).json({ message: "Valid lat and lng query params are required" });
+    }
+
+    if (Number.isNaN(km) || km <= 0) {
+      return res.status(400).json({ message: "Distance must be a positive number" });
+    }
 
     const items = await Item.find({
       location: {
         $near: {
           $geometry: {
             type: "Point",
-            coordinates: [Number(lng), Number(lat)],
+            coordinates: [lngNum, latNum],
           },
           $maxDistance: km * 1000,
         },
