@@ -8,8 +8,13 @@ const itemSchema = new mongoose.Schema(
     category: { type: String, required: true },
     image: { type: String },
     contact: { type: String },
-
     ownerId: { type: String, required: true },
+
+    mode: {
+      type: String,
+      enum: ["SELL", "SWAP", "DONATE"],
+      default: "SELL",
+    },
 
     location: {
       type: {

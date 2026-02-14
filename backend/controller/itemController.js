@@ -12,13 +12,21 @@ export const createItem = async (req, res) => {
       contact,
       lat,
       lng,
+      mode,
       ownerId,
     } = req.body;
 
     const hasLat = lat !== undefined && lat !== null && lat !== "";
     const hasLng = lng !== undefined && lng !== null && lng !== "";
 
-    if (!title || price === undefined || price === null || !category || !hasLat || !hasLng) {
+    if (
+      !title ||
+      price === undefined ||
+      price === null ||
+      !category ||
+      !hasLat ||
+      !hasLng
+    ) {
       return res.status(400).json({ message: "Required fields missing" });
     }
 
@@ -40,7 +48,7 @@ export const createItem = async (req, res) => {
     if (Number.isNaN(priceNum) || priceNum < 0) {
       return res.status(400).json({ message: "Invalid price" });
     }
-
+    //
     const newItem = await Item.create({
       title,
       description,
@@ -48,6 +56,7 @@ export const createItem = async (req, res) => {
       category,
       image,
       contact,
+      mode,
       ownerId: ownerId || "anonymous",
       location: {
         type: "Point",
@@ -98,11 +107,15 @@ export const updateItem = async (req, res) => {
       payload.price = priceNum;
     }
 
-    const hasLat = payload.lat !== undefined && payload.lat !== null && payload.lat !== "";
-    const hasLng = payload.lng !== undefined && payload.lng !== null && payload.lng !== "";
+    const hasLat =
+      payload.lat !== undefined && payload.lat !== null && payload.lat !== "";
+    const hasLng =
+      payload.lng !== undefined && payload.lng !== null && payload.lng !== "";
     if (hasLat || hasLng) {
       if (!hasLat || !hasLng) {
-        return res.status(400).json({ message: "Both lat and lng are required for location update" });
+        return res.status(400).json({
+          message: "Both lat and lng are required for location update",
+        });
       }
 
       const latNum = Number(payload.lat);
@@ -166,11 +179,15 @@ export const getNearbyItems = async (req, res) => {
       lngNum < -180 ||
       lngNum > 180
     ) {
-      return res.status(400).json({ message: "Valid lat and lng query params are required" });
+      return res
+        .status(400)
+        .json({ message: "Valid lat and lng query params are required" });
     }
 
     if (Number.isNaN(km) || km <= 0) {
-      return res.status(400).json({ message: "Distance must be a positive number" });
+      return res
+        .status(400)
+        .json({ message: "Distance must be a positive number" });
     }
 
     const items = await Item.find({
