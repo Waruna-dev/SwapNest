@@ -1,4 +1,5 @@
 import express from "express";
+import upload from "../middleware/item.imgMiddleware.js";
 import {
   createItem,
   getItems,
@@ -9,12 +10,13 @@ import {
 } from "../controller/itemController.js";
 
 const router = express.Router();
+
 // CREATE ITEM
+router.post("/", upload.array("images", 5), createItem);
+
 router.get("/nearby", getNearbyItems);
-//
 router.get("/", getItems);
 router.get("/:id", getItemById);
-router.post("/", createItem);
 router.put("/:id", updateItem);
 router.delete("/:id", deleteItem);
 
