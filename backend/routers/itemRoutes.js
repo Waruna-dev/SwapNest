@@ -1,5 +1,5 @@
 import express from "express";
-import upload from "../middleware/item.imgMiddleware.js";
+import upload from "../middlewares/item.imgMiddleware.js";
 import {
   createItem,
   getItems,
@@ -7,7 +7,7 @@ import {
   updateItem,
   deleteItem,
   getNearbyItems,
-} from "../controller/itemController.js";
+} from "../controllers/itemController.js";
 
 const router = express.Router();
 

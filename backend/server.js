@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 import path from "path";
 
 import connectDB from "./config/db.js";
-import itemRoutes from "./router/itemRoutes.js";
+import itemRoutes from "./routers/itemRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
