@@ -7,6 +7,7 @@ import path from "path";
 
 import connectDB from "./config/db.js";
 import { notFound, errorHandler } from "./middlewares/volunteermiddlewares.js";
+import volunteerRoutes from "./controllers/VolunteerController.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,11 +28,15 @@ app.use(morgan("dev"));
 app.get("/", (req, res) => {
   res.send("API running...");
 });
+
+// Volunteer routes
+app.use("/api/volunteers", volunteerRoutes);
+
 // Use middleware for unknown routes and error handling
 app.use(notFound);
 app.use(errorHandler);
 // Error handling
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(` Server running on port ${PORT}`);
