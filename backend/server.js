@@ -7,7 +7,7 @@ import path from "path";
 
 import connectDB from "./config/db.js";
 import { notFound, errorHandler } from "./middlewares/volunteermiddlewares.js";
-import volunteerRoutes from "./controllers/VolunteerController.js";
+import volunteerRoutes from "./routers/VolunteerRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,8 +19,17 @@ connectDB();
 
 const app = express();
 
-app.use(cors());
+// Body parser middleware – must be before any routes that use req.body
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Ensure req.body is always an object (avoids "Cannot destructure of undefined")
+app.use((req, res, next) => {
+  if (req.body === undefined) req.body = {};
+  next();
+});
+
+app.use(cors());
 app.use(morgan("dev"));
 
 

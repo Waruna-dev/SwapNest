@@ -1,12 +1,25 @@
-const express = require("express");
+import express from "express";
+import {
+    getVolunteers,
+    getVolunteerById,
+    addVolunteer,
+    updateVolunteer,
+    deleteVolunteer,
+} from "../controllers/VolunteerController.js";
+
 const router = express.Router();
-const VolunteerController = require("../controllers/VolunteerController");
 
-// Routes
-router.post("/", VolunteerController.addVolunteer);
-router.get("/", VolunteerController.getVolunteers);
-router.get("/:id", VolunteerController.getVolunteerById);
-router.put("/:id", VolunteerController.updateVolunteer);
-router.delete("/:id", VolunteerController.deleteVolunteer);
+// Ensure req.body is always an object before any handler (prevents "Cannot destructure of undefined")
+router.use((req, res, next) => {
+  if (req.body === undefined) req.body = {};
+  next();
+});
 
-module.exports = router;
+// Volunteer routes (according to controller + model)
+router.get("/", getVolunteers);
+router.get("/:id", getVolunteerById);
+router.post("/", addVolunteer);
+router.put("/:id", updateVolunteer);
+router.delete("/:id", deleteVolunteer);
+
+export default router;
