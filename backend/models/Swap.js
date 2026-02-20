@@ -35,7 +35,7 @@ const swapSchema = new mongoose.Schema({
   },
   //wht user A is giving(get original item listning)
   requestedItem: {
-    postId: {
+    itemId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Item",                                   //want to change
       require: true,

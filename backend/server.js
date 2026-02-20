@@ -10,6 +10,11 @@ const connectDB=require('./config/db')
 require('dotenv').config();
 
 const app=express();
+const swapRoutes = require('./routers/swapRoutes');
+const itemRoutes = require('./routers/ItemRoutes');
+const userRoutes = require('./routers/userRoutes');
+
+
 connectDB();
 
 
@@ -17,6 +22,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(morgan('dev'));
+
+app.use('/api/swaps', swapRoutes); 
+//app.use("/api/items", itemRoutes);
+app.use('/api/users', userRoutes);
 
 //404
 app.use((req,res)=>{
