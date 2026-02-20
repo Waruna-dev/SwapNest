@@ -1,12 +1,13 @@
 const Swap = require("../models/Swap");
-const Post = require("../models/Post"); //-------add the item listning model part(Post want to change as item det)
+const Item = require("../models/Item"); //-------add the item listning model part(Post want to change as item det)
+const User = require("../models/User");
 const mongoose = require("mongoose");
 
 //create swap req
 const createSwapRequest = async (req, res) => {
   try {
     const {
-      postId,
+      itemId,
       requesterId,
       requesterName,
       swapType,
@@ -17,31 +18,35 @@ const createSwapRequest = async (req, res) => {
     } = req.body;
 
     //validate required fields
-    if (!postId || !requesterId || !requesterName || !swapType) {
+    if (!itemId || !requesterId || !requesterName || !swapType) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
 
     //convet stringids to objectids
-    const postObjectId = new mongoose.Types.ObjectId(postId);
+    const itemObjectId = new mongoose.Types.ObjectId(itemId);
     const requesterObjectId = new mongoose.Types.ObjectId(requesterId);
 
     //get post details
-    const post = await Post.findById(postObjectId);
-    if (!post)
-      return res.status(404).json({ success: false, message: "Post not found" });
-    if (post.status !== "available")
+    const item = await Item.findById(itemObjectId);
+    if (!item)
+      return res.status(404).json({ success: false, message: "Item not found" });
+    if (!item.isActive)
       return res.status(404).json({ success: false, message: "Item not available" });
-    if (post.ownerId.toString() === requesterId)
+    if (item.ownerId.toString() === requesterId)
       return res.status(404).json({ success: false, message: "Cannot swap your own item" });
+
+    // /////Get owner name from User model
+    const owner = await User.findById(item.ownerId);
+    const ownerName = owner ? owner.username : "Unknown";
 
     //prep requested item
     const requestedItem = {
-      postId: postObjectId,
-      name: post.itemName, //want to change
-      ownerName: post.ownerName,
-      ownerId: post.ownerId,
-      condition: post.condition,
-      description: post.description || "",
+      itemId: itemObjectId,
+      name: item.title, //want to change
+      ownerName: ownerName,
+      ownerId: item.ownerId,
+      condition: "Good",                      // ask kasun for this
+      description: item.description || "",
     };
 
     //process 4to(want to change)
@@ -80,8 +85,8 @@ const createSwapRequest = async (req, res) => {
     const swap = new Swap(swapData);
     await swap.save();
 
-    post.status = "pending";
-    await post.save();
+    item.isActive = false;                 ///////////// item.isActive = "pending"; 
+    await item.save();
 
     res.status(201).json({
       success: true,
@@ -155,25 +160,24 @@ const updateSwapStatus = async (req, res) => {
     await swap.save();
 
     //update associated post status
-    const post = await Post.findById(swap.requestedItem.postId);
-    if (post) {
+    const item = await Item.findById(swap.requestedItem.itemId);
+    if (item) {
       if (req.body.status === "accepted") {
-        post.status = "swapped";
-        console.log(`Post ${post._id} status updated to:swapped`); //post id want to change
-      } else if (
-        req.body.status === "rejected" ||req.body.status === "cancelled"
-      ) {
+        /////post.status = "swapped";
+        console.log(`Item ${item._id} remains inactive`); //post id want to change
+      } else if (req.body.status === "rejected" ||req.body.status === "cancelled") 
+        {
         //only make available again if it was pending
         if (oldStatus === "pending") {
-          post.status = "available";
-          console.log(`Post ${post._id} status updated to:available`); //post id wnts to chnage
+          item.isActive = true;
+          await item.save();
+          console.log(`Item ${item._id} is now available`);
         }
       }
-      await post.save();
     }
     res.json({
       success: true,message: "Status Updated",
-      data: { swap: swap, post: post },
+      data: { swap: swap},  ////data: { swap: swap, post: post },
     });
   } catch (error) {
     res.status(500).json({success:false,message:error.message});
@@ -189,12 +193,20 @@ const cancelSwapRequest=async(req,res)=>{
         await swap.save();
 
         //make item avilable again
-        const post=await Post.findById(swap.requestedItem.postId);
-        if(post&&post.status==='pending'){
-            post.status='available';
+       /* const item=await Item.findById(swap.requestedItem.postId);
+        if(item&&post.status==='pending'){
+            item.status='available';
             await post.save();
             console.log(`Post ${post._id} status updated to:available`);
-        }
+        } */
+        
+        const item = await Item.findById(swap.requestedItem.itemId); // FIXED: using Item, not Post
+        if (item && !item.isActive) {
+          item.isActive = true;
+          await item.save();
+          console.log(`Item ${item._id} is now available`);
+    }
+
         res.json({success:true,message:'Swap cancelled',data:swap});
     }catch(error){
         res.status(500).json({success:false,message:error.message});

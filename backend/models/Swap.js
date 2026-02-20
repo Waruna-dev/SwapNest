@@ -37,7 +37,7 @@ const swapSchema = new mongoose.Schema({
   requestedItem: {
     postId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Post",                                   //want to change
+      ref: "Item",                                   //want to change
       require: true,
     },
     name: {
