@@ -6,6 +6,7 @@ const itemSchema = new mongoose.Schema(
     description: { type: String },
     price: { type: Number, required: true },
     category: { type: String, required: true },
+    //store up to 5 images as an array of strings (URLs)
     image: { type: String },
     contact: { type: String },
     ownerId: { type: String, required: true },

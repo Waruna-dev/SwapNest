@@ -8,7 +8,6 @@ export const createItem = async (req, res) => {
       description,
       price,
       category,
-      image,
       contact,
       lat,
       lng,
@@ -48,16 +47,27 @@ export const createItem = async (req, res) => {
     if (Number.isNaN(priceNum) || priceNum < 0) {
       return res.status(400).json({ message: "Invalid price" });
     }
-    //
+
+    // ✅ Cloudinary uploaded images: req.files
+    const imageUrls = (req.files || []).map((f) => f.path);
+
+    // optional: require at least 1 image
+    // if (imageUrls.length === 0) {
+    //   return res.status(400).json({ message: "At least 1 image required" });
+    // }
+
     const newItem = await Item.create({
       title,
       description,
       price: priceNum,
       category,
-      image,
       contact,
       mode,
       ownerId: ownerId || "anonymous",
+
+      // ✅ save multiple images
+      images: imageUrls,
+
       location: {
         type: "Point",
         coordinates: [lngNum, latNum],
@@ -99,6 +109,7 @@ export const updateItem = async (req, res) => {
 
     const payload = { ...req.body };
 
+    // price validate
     if (payload.price !== undefined) {
       const priceNum = Number(payload.price);
       if (Number.isNaN(priceNum) || priceNum < 0) {
@@ -107,6 +118,7 @@ export const updateItem = async (req, res) => {
       payload.price = priceNum;
     }
 
+    // location update validate
     const hasLat =
       payload.lat !== undefined && payload.lat !== null && payload.lat !== "";
     const hasLng =
@@ -137,12 +149,26 @@ export const updateItem = async (req, res) => {
       };
     }
 
+    // ✅ handle new uploaded images (optional)
+    const newImageUrls = (req.files || []).map((f) => f.path);
+
+    // Option A (recommended): APPEND new images to existing (limit max 5)
+    if (newImageUrls.length > 0) {
+      const combined = [...(item.images || []), ...newImageUrls].slice(0, 5);
+      item.images = combined;
+    }
+
+    // If you want REPLACE instead of APPEND, use this instead:
+    // if (newImageUrls.length > 0) item.images = newImageUrls.slice(0, 5);
+
+    // cleanup lat/lng from payload (not stored directly)
     delete payload.lat;
     delete payload.lng;
 
+    // assign other fields
     Object.assign(item, payload);
-    const updated = await item.save();
 
+    const updated = await item.save();
     res.json(updated);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -207,25 +233,3 @@ export const getNearbyItems = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
-// export  function   getAllItems (req, res)  {
-//   res.status(200).send('Get all items');
-// }
-
-// export  function   createItem (req, res)  {
-//   res.status(201).send('Item created');
-// }
-
-// export  function   getItemById (req, res)  {
-//   const { id } = req.params;
-//   res.status(200).json({ message: `item details for id ${id}` });
-// }
-
-// export  function   updateItem(req, res)  {
-//   res.status(200).json({ message: 'item updated' });
-
-// }
-
-// export  function   deleteItem(req, res){
-//   res.status(200).json({ message: 'item deleted' });
-// }
