@@ -1,4 +1,5 @@
 import Item from "../models/Item.js";
+import mongoose from "mongoose";
 import {
   uploadBufferToCloudinary,
   deleteFromCloudinary,
@@ -64,6 +65,11 @@ const buildSort = (sort, hasTextSearch) => {
       return { createdAt: -1 };
   }
 };
+
+const byItemIdentifier = (identifier) =>
+  mongoose.Types.ObjectId.isValid(identifier)
+    ? { $or: [{ _id: identifier }, { itemId: identifier }] }
+    : { itemId: identifier };
 
 /** ---------------------------
  * CREATE (POST) /api/items
@@ -153,6 +159,7 @@ export const getItems = async (req, res, next) => {
     const sort = buildSort(req.query.sort, hasTextSearch);
 
     const projection = {
+      itemId: 1,
       title: 1,
       description: 1,
       price: 1,
@@ -193,7 +200,7 @@ export const getItemById = async (req, res, next) => {
   try {
     const incViews = String(req.query.incViews || "false") === "true";
 
-    const item = await Item.findById(req.params.id);
+    const item = await Item.findOne(byItemIdentifier(req.params.id));
     if (!item) return res.status(404).json({ message: "Item not found" });
 
     if (incViews) {
@@ -220,7 +227,7 @@ export const getItemById = async (req, res, next) => {
  * -------------------------- */
 export const updateItem = async (req, res, next) => {
   try {
-    const item = await Item.findById(req.params.id);
+    const item = await Item.findOne(byItemIdentifier(req.params.id));
     if (!item) return res.status(404).json({ message: "Item not found" });
 
     // Update basic fields (only if provided)
@@ -313,7 +320,7 @@ export const deleteItem = async (req, res, next) => {
   try {
     const hard = String(req.query.hard || "false") === "true";
 
-    const item = await Item.findById(req.params.id);
+    const item = await Item.findOne(byItemIdentifier(req.params.id));
     if (!item) return res.status(404).json({ message: "Item not found" });
 
     if (!hard) {
@@ -321,7 +328,7 @@ export const deleteItem = async (req, res, next) => {
       await item.save();
       return res.json({
         message: "Item removed (soft delete)",
-        itemId: item._id,
+        itemId: item.itemId,
       });
     }
 
@@ -331,7 +338,7 @@ export const deleteItem = async (req, res, next) => {
     }
     await item.deleteOne();
 
-    res.json({ message: "Item deleted permanently", itemId: req.params.id });
+    res.json({ message: "Item deleted permanently", itemId: item.itemId });
   } catch (err) {
     next(err);
   }
@@ -373,6 +380,7 @@ export const getNearbyItems = async (req, res, next) => {
       { $limit: limit },
       {
         $project: {
+          itemId: 1,
           title: 1,
           price: 1,
           category: 1,
@@ -455,7 +463,7 @@ export const getTrendingItems = async (req, res, next) => {
 
     const items = await Item.find(
       { isActive: true, createdAt: { $gte: since } },
-      { title: 1, price: 1, category: 1, coverImage: 1, views: 1, mode: 1 },
+      { itemId: 1, title: 1, price: 1, category: 1, coverImage: 1, views: 1, mode: 1 },
     )
       .sort({ views: -1 })
       .limit(limit)
@@ -474,7 +482,7 @@ export const getSimilarItems = async (req, res, next) => {
   try {
     const limit = clamp(toInt(req.query.limit, 6), 1, 20);
 
-    const item = await Item.findById(req.params.id).lean();
+    const item = await Item.findOne(byItemIdentifier(req.params.id)).lean();
     if (!item) return res.status(404).json({ message: "Item not found" });
 
     const items = await Item.find(

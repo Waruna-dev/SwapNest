@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { randomUUID } from "crypto";
 
 const imageSchema = new mongoose.Schema(
   {
@@ -33,6 +34,14 @@ const pointSchema = new mongoose.Schema(
 
 const itemSchema = new mongoose.Schema(
   {
+    itemId: {
+      type: String,
+      default: () => `itm_${randomUUID().replace(/-/g, "").slice(0, 12)}`,
+      index: true,
+      unique: true,
+      sparse: true,
+      immutable: true,
+    },
     title: { type: String, required: true, trim: true },
     description: { type: String, default: "" },
     price: { type: Number, default: 0, min: 0 },
