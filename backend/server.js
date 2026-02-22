@@ -1,27 +1,37 @@
-import express from "express";
-import dotenv from "dotenv";
-import connectDB from "./config/db.js";
-
+import express from 'express';
+import dotenv from 'dotenv';
+// In ES modules, dotenv.config() needs to be called after import
 dotenv.config();
 
-// Default Mongo URI if not provided
-process.env.MONGO_URI =
-  process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ecoswap";
+import cors from 'cors';
+import connectDB from './config/db.js';
+import { errorHandler } from './middlewares/errorMiddleware.js';
 
-// Connect to Database
+// Important: When importing default exports like the router, we can name it whatever we want!
+import userRoutes from './routes/userRoutes.js';
+
+const port = process.env.PORT || 5000;
+
+// Initialize MongoDB connection
 connectDB();
 
 const app = express();
 
-// Use 5001 as default port
-const PORT = process.env.PORT || 5001;
+// --- GLOBAL MIDDLEWARE ---
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
-app.get("/", (req, res) => {
-  res.send("API running...");
+// --- ROUTES ---
+// Mount the user routes
+app.use('/api/users', userRoutes);
+
+app.get('/', (req, res) => {
+    res.status(200).json({ message: 'SwapNest API is running' });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+// --- ERROR HANDLING ---
+app.use(errorHandler);
 
-// Routes
+// Start the Express server
+app.listen(port, () => console.log(`Server started on port ${port}`));
