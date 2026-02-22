@@ -1,8 +1,7 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 /**
  * @desc Mongoose schema for the SwapNest User entity
- * Defines the structure, data types, and validation rules for MongoDB
  */
 const UserSchema = new mongoose.Schema({
     username: {
@@ -21,20 +20,19 @@ const UserSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['user', 'admin'], // Restricts the role to only these two options
+        enum: ['user', 'admin'], 
         default: 'user'
     },
     location: {
         type: String,
-        default: '' // Optional field for local thrift/swap filtering
+        default: '' 
     },
     profilePic: {
         type: String,
-        default: '' // Stores the Cloudinary image URL
+        default: '' 
     }
 }, {
-    // Automatically creates 'createdAt' and 'updatedAt' timestamp fields
     timestamps: true
 });
 
-module.exports = mongoose.model('User', UserSchema);
+export default mongoose.model('User', UserSchema);

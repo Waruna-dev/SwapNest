@@ -1,9 +1,5 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
-/**
- * @desc    Asynchronously connects to the MongoDB Atlas database
- * @returns {Promise<void>}
- */
 const connectDB = async () => {
     try {
         // Attempt to connect using the URI from the .env file
@@ -16,4 +12,4 @@ const connectDB = async () => {
     }
 };
 
-module.exports = connectDB;
+export default connectDB;
