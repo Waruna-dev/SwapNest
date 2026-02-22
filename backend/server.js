@@ -7,7 +7,6 @@ import { fileURLToPath } from "url";
 
 import connectDB from "./config/db.js";
 import itemRoutes from "./routes/itemRoutes.js";
-import userRoutes from "./routes/userRoutes.js";
 import { errorHandler } from "./middlewares/errorMiddleware.js";
 
 // Fix for __dirname in ES modules
@@ -33,12 +32,12 @@ app.use(express.urlencoded({ extended: false }));
 app.use(morgan("dev"));
 
 // Routes
-app.use("/api/users", userRoutes);
+
 app.use("/api/items", itemRoutes);
 
 // Test Route
 app.get("/", (req, res) => {
-  res.send("EcoSwap API is running...");
+  res.send("SwapNest API is running...");
 });
 
 // Error Handler
@@ -50,4 +49,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(` Server running on port ${PORT}`);
 });
-
