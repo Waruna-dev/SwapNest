@@ -1,5 +1,5 @@
 import express from "express";
-import upload from "../middlewares/item.imgMiddleware.js";
+import uploadImages from "../middlewares/item.imgMiddleware.js";
 import {
   createItem,
   getItems,
@@ -12,12 +12,12 @@ import {
 const router = express.Router();
 
 // CREATE ITEM
-router.post("/", upload.array("images", 5), createItem);
+router.post("/", uploadImages, createItem);
 
 router.get("/nearby", getNearbyItems);
 router.get("/", getItems);
 router.get("/:id", getItemById);
-router.put("/:id", updateItem);
+router.put("/:id", uploadImages, updateItem);
 router.delete("/:id", deleteItem);
 
 export default router;

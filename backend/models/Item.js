@@ -6,7 +6,16 @@ const itemSchema = new mongoose.Schema(
     description: { type: String },
     price: { type: Number, required: true },
     category: { type: String, required: true },
-    //store up to 5 images as an array of strings (URLs)
+    // Store up to 5 Cloudinary URLs.
+    images: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: (arr) => arr.length <= 5,
+        message: "Maximum 5 images allowed",
+      },
+    },
+    // Backward compatibility for older clients expecting a single image.
     image: { type: String },
     contact: { type: String },
     ownerId: { type: String, required: true },
@@ -35,6 +44,15 @@ const itemSchema = new mongoose.Schema(
 );
 
 itemSchema.index({ location: "2dsphere" });
+
+itemSchema.pre("save", function syncPrimaryImage(next) {
+  if (Array.isArray(this.images) && this.images.length > 0) {
+    this.image = this.images[0];
+  } else {
+    this.image = undefined;
+  }
+  next();
+});
 
 const Item = mongoose.model("Item", itemSchema);
 export default Item;

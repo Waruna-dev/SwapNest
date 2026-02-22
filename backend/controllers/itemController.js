@@ -1,5 +1,20 @@
 import Item from "../models/Item.js";
 
+const normalizeItemImages = (itemDoc) => {
+  const item = itemDoc?.toObject ? itemDoc.toObject() : itemDoc;
+  const images = Array.isArray(item.images)
+    ? item.images
+    : item.image
+      ? [item.image]
+      : [];
+
+  return {
+    ...item,
+    images: images.slice(0, 5),
+    image: images[0] || null,
+  };
+};
+
 // CREATE ITEM
 export const createItem = async (req, res) => {
   try {
@@ -74,7 +89,7 @@ export const createItem = async (req, res) => {
       },
     });
 
-    res.status(201).json(newItem);
+    res.status(201).json(normalizeItemImages(newItem));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -84,7 +99,7 @@ export const createItem = async (req, res) => {
 export const getItems = async (req, res) => {
   try {
     const items = await Item.find().sort({ createdAt: -1 });
-    res.json(items);
+    res.json(items.map(normalizeItemImages));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -95,7 +110,7 @@ export const getItemById = async (req, res) => {
   try {
     const item = await Item.findById(req.params.id);
     if (!item) return res.status(404).json({ message: "Item not found" });
-    res.json(item);
+    res.json(normalizeItemImages(item));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -169,7 +184,7 @@ export const updateItem = async (req, res) => {
     Object.assign(item, payload);
 
     const updated = await item.save();
-    res.json(updated);
+    res.json(normalizeItemImages(updated));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -228,7 +243,7 @@ export const getNearbyItems = async (req, res) => {
       },
     });
 
-    res.json(items);
+    res.json(items.map(normalizeItemImages));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
