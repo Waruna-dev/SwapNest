@@ -45,13 +45,12 @@ const itemSchema = new mongoose.Schema(
 
 itemSchema.index({ location: "2dsphere" });
 
-itemSchema.pre("save", function syncPrimaryImage(next) {
+itemSchema.pre("save", function syncPrimaryImage() {
   if (Array.isArray(this.images) && this.images.length > 0) {
     this.image = this.images[0];
   } else {
     this.image = undefined;
   }
-  next();
 });
 
 const Item = mongoose.model("Item", itemSchema);

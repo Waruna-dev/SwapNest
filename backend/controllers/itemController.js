@@ -1,5 +1,7 @@
 import Item from "../models/Item.js";
 
+const ALLOWED_MODES = ["SELL", "SWAP", "DONATE"];
+
 const normalizeItemImages = (itemDoc) => {
   const item = itemDoc?.toObject ? itemDoc.toObject() : itemDoc;
   const images = Array.isArray(item.images)
@@ -29,6 +31,9 @@ export const createItem = async (req, res) => {
       mode,
       ownerId,
     } = req.body;
+
+    const normalizedMode =
+      typeof mode === "string" ? mode.trim().toUpperCase() : undefined;
 
     const hasLat = lat !== undefined && lat !== null && lat !== "";
     const hasLng = lng !== undefined && lng !== null && lng !== "";
@@ -63,6 +68,12 @@ export const createItem = async (req, res) => {
       return res.status(400).json({ message: "Invalid price" });
     }
 
+    if (normalizedMode && !ALLOWED_MODES.includes(normalizedMode)) {
+      return res.status(400).json({
+        message: `Invalid mode. Allowed values: ${ALLOWED_MODES.join(", ")}`,
+      });
+    }
+
     // ✅ Cloudinary uploaded images: req.files
     const imageUrls = (req.files || []).map((f) => f.path);
 
@@ -77,7 +88,7 @@ export const createItem = async (req, res) => {
       price: priceNum,
       category,
       contact,
-      mode,
+      mode: normalizedMode,
       ownerId: ownerId || "anonymous",
 
       // ✅ save multiple images
@@ -91,6 +102,9 @@ export const createItem = async (req, res) => {
 
     res.status(201).json(normalizeItemImages(newItem));
   } catch (error) {
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res.status(400).json({ message: error.message });
+    }
     res.status(500).json({ message: error.message });
   }
 };
@@ -131,6 +145,22 @@ export const updateItem = async (req, res) => {
         return res.status(400).json({ message: "Invalid price" });
       }
       payload.price = priceNum;
+    }
+
+    if (payload.mode !== undefined) {
+      if (typeof payload.mode !== "string") {
+        return res.status(400).json({
+          message: `Invalid mode. Allowed values: ${ALLOWED_MODES.join(", ")}`,
+        });
+      }
+
+      const normalizedMode = payload.mode.trim().toUpperCase();
+      if (!ALLOWED_MODES.includes(normalizedMode)) {
+        return res.status(400).json({
+          message: `Invalid mode. Allowed values: ${ALLOWED_MODES.join(", ")}`,
+        });
+      }
+      payload.mode = normalizedMode;
     }
 
     // location update validate
@@ -186,6 +216,9 @@ export const updateItem = async (req, res) => {
     const updated = await item.save();
     res.json(normalizeItemImages(updated));
   } catch (error) {
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res.status(400).json({ message: error.message });
+    }
     res.status(500).json({ message: error.message });
   }
 };
