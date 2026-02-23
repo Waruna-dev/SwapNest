@@ -1,6 +1,6 @@
-import { v2 as cloudinary } from 'cloudinary';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
-import multer from 'multer';
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import multer from "multer";
 
 // Configure Cloudinary with your .env credentials
 cloudinary.config({
@@ -13,8 +13,8 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'swapnest_profiles', // Cloudinary folder name
-    allowed_formats: ['jpg', 'png', 'jpeg'],
+    folder: "swapnest_profiles", // Cloudinary folder name
+    allowed_formats: ["jpg", "png", "jpeg"],
   },
 });
 
