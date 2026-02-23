@@ -1,7 +1,7 @@
-const { body, validationResult } = require('express-validator');
+import { body, validationResult } from 'express-validator';
 
 // rules for creating a swap req
-const validateSwapRequest = [
+export const validateSwapRequest = [
     body('itemId')
         .notEmpty().withMessage('Item ID is required')
         .isMongoId().withMessage('Invalid item ID format'),
@@ -62,7 +62,7 @@ const validateSwapRequest = [
 ];
 
 // Validation for status update
-const validateStatusUpdate = [
+export const validateStatusUpdate = [
     body('status')
         .notEmpty().withMessage('Status is required')
         .isIn(['accepted', 'rejected', 'completed', 'cancelled']).withMessage('Invalid status'),
@@ -80,8 +80,3 @@ const validateStatusUpdate = [
         next();
     }
 ];
-
-module.exports = {
-    validateSwapRequest,
-    validateStatusUpdate
-};

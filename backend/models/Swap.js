@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const itemPhotoSchema = new mongoose.Schema({
   url: {
@@ -150,6 +150,6 @@ const swapSchema = new mongoose.Schema({
         this.requestId=`SWP-${year}${month}${day}-${random}`;                        ///auto gen like (SWP-260215-1234)
     }
   });
+const Swap = mongoose.model("Swap", swapSchema);
 
-  module.exports=mongoose.model("Swap",swapSchema);
-
+export default Swap;

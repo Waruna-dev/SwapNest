@@ -1,7 +1,7 @@
-const Swap = require("../models/Swap");
-const Item = require("../models/Item"); //-------add the item listning model part(Post want to change as item det)
-const User = require("../models/User");
-const mongoose = require("mongoose");
+import Swap from "../models/Swap.js";
+import  Item  from "../models/Item.js";
+import  User  from "../models/User.js";
+import mongoose from "mongoose";
 
 //create swap req
 const createSwapRequest = async (req, res) => {
@@ -235,12 +235,12 @@ const getAllSwaps=async(req,res)=>{
 }
 
 
-module.exports = {
-  createSwapRequest,
-  getUserSwaps,
-  getPendingRequests,
-  getSwapById,
-  updateSwapStatus,
-  cancelSwapRequest,
-  getAllSwaps,
+export {
+    createSwapRequest,
+    getUserSwaps,
+    getPendingRequests,
+    getSwapById,
+    updateSwapStatus,
+    cancelSwapRequest,
+    getAllSwaps
 };

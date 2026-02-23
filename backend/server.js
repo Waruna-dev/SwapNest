@@ -1,22 +1,21 @@
-const express=require('express');
-const mongoose=require('mongoose');
-const cors=require('cors');
-const morgan=require('morgan');
-//const helmet=require('helmet');  --- not yet installed
-const path=require('path');
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import morgan from 'morgan';
+import path from 'path';
+// import helmet from 'helmet';  //
 
+import dotenv from 'dotenv';
+dotenv.config();
 
-const connectDB=require('./config/db')
-require('dotenv').config();
+import connectDB from './config/db.js';
+import swapRoutes from './routes/swapRoutes.js';
+import itemRoutes from './routes/itemRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 
 const app=express();
-const swapRoutes = require('./routers/swapRoutes');
-const itemRoutes = require('./routers/ItemRoutes');
-const userRoutes = require('./routers/userRoutes');
-
 
 connectDB();
-
 
 app.use(cors());
 app.use(express.json());
@@ -24,7 +23,7 @@ app.use(express.urlencoded({extended: true}));
 app.use(morgan('dev'));
 
 app.use('/api/swaps', swapRoutes); 
-//app.use("/api/items", itemRoutes);
+app.use("/api/items", itemRoutes);
 app.use('/api/users', userRoutes);
 
 //404

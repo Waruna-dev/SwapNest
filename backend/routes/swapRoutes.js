@@ -1,20 +1,20 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { uploadSwapPhotos } = require('../middleware/upload');
-const { validateSwapRequest, validateStatusUpdate } = require('../middleware/validation');
-const {
-    createSwapRequest,
-    getUserSwaps,
-    getSwapById,
-    updateSwapStatus,
-    cancelSwapRequest,
-    getPendingRequests,
-    getAllSwaps
-} = require('../controllers/swapController');
+import { uploadSwapPhotos } from '../middlewares/upload.js';
+import { validateSwapRequest, validateStatusUpdate } from '../middlewares/validation.js';
+import {
+  createSwapRequest,
+  getUserSwaps,
+  getSwapById,
+  updateSwapStatus,
+  cancelSwapRequest,
+  getPendingRequests,
+  getAllSwaps
+} from '../controllers/swapController.js';
 
-console.log("createSwapRequest:", typeof createSwapRequest);
-console.log("getUserSwaps:", typeof getUserSwaps);
-console.log("getSwapById:", typeof getSwapById);
+//console.log("createSwapRequest:", typeof createSwapRequest);
+//console.log("getUserSwaps:", typeof getUserSwaps);
+//console.log("getSwapById:", typeof getSwapById);
 
 router.post('/', uploadSwapPhotos, validateSwapRequest, createSwapRequest);
 
@@ -36,4 +36,4 @@ router.put('/:id/status', validateStatusUpdate, updateSwapStatus);
 //cancel req-requester
 router.put('/:id/cancel', cancelSwapRequest);
 
-module.exports = router;
+export default router;

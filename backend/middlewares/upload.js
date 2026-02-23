@@ -1,6 +1,6 @@
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 
 const uploadDir = 'uploads/swaps';
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
@@ -21,7 +21,7 @@ const upload = multer({
   fileFilter 
 });
 
-const handleUpload = (req, res, next) => {
+export const uploadSwapPhotos = (req, res, next) => {
   upload.array('photos', 5)(req, res, err => {
     if (!err) return next();
     const msg = err.code === 'LIMIT_FILE_SIZE' ? 'Max 5MB' :
@@ -29,5 +29,3 @@ const handleUpload = (req, res, next) => {
     res.status(400).json({ success: false, message: msg });
   });
 };
-
-module.exports = { uploadSwapPhotos: handleUpload };
