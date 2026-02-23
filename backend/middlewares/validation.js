@@ -1,14 +1,13 @@
 import { body, validationResult } from 'express-validator';
 
-// rules for creating a swap req
 export const validateSwapRequest = [
     body('itemId')
         .notEmpty().withMessage('Item ID is required')
-        .isMongoId().withMessage('Invalid item ID format'),
+        .isString().withMessage('Invalid item ID'),
     
     body('requesterId')
         .notEmpty().withMessage('Requester ID is required')
-        .isMongoId().withMessage('Invalid requester ID format'),
+        .isString().withMessage('Invalid requester ID'),
     
     body('requesterName')
         .notEmpty().withMessage('Requester name is required')
@@ -18,39 +17,41 @@ export const validateSwapRequest = [
         .notEmpty().withMessage('Swap type is required')
         .isIn(['item-for-item', 'swap-with-cash']).withMessage('Invalid swap type'),
     
-    body('offeredItem')
-        .if(body('swapType').equals('item-for-item'))
-        .notEmpty().withMessage('Offered item is required for item-for-item swap'),
-    
-    body('offeredItem.name')
-        .if(body('swapType').equals('item-for-item'))
-        .notEmpty().withMessage('Offered item name is required'),
-    
-    body('offeredItem.condition')
-        .if(body('swapType').equals('item-for-item'))
-        .notEmpty().withMessage('Offered item condition is required')
-        .isIn(['Like New', 'Good', 'Fair', 'Poor']).withMessage('Invalid condition'),
-    
     body('cashDetails.amount')
         .if(body('swapType').equals('swap-with-cash'))
-        .notEmpty().withMessage('Cash amount is required for swap with cash')
-        .isNumeric().withMessage('Cash amount must be a number')
-        .isFloat({ min: 0 }).withMessage('Cash amount must be positive'),
+        .optional()
+        .custom(value => {
+            const num = parseFloat(value);
+            if (isNaN(num) || num < 0) {
+                throw new Error('Cash amount must be a positive number');
+            }
+            return true;
+        }),
     
     body('cashDetails.whoPays')
         .if(body('swapType').equals('swap-with-cash'))
-        .notEmpty().withMessage('Who pays option is required')
+        .optional()
         .isIn(['i-pay-owner', 'owner-pays-me']).withMessage('Invalid payment option'),
     
-    body('messageToOwner')
+    body('offeredItem.name')
+        .if(body('swapType').equals('item-for-item'))
         .optional()
-        .isString().withMessage('Message must be a string')
-        .isLength({ max: 500 }).withMessage('Message cannot exceed 500 characters'),
+        .isString(),
+    
+    body('offeredItem.condition')
+        .if(body('swapType').equals('item-for-item'))
+        .optional()
+        .isIn(['Like New', 'Good', 'Fair', 'Poor']),
     
     body('agreementAccepted')
         .notEmpty().withMessage('You must accept the agreement')
-        .isBoolean().withMessage('Agreement must be a boolean')
-        .custom(value => value === true).withMessage('You must accept the agreement terms'),
+        .custom(value => {
+            const accepted = value === true || value === 'true' || value === '1';
+            if (!accepted) {
+                throw new Error('You must accept the agreement terms');
+            }
+            return true;
+        }),
 
     (req, res, next) => {
         const errors = validationResult(req);
@@ -61,7 +62,6 @@ export const validateSwapRequest = [
     }
 ];
 
-// Validation for status update
 export const validateStatusUpdate = [
     body('status')
         .notEmpty().withMessage('Status is required')

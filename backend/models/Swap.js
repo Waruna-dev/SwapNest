@@ -36,7 +36,7 @@ const swapSchema = new mongoose.Schema({
   //wht user A is giving(get original item listning)
   requestedItem: {
     itemId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "Item",                                   //want to change
       require: true,
     },
@@ -49,7 +49,7 @@ const swapSchema = new mongoose.Schema({
       required: true,
     },
     ownerId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "User", //want to change
       required: true,
     },
@@ -62,7 +62,7 @@ const swapSchema = new mongoose.Schema({
 
   //the one making req(user B)- id & name
   requesterId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: "User",
     require: true,
   },

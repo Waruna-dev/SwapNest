@@ -22,51 +22,59 @@ const createSwapRequest = async (req, res) => {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
 
-    //convet stringids to objectids
-    const itemObjectId = new mongoose.Types.ObjectId(itemId);
-    const requesterObjectId = new mongoose.Types.ObjectId(requesterId);
-
-    //get post details
-    const item = await Item.findById(itemObjectId);
+    const item = await Item.findById(itemId);  // itemId is already a valid MongoDB ID string
     if (!item)
       return res.status(404).json({ success: false, message: "Item not found" });
+    
     if (!item.isActive)
-      return res.status(404).json({ success: false, message: "Item not available" });
+      return res.status(400).json({ success: false, message: "Item not available" });
+    
     if (item.ownerId.toString() === requesterId)
-      return res.status(404).json({ success: false, message: "Cannot swap your own item" });
+      return res.status(400).json({ success: false, message: "Cannot swap your own item" });
 
-    // /////Get owner name from User model
-    const owner = await User.findById(item.ownerId);
-    const ownerName = owner ? owner.username : "Unknown";
+    // Check mode compatibility
+    if (item.mode === "SELL" && swapType !== "swap-with-cash") {
+      return res.status(400).json({ 
+        success: false, 
+        message: "This item is for sale only. Please use swap-with-cash." 
+      });
+    }
 
-    //prep requested item
-    const requestedItem = {
-      itemId: itemObjectId,
-      name: item.title, //want to change
-      ownerName: ownerName,
-      ownerId: item.ownerId,
-      condition: "Good",                      // ask kasun for this
-      description: item.description || "",
-    };
+    let ownerName = "Unknown";
+    try {
+      // Try to find user - if it fails, just use "Unknown"
+      const owner = await User.findById(item.ownerId);
+      if (owner) ownerName = owner.username;
+    } catch (userError) {
+      console.log("User lookup failed, using default name");
+    }
 
-    //process 4to(want to change)
+    // Process photos
     const photos = req.files?.map((file) => ({
       url: `/uploads/swaps/${file.filename}`,
       filename: file.filename,
-    })) ||[];                                  //check
+    })) || [];
 
-    //build swap data
-    const swapData = {
-      requestedItem,
-      requesterId: requesterObjectId,
-      requesterName,
-      swapType,
-      agreementAccepted:
-        agreementAccepted === true || agreementAccepted === "true",
-      messageToOwner: messageToOwner || "", //check
+    const requestedItem = {
+      itemId: item._id,  // Use the MongoDB _id directly
+      name: item.title,
+      ownerName: ownerName,
+      ownerId: item.ownerId,  // Keep as string
+      condition: item.condition || "Good",
+      description: item.description || "",
     };
 
-    //add conditionall fields
+    // Build swap data - use requesterId as string, not converted
+    const swapData = {
+      requestedItem,
+      requesterId: requesterId,  // Use string directly, not requesterObjectId
+      requesterName,
+      swapType,
+      agreementAccepted: agreementAccepted === true || agreementAccepted === "true",
+      messageToOwner: messageToOwner || "",
+    };
+
+    // Add conditional fields
     if (swapType === "item-for-item" && offeredItem) {
       swapData.offeredItem = {
         name: offeredItem.name || offeredItem,
@@ -74,41 +82,31 @@ const createSwapRequest = async (req, res) => {
         description: offeredItem.description || "",
         photos
       };
-    }else if(swapType==='swap-with-cash'&&cashDetails){
-      swapData.cashDetails={
-        amount:parseFloat(cashDetails.amount)|| 0,
-        whoPays:cashDetails.whoPays
+    } else if (swapType === 'swap-with-cash' && cashDetails) {
+      swapData.cashDetails = {
+        amount: parseFloat(cashDetails.amount) || 0,
+        whoPays: cashDetails.whoPays
       };
     }
 
-    //save swap & update post
+    // Save swap
     const swap = new Swap(swapData);
     await swap.save();
 
-    item.isActive = false;                 ///////////// item.isActive = "pending"; 
+    // Mark item as inactive
+    item.isActive = false;
     await item.save();
 
     res.status(201).json({
       success: true,
       message: "Swap request created",
-      data: {
-        requestId: swap.requestId,
-        id: swap._id,
-        status: swap.status,
-        createdAt: swap.createdAt,
-        requestedItem: swap.requestedItem,
-        swapType: swap.swapType,
-        offeredItem: swap.offeredItem,
-        cashDetails: swap.cashDetails,
-        messageToOwner: swap.messageToOwner,
-      },
+      data: swap,
     });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 //get user swaps-user
 const getUserSwaps = async (req, res) => {
   try {
