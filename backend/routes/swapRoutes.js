@@ -12,7 +12,7 @@ import {
   getAllSwaps
 } from '../controllers/swapController.js';
 
-//  console.log("createSwapRequest:", typeof createSwapRequest);
+
 // console.log("getUserSwaps:", typeof getUserSwaps);
 //console.log("getSwapById:", typeof getSwapById);
 
