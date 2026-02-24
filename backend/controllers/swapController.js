@@ -32,7 +32,7 @@ const createSwapRequest = async (req, res) => {
     if (item.ownerId.toString() === requesterId)
       return res.status(400).json({ success: false, message: "Cannot swap your own item" });
 
-    // Check mode compatibility
+    // Check mode 
     if (item.mode === "SELL" && swapType !== "swap-with-cash") {
       return res.status(400).json({ 
         success: false, 

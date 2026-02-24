@@ -21,7 +21,7 @@ const upload = multer({
   fileFilter 
 });
 
-export const uploadSwapPhotos = (req, res, next) => {
+export const uploadSwapPhotos= (req, res, next) => {
   upload.array('photos', 5)(req, res, err => {
     if (!err) return next();
     const msg = err.code === 'LIMIT_FILE_SIZE' ? 'Max 5MB' :

@@ -46,7 +46,7 @@ export const validateSwapRequest = [
     body('agreementAccepted')
         .notEmpty().withMessage('You must accept the agreement')
         .custom(value => {
-            const accepted = value === true || value === 'true' || value === '1';
+            const accepted= value === true || value === 'true' || value === '1';
             if (!accepted) {
                 throw new Error('You must accept the agreement terms');
             }
