@@ -64,10 +64,10 @@ const createSwapRequest = async (req, res) => {
       description: item.description || "",
     };
 
-    // Build swap data - use requesterId as string, not converted
+    //swap data - use requesterId as string, not converted
     const swapData = {
       requestedItem,
-      requesterId: requesterId,  // Use string directly, not requesterObjectId
+      requesterId: requesterId,  
       requesterName,
       swapType,
       agreementAccepted: agreementAccepted === true || agreementAccepted === "true",
@@ -198,7 +198,7 @@ const cancelSwapRequest=async(req,res)=>{
             console.log(`Post ${post._id} status updated to:available`);
         } */
         
-        const item = await Item.findById(swap.requestedItem.itemId); // FIXED: using Item, not Post
+        const item = await Item.findById(swap.requestedItem.itemId); 
         if (item && !item.isActive) {
           item.isActive = true;
           await item.save();

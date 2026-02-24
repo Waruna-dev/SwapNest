@@ -8,7 +8,7 @@ export const validateSwapRequest = [
     body('requesterId')
         .notEmpty().withMessage('Requester ID is required')
         .isString().withMessage('Invalid requester ID'),
-    
+     
     body('requesterName')
         .notEmpty().withMessage('Requester name is required')
         .isString().withMessage('Requester name must be a string'),
