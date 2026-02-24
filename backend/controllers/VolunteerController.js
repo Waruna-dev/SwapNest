@@ -9,6 +9,7 @@ export async function insertVolunteer(data) {
     return volunteer;
 }
 
+
 /** Get all volunteers */
 export async function getVolunteers(req, res) {
     try {
