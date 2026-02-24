@@ -3,7 +3,7 @@ import  Item  from "../models/Item.js";
 import  User  from "../models/User.js";
 import mongoose from "mongoose";
 
-//create swap req
+//create  swap req
 const createSwapRequest = async (req, res) => {
   try {
     const {
