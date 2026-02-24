@@ -13,7 +13,7 @@ import {
 } from '../controllers/swapController.js';
 
 //  console.log("createSwapRequest:", typeof createSwapRequest);
-//console.log("getUserSwaps:", typeof getUserSwaps);
+// console.log("getUserSwaps:", typeof getUserSwaps);
 //console.log("getSwapById:", typeof getSwapById);
 
 router.post('/', uploadSwapPhotos, validateSwapRequest, createSwapRequest);
