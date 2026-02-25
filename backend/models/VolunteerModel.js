@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const VolunteerSchema = new mongoose.Schema(
+const VolunteerSchema = new mongoose.Schema( 
 	{
 		firstName: { type: String, required: true, trim: true },
 		lastName: { type: String, required: true, trim: true },
