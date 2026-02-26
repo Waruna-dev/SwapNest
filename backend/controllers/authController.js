@@ -8,7 +8,8 @@ const generateToken = (id) => {
 };
 
 const registerUser = asyncHandler(async (req, res) => {
-    const { username, email, password } = req.body;
+    // 1. Extract 'role' from the request body
+    const { username, email, password, role } = req.body;
 
     if (!username || !email || !password) {
         res.status(400);
@@ -24,13 +25,20 @@ const registerUser = asyncHandler(async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const user = await User.create({ username, email, password: hashedPassword });
+    // 2. Pass the role into the database creation
+    const user = await User.create({ 
+        username, 
+        email, 
+        password: hashedPassword,
+        role: role || 'user' // Uses the provided role, or defaults to 'user'
+    });
 
     if (user) {
         res.status(201).json({
             _id: user.id,
             username: user.username,
             email: user.email,
+            role: user.role, // 3. Send the role back in the response
             token: generateToken(user._id),
         });
     } else {
@@ -112,20 +120,20 @@ const updatePassword = asyncHandler(async (req, res) => {
 });
 
 const deleteUser = asyncHandler(async (req, res) => {
-    // req.user.id is securely provided by the protect middleware
-    const user = await User.findById(req.user.id);
+    // 1. Find the user by the ID passed in the URL
+    const user = await User.findById(req.params.id);
 
     if (!user) {
         res.status(404);
         throw new Error('User not found');
     }
 
-    // Delete the user from the MongoDB database
-    await User.findByIdAndDelete(req.user.id);
+    // 2. Delete that specific user from the database
+    await User.findByIdAndDelete(req.params.id);
 
     res.status(200).json({ 
         message: 'User account deleted successfully',
-        id: req.user.id 
+        deletedUserId: req.params.id 
     });
 });
 
