@@ -7,7 +7,8 @@ import {
   loginUser, 
   getMe, 
   updateProfile,
-  updatePassword 
+  updatePassword,
+  deleteUser 
 } from '../controllers/authController.js';
 
 // Import middlewares and configs
@@ -19,5 +20,6 @@ router.post('/login', loginUser);
 router.get('/me', protect, getMe);
 router.put('/profile', protect, upload.single('profileImage'), updateProfile);
 router.put('/password', protect, updatePassword);
+router.delete('/profile', protect, deleteUser);
 
 export default router;
