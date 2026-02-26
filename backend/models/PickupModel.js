@@ -48,14 +48,13 @@ const pickupSchema = new mongoose.Schema(
 );
 
 // Validation: pickup needs address, center needs center name
-pickupSchema.pre("validate", function (next) {
+pickupSchema.pre("validate", function () {
   if (this.method === "pickup" && !this.address) {
     this.invalidate("address", "Address is required for pickup method");
   }
   if (this.method === "center" && !this.center) {
     this.invalidate("center", "Center name is required for center method");
   }
-  next();
 });
 
 export default mongoose.model("Pickup", pickupSchema);
