@@ -1,4 +1,4 @@
-const Pickup = require("../models/PickupModel");
+import Pickup from "../models/PickupModel.js";
 
 // @desc    Create a new pickup / center booking
 // @route   POST /api/pickups
@@ -170,7 +170,7 @@ const deletePickup = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   createPickup,
   getAllPickups,
   getPickupById,

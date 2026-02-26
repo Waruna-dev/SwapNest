@@ -1,12 +1,13 @@
-const express = require("express");
-const router = express.Router();
-const {
+import express from "express";
+import {
   createPickup,
   getAllPickups,
   getPickupById,
   updatePickupStatus,
   deletePickup,
-} = require("../controllers/PickupController");
+} from "../controllers/PickupController.js";
+
+const router = express.Router();
 
 // POST   /api/pickups            → Create new pickup or center booking
 router.post("/", createPickup);
@@ -23,4 +24,4 @@ router.put("/:id/status", updatePickupStatus);
 // DELETE /api/pickups/:id        → Delete a booking
 router.delete("/:id", deletePickup);
 
-module.exports = router;
+export default router;

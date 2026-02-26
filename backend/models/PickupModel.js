@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const pickupSchema = new mongoose.Schema(
   {
@@ -58,4 +58,4 @@ pickupSchema.pre("validate", function (next) {
   next();
 });
 
-module.exports = mongoose.model("Pickup", pickupSchema);
+export default mongoose.model("Pickup", pickupSchema);
