@@ -3,7 +3,7 @@
 ## ♻️ A Web-Based Local Thrift & Swap Platform for Sustainable Cities
 
 ---
-<img width="1536" height="1024" alt="image" src="https://github.com/user-attachments/assets/408aa262-f00d-44b7-a1f7-29afb39f3ec2" />
+
 
 ## 🌆 Project Theme
 
