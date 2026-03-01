@@ -20,7 +20,7 @@ const offeredItemSchema = new mongoose.Schema({
   },
   condition: {
     type: String,
-    enum: ["like New", "Good", "Fair", "Poor"],
+
     required: true,
   },
   photos: [itemPhotoSchema],
@@ -55,6 +55,7 @@ const swapSchema = new mongoose.Schema({
     },
     condition: {
       type: String,
+      
       required: true,
     },
     description: String,
