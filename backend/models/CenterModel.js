@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 
 const centerSchema = new mongoose.Schema(
   {
-    centerName: { type: String, required: [true, "Center name is required"], trim: true },
-    centerCode: { type: String, required: [true, "Center code is required"], unique: true, uppercase: true, trim: true },
+    centerName:     { type: String, required: [true, "Center name is required"], trim: true },
+    centerCode:     { type: String, unique: true, uppercase: true, trim: true },
     district: {
       type: String,
       required: [true, "District is required"],
@@ -39,11 +39,18 @@ const centerSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-centerSchema.pre("validate", function (next) {
+// Auto-generate centerCode before saving
+centerSchema.pre("save", function (next) {
   if (!this.centerCode && this.centerName) {
     this.centerCode =
-      this.centerName.replace(/[^a-zA-Z0-9 ]/g, "").split(" ").filter(Boolean)
-        .map((w) => w[0].toUpperCase()).join("") + "-" + Date.now().toString().slice(-4);
+      this.centerName
+        .replace(/[^a-zA-Z0-9 ]/g, "")
+        .split(" ")
+        .filter(Boolean)
+        .map((w) => w[0].toUpperCase())
+        .join("") +
+      "-" +
+      Date.now().toString().slice(-4);
   }
   next();
 });
