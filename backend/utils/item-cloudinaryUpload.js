@@ -1,5 +1,4 @@
-import "../config/cloudinary.js";
-import { v2 as cloudinary } from "cloudinary";
+import cloudinary from "../config/Item.cloudinary.js";
 
 export const uploadBufferToCloudinary = (buffer, folder = "swapnest/items") =>
   new Promise((resolve, reject) => {
