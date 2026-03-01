@@ -25,10 +25,7 @@ import connectDB from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import itemRoutes from "./routes/itemRoutes.js";
 import swapRoutes from "./routes/swapRoutes.js";
-import volunteerRoutes from "./routes/VolunteerRoutes.js";
 
-// Import Middlewares
-import { notFound, errorHandler } from "./middlewares/volunteermiddlewares.js";
 
 // Connect DB
 connectDB();
@@ -63,8 +60,6 @@ app.get("/", (req, res) => {
   res.send("API running...");
 });
 
-// Volunteer routes
-app.use("/api/volunteers", volunteerRoutes);
 
 // Pickup routes
 app.use("/api/pickups", pickupRoutes);
