@@ -7,7 +7,8 @@ import { fileURLToPath } from "url";
 import path from "path";
 
 import volunteerRoutes from "./routes/VolunteerRoutes.js";
-import pickupRoutes from "./routes/PickupRoutes.js";                // ← ADDED
+import pickupRoutes from "./routes/PickupRoutes.js";
+import centerRoutes from "./routes/CenterRoutes.js";                // ← ADDED
 import { notFound, errorHandler } from "./middlewares/volunteermiddlewares.js";
 
 // Fix __dirname for ES modules
@@ -54,7 +55,10 @@ app.get("/", (req, res) => {
 app.use("/api/volunteers", volunteerRoutes);
 
 // Pickup routes
-app.use("/api/pickups", pickupRoutes);                              // ← ADDED
+app.use("/api/pickups", pickupRoutes);
+
+// Center routes
+app.use("/api/centers", centerRoutes);                              // ← ADDED
 
 // =======================
 // ERROR HANDLING
