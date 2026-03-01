@@ -12,6 +12,41 @@ const toInt = (v, def) => {
 };
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 const hasValue = (v) => v !== undefined && v !== null && String(v).trim() !== "";
+const asArray = (v) => (Array.isArray(v) ? v : v ? [v] : []);
+const normalizeIncomingImages = (raw) => {
+  // Supports JSON body images such as:
+  // ["https://..."] OR [{ "url": "https://...", "publicId": "..." }]
+  // and also stringified JSON payloads.
+  let value = raw;
+  if (typeof value === "string") {
+    try {
+      value = JSON.parse(value);
+    } catch {
+      value = [value];
+    }
+  }
+
+  const list = asArray(value);
+  return list
+    .map((img, idx) => {
+      if (typeof img === "string" && img.trim()) {
+        return {
+          url: img.trim(),
+          publicId: `external_${Date.now()}_${idx}`,
+        };
+      }
+
+      if (img && typeof img === "object" && typeof img.url === "string" && img.url.trim()) {
+        return {
+          url: img.url.trim(),
+          publicId: img.publicId || `external_${Date.now()}_${idx}`,
+        };
+      }
+
+      return null;
+    })
+    .filter(Boolean);
+};
 
 const parseLocation = (latRaw, lngRaw) => {
   if (!hasValue(latRaw) && !hasValue(lngRaw)) return { ok: true, value: undefined };
@@ -99,17 +134,25 @@ export const createItem = async (req, res, next) => {
     }
 
     const files = req.files || [];
-    if (files.length === 0) {
-      return res.status(400).json({ message: "At least 1 image is required" });
-    }
+    const bodyImages = normalizeIncomingImages(req.body.images);
+    const uploaded = [];
+
     if (files.length > 5) {
       return res.status(400).json({ message: "Maximum 5 images allowed" });
     }
 
-    const uploaded = [];
-    for (const f of files) {
-      const result = await uploadBufferToCloudinary(f.buffer, "swapnest/items");
-      uploaded.push({ url: result.secure_url, publicId: result.public_id });
+    if (files.length > 0) {
+      for (const f of files) {
+        const result = await uploadBufferToCloudinary(f.buffer, "swapnest/items");
+        uploaded.push({ url: result.secure_url, publicId: result.public_id });
+      }
+    } else if (bodyImages.length > 0) {
+      uploaded.push(...bodyImages.slice(0, 5));
+    } else {
+      return res.status(400).json({
+        message:
+          "At least 1 image is required. Send multipart files as images[] or JSON images array.",
+      });
     }
 
     const parsedLocation = parseLocation(lat, lng);
@@ -117,7 +160,10 @@ export const createItem = async (req, res, next) => {
       return res.status(400).json({ message: parsedLocation.message });
     }
 
-    const item = await Item.create({
+    // for debugging it can help to see the payload
+    console.log("createItem body:", req.body);
+
+    const createdItem = await Item.create({
       title,
       description: description || "",
       price: Number(price || 0),
@@ -132,7 +178,8 @@ export const createItem = async (req, res, next) => {
       location: parsedLocation.value,
     });
 
-    res.status(201).json(item);
+    // return the created document to the client
+    res.status(201).json(createdItem);
   } catch (err) {
     next(err);
   }

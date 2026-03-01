@@ -1,4 +1,5 @@
-import cloudinary from "../config/cloudinary.js";
+import "../config/cloudinary.js";
+import { v2 as cloudinary } from "cloudinary";
 
 export const uploadBufferToCloudinary = (buffer, folder = "swapnest/items") =>
   new Promise((resolve, reject) => {
@@ -10,6 +11,12 @@ export const uploadBufferToCloudinary = (buffer, folder = "swapnest/items") =>
       },
     );
     stream.end(buffer);
+  });
+
+export const uploadUrlToCloudinary = async (url, folder = "swapnest/items") =>
+  cloudinary.uploader.upload(url, {
+    folder,
+    resource_type: "image",
   });
 
 export const deleteFromCloudinary = async (publicId) => {
