@@ -274,6 +274,7 @@ export const getItemById = async (req, res, next) => {
  * -------------------------- */
 export const updateItem = async (req, res, next) => {
   try {
+    const body = req.body || {};
     const item = await Item.findOne(byItemIdentifier(req.params.id));
     if (!item) return res.status(404).json({ message: "Item not found" });
 
@@ -288,15 +289,15 @@ export const updateItem = async (req, res, next) => {
       "ownerId",
     ];
     for (const f of fields) {
-      if (req.body[f] !== undefined) item[f] = req.body[f];
+      if (body[f] !== undefined) item[f] = body[f];
     }
-    if (req.body.price !== undefined) item.price = Number(req.body.price || 0);
-    if (req.body.isActive !== undefined)
-      item.isActive = String(req.body.isActive) === "true";
+    if (body.price !== undefined) item.price = Number(body.price || 0);
+    if (body.isActive !== undefined)
+      item.isActive = String(body.isActive) === "true";
 
     // Update location if given
-    if (req.body.lat !== undefined || req.body.lng !== undefined) {
-      const parsedLocation = parseLocation(req.body.lat, req.body.lng);
+    if (body.lat !== undefined || body.lng !== undefined) {
+      const parsedLocation = parseLocation(body.lat, body.lng);
       if (!parsedLocation.ok) {
         return res.status(400).json({ message: parsedLocation.message });
       }
@@ -305,7 +306,7 @@ export const updateItem = async (req, res, next) => {
 
     // Images update (optional)
     const files = req.files || [];
-    const replaceImages = String(req.body.replaceImages || "false") === "true";
+    const replaceImages = String(body.replaceImages || "false") === "true";
 
     if (files.length > 0) {
       if (files.length > 5)
@@ -341,8 +342,8 @@ export const updateItem = async (req, res, next) => {
     }
 
     // Set cover image by index if provided
-    if (req.body.coverIndex !== undefined) {
-      const idx = Number(req.body.coverIndex);
+    if (body.coverIndex !== undefined) {
+      const idx = Number(body.coverIndex);
       if (Number.isFinite(idx) && idx >= 0 && idx < item.images.length) {
         item.coverImage = item.images[idx];
       }
@@ -357,20 +358,27 @@ export const updateItem = async (req, res, next) => {
 
 /** ---------------------------
  * DELETE (DELETE) /api/items/:id
- * Two options:
- *  - soft delete: isActive=false (recommended)
+ * Default:
  *  - hard delete: remove doc + delete Cloudinary images
+ * Optional:
+ *  - soft delete: isActive=false
  *
- * Use query param: ?hard=true
+ * Use query param: ?soft=true
  * -------------------------- */
 export const deleteItem = async (req, res, next) => {
   try {
-    const hard = String(req.query.hard || "false") === "true";
+    const soft = String(req.query.soft || "false") === "true";
+    const identifier = String(req.params.id || "").trim();
 
-    const item = await Item.findOne(byItemIdentifier(req.params.id));
-    if (!item) return res.status(404).json({ message: "Item not found" });
+    const item = await Item.findOne(byItemIdentifier(identifier));
+    if (!item) {
+      return res.status(200).json({
+        message: "Item already deleted or not found",
+        itemId: identifier,
+      });
+    }
 
-    if (!hard) {
+    if (soft) {
       item.isActive = false;
       await item.save();
       return res.json({
@@ -379,7 +387,7 @@ export const deleteItem = async (req, res, next) => {
       });
     }
 
-    // hard delete: remove images from Cloudinary then delete doc
+    // hard delete (default): remove images from Cloudinary then delete doc
     for (const img of item.images) {
       await deleteFromCloudinary(img.publicId);
     }
