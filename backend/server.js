@@ -15,38 +15,50 @@ import { notFound, errorHandler } from "./middlewares/volunteermiddlewares.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load .env file
+// Load .env variables
 dotenv.config({ path: path.join(__dirname, ".env") });
 
-// Fallback Mongo URI (if not in .env)
-const MONGO_URI =
-  process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ecoswap";
+// Import DB Connection
+import connectDB from "./config/db.js";
 
-// Create Express app
+// Import Routes
+import userRoutes from "./routes/userRoutes.js";
+import itemRoutes from "./routes/itemRoutes.js";
+import swapRoutes from "./routes/swapRoutes.js";
+import volunteerRoutes from "./routes/VolunteerRoutes.js";
+
+// Import Middlewares
+import { notFound, errorHandler } from "./middlewares/volunteermiddlewares.js";
+
+// Connect DB
+connectDB();
+
 const app = express();
 
 // =======================
-// MIDDLEWARES
+// GLOBAL MIDDLEWARES
 // =======================
-
-// Body parser
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Prevent destructure errors
+// Prevent destructure errors inside middlewares / routes
 app.use((req, res, next) => {
   if (!req.body) req.body = {};
   next();
 });
 
-app.use(cors());
 app.use(morgan("dev"));
 
 // =======================
 // ROUTES
 // =======================
+app.use("/api/users", userRoutes);
+app.use("/api/items", itemRoutes);
+app.use("/api/swaps", swapRoutes);
+app.use("/api/volunteers", volunteerRoutes);
 
-// Test route
+// TEST ROUTE
 app.get("/", (req, res) => {
   res.send("API running...");
 });
@@ -63,26 +75,8 @@ app.use("/api/centers", centerRoutes);                              // ← ADDED
 // =======================
 // ERROR HANDLING
 // =======================
-
 app.use(notFound);
 app.use(errorHandler);
 
-// =======================
-// DATABASE CONNECTION
-// =======================
-
-mongoose
-  .connect(MONGO_URI)
-  .then(() => {
-    console.log(" MongoDB Connected");
-
-    // Start server only after DB connects
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-      console.log(` Server running on port ${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error(" MongoDB connection failed:", err);
-    process.exit(1);
-  });
+const port = process.env.PORT || 5000;
+app.listen(port, () => console.log(`Server started on port ${port}`));
