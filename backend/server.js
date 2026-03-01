@@ -6,6 +6,11 @@ import mongoose from "mongoose";
 import { fileURLToPath } from "url";
 import path from "path";
 
+import volunteerRoutes from "./routes/VolunteerRoutes.js";
+import pickupRoutes from "./routes/PickupRoutes.js";
+import centerRoutes from "./routes/CenterRoutes.js";                // ← ADDED
+import { notFound, errorHandler } from "./middlewares/volunteermiddlewares.js";
+
 // Fix __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,10 +25,7 @@ import connectDB from "./config/db.js";
 import userRoutes from "./routes/userRoutes.js";
 import itemRoutes from "./routes/itemRoutes.js";
 import swapRoutes from "./routes/swapRoutes.js";
-import volunteerRoutes from "./routes/VolunteerRoutes.js";
 
-// Import Middlewares
-import { notFound, errorHandler } from "./middlewares/volunteermiddlewares.js";
 
 // Connect DB
 connectDB();
@@ -55,8 +57,15 @@ app.use("/api/volunteers", volunteerRoutes);
 
 // TEST ROUTE
 app.get("/", (req, res) => {
-  res.status(200).json({ message: "SwapNest & Volunteer API is running" });
+  res.send("API running...");
 });
+
+
+// Pickup routes
+app.use("/api/pickups", pickupRoutes);
+
+// Center routes
+app.use("/api/centers", centerRoutes);                              // ← ADDED
 
 // =======================
 // ERROR HANDLING
