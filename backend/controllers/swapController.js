@@ -39,6 +39,13 @@ const createSwapRequest = async (req, res) => {
         message: "This item is for sale only. Please use swap-with-cash." 
       });
     }
+    // Check mode 
+if (item.mode === "Swap" && swapType !== "item-for-item") {
+  return res.status(400).json({ 
+    success: false, 
+    message: "This item is for swapping only. Please use item-for-item." 
+  });
+}
 
     let ownerName = "Unknown";
     try {
