@@ -372,8 +372,8 @@ export const deleteItem = async (req, res, next) => {
 
     const item = await Item.findOne(byItemIdentifier(identifier));
     if (!item) {
-      return res.status(200).json({
-        message: "Item already deleted or not found",
+      return res.status(404).json({
+        message: "Item not found",
         itemId: identifier,
       });
     }
@@ -388,10 +388,17 @@ export const deleteItem = async (req, res, next) => {
     }
 
     // hard delete (default): remove images from Cloudinary then delete doc
-    for (const img of item.images) {
-      await deleteFromCloudinary(img.publicId);
+    if (item.images && Array.isArray(item.images)) {
+      for (const img of item.images) {
+        try {
+          await deleteFromCloudinary(img.publicId);
+        } catch (cloudErr) {
+          console.error(`Failed to delete image ${img.publicId}:`, cloudErr.message);
+        }
+      }
     }
-    await item.deleteOne();
+
+    await Item.findByIdAndDelete(item._id);
 
     res.json({ message: "Item deleted permanently", itemId: item.itemId });
   } catch (err) {
