@@ -39,20 +39,4 @@ const centerSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Auto-generate centerCode before saving
-centerSchema.pre("save", function (next) {
-  if (!this.centerCode && this.centerName) {
-    this.centerCode =
-      this.centerName
-        .replace(/[^a-zA-Z0-9 ]/g, "")
-        .split(" ")
-        .filter(Boolean)
-        .map((w) => w[0].toUpperCase())
-        .join("") +
-      "-" +
-      Date.now().toString().slice(-4);
-  }
-  next();
-});
-
 export default mongoose.model("Center", centerSchema);
