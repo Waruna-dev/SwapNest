@@ -2,9 +2,9 @@ import multer from "multer";
 
 const storage = multer.memoryStorage();
 
+// no file filtering; accept any file type
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype?.startsWith("image/")) cb(null, true);
-  else cb(new Error("Only image files are allowed"), false);
+  cb(null, true);
 };
 
 const upload = multer({

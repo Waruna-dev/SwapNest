@@ -12,6 +12,41 @@ const toInt = (v, def) => {
 };
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 const hasValue = (v) => v !== undefined && v !== null && String(v).trim() !== "";
+const asArray = (v) => (Array.isArray(v) ? v : v ? [v] : []);
+const normalizeIncomingImages = (raw) => {
+  // Supports JSON body images such as:
+  // ["https://..."] OR [{ "url": "https://...", "publicId": "..." }]
+  // and also stringified JSON payloads.
+  let value = raw;
+  if (typeof value === "string") {
+    try {
+      value = JSON.parse(value);
+    } catch {
+      value = [value];
+    }
+  }
+
+  const list = asArray(value);
+  return list
+    .map((img, idx) => {
+      if (typeof img === "string" && img.trim()) {
+        return {
+          url: img.trim(),
+          publicId: `external_${Date.now()}_${idx}`,
+        };
+      }
+
+      if (img && typeof img === "object" && typeof img.url === "string" && img.url.trim()) {
+        return {
+          url: img.url.trim(),
+          publicId: img.publicId || `external_${Date.now()}_${idx}`,
+        };
+      }
+
+      return null;
+    })
+    .filter(Boolean);
+};
 
 const parseLocation = (latRaw, lngRaw) => {
   if (!hasValue(latRaw) && !hasValue(lngRaw)) return { ok: true, value: undefined };
@@ -99,17 +134,25 @@ export const createItem = async (req, res, next) => {
     }
 
     const files = req.files || [];
-    if (files.length === 0) {
-      return res.status(400).json({ message: "At least 1 image is required" });
-    }
+    const bodyImages = normalizeIncomingImages(req.body.images);
+    const uploaded = [];
+
     if (files.length > 5) {
       return res.status(400).json({ message: "Maximum 5 images allowed" });
     }
 
-    const uploaded = [];
-    for (const f of files) {
-      const result = await uploadBufferToCloudinary(f.buffer, "swapnest/items");
-      uploaded.push({ url: result.secure_url, publicId: result.public_id });
+    if (files.length > 0) {
+      for (const f of files) {
+        const result = await uploadBufferToCloudinary(f.buffer, "swapnest/items");
+        uploaded.push({ url: result.secure_url, publicId: result.public_id });
+      }
+    } else if (bodyImages.length > 0) {
+      uploaded.push(...bodyImages.slice(0, 5));
+    } else {
+      return res.status(400).json({
+        message:
+          "At least 1 image is required. Send multipart files as images[] or JSON images array.",
+      });
     }
 
     const parsedLocation = parseLocation(lat, lng);
@@ -117,7 +160,10 @@ export const createItem = async (req, res, next) => {
       return res.status(400).json({ message: parsedLocation.message });
     }
 
-    const item = await Item.create({
+    // for debugging it can help to see the payload
+    console.log("createItem body:", req.body);
+
+    const createdItem = await Item.create({
       title,
       description: description || "",
       price: Number(price || 0),
@@ -132,7 +178,8 @@ export const createItem = async (req, res, next) => {
       location: parsedLocation.value,
     });
 
-    res.status(201).json(item);
+    // return the created document to the client
+    res.status(201).json(createdItem);
   } catch (err) {
     next(err);
   }
@@ -227,6 +274,7 @@ export const getItemById = async (req, res, next) => {
  * -------------------------- */
 export const updateItem = async (req, res, next) => {
   try {
+    const body = req.body || {};
     const item = await Item.findOne(byItemIdentifier(req.params.id));
     if (!item) return res.status(404).json({ message: "Item not found" });
 
@@ -241,15 +289,15 @@ export const updateItem = async (req, res, next) => {
       "ownerId",
     ];
     for (const f of fields) {
-      if (req.body[f] !== undefined) item[f] = req.body[f];
+      if (body[f] !== undefined) item[f] = body[f];
     }
-    if (req.body.price !== undefined) item.price = Number(req.body.price || 0);
-    if (req.body.isActive !== undefined)
-      item.isActive = String(req.body.isActive) === "true";
+    if (body.price !== undefined) item.price = Number(body.price || 0);
+    if (body.isActive !== undefined)
+      item.isActive = String(body.isActive) === "true";
 
     // Update location if given
-    if (req.body.lat !== undefined || req.body.lng !== undefined) {
-      const parsedLocation = parseLocation(req.body.lat, req.body.lng);
+    if (body.lat !== undefined || body.lng !== undefined) {
+      const parsedLocation = parseLocation(body.lat, body.lng);
       if (!parsedLocation.ok) {
         return res.status(400).json({ message: parsedLocation.message });
       }
@@ -258,7 +306,7 @@ export const updateItem = async (req, res, next) => {
 
     // Images update (optional)
     const files = req.files || [];
-    const replaceImages = String(req.body.replaceImages || "false") === "true";
+    const replaceImages = String(body.replaceImages || "false") === "true";
 
     if (files.length > 0) {
       if (files.length > 5)
@@ -294,8 +342,8 @@ export const updateItem = async (req, res, next) => {
     }
 
     // Set cover image by index if provided
-    if (req.body.coverIndex !== undefined) {
-      const idx = Number(req.body.coverIndex);
+    if (body.coverIndex !== undefined) {
+      const idx = Number(body.coverIndex);
       if (Number.isFinite(idx) && idx >= 0 && idx < item.images.length) {
         item.coverImage = item.images[idx];
       }
@@ -310,20 +358,27 @@ export const updateItem = async (req, res, next) => {
 
 /** ---------------------------
  * DELETE (DELETE) /api/items/:id
- * Two options:
- *  - soft delete: isActive=false (recommended)
+ * Default:
  *  - hard delete: remove doc + delete Cloudinary images
+ * Optional:
+ *  - soft delete: isActive=false
  *
- * Use query param: ?hard=true
+ * Use query param: ?soft=true
  * -------------------------- */
 export const deleteItem = async (req, res, next) => {
   try {
-    const hard = String(req.query.hard || "false") === "true";
+    const soft = String(req.query.soft || "false") === "true";
+    const identifier = String(req.params.id || "").trim();
 
-    const item = await Item.findOne(byItemIdentifier(req.params.id));
-    if (!item) return res.status(404).json({ message: "Item not found" });
+    const item = await Item.findOne(byItemIdentifier(identifier));
+    if (!item) {
+      return res.status(200).json({
+        message: "Item already deleted or not found",
+        itemId: identifier,
+      });
+    }
 
-    if (!hard) {
+    if (soft) {
       item.isActive = false;
       await item.save();
       return res.json({
@@ -332,7 +387,7 @@ export const deleteItem = async (req, res, next) => {
       });
     }
 
-    // hard delete: remove images from Cloudinary then delete doc
+    // hard delete (default): remove images from Cloudinary then delete doc
     for (const img of item.images) {
       await deleteFromCloudinary(img.publicId);
     }
