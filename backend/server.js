@@ -1,13 +1,8 @@
+import 'dotenv/config';
 import express from 'express';
-import dotenv from 'dotenv';
-// In ES modules, dotenv.config() needs to be called after import
-dotenv.config();
-
 import cors from 'cors';
 import connectDB from './config/db.js';
 import { errorHandler } from './middlewares/errorMiddleware.js';
-
-// Important: When importing default exports like the router, we can name it whatever we want!
 import userRoutes from './routes/userRoutes.js';
 
 const port = process.env.PORT || 5000;
