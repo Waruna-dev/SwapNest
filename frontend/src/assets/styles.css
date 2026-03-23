@@ -1,14 +1,5 @@
-:root {
-  --color-primary: #2A9D8F;
-  --color-secondary: #F4A261;
-  --color-accent: #E76F51;
-  --color-background: #FFFFFF;
-  --color-text-main: #264653;
-  --color-text-light: #8D99AE;
-  --radius-card: 12px;
-  --radius-button: 8px;
-  --font-main: 'Inter', system-ui, sans-serif;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background-color: var(--color-background); color: var(--color-text-main); font-family: var(--font-main); }
+/* Tailwind handles all the resets and fonts automatically! */
