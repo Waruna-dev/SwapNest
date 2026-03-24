@@ -23,4 +23,14 @@ const protect = asyncHandler(async (req, res, next) => {
   }
 });
 
-export { protect };
+const admin = (req, res, next) => {
+    // The 'protect' middleware runs first and attaches req.user
+    if (req.user && req.user.role === 'admin') {
+        next(); // They are an admin, let them proceed!
+    } else {
+        res.status(403); // 403 Forbidden
+        throw new Error('Access denied: Admin privileges required');
+    }
+};
+
+export { protect, admin };
