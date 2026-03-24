@@ -9,7 +9,8 @@ import {
   updateSwapStatus,
   cancelSwapRequest,
   getPendingRequests,
-  getAllSwaps
+  getAllSwaps,
+  deleteSwap
 } from '../controllers/swapController.js';
 
 
@@ -35,5 +36,7 @@ router.put('/:id/status', validateStatusUpdate, updateSwapStatus);
 
 //cancel req-requester
 router.put('/:id/cancel', cancelSwapRequest);
+
+router.delete('/:id', deleteSwap);
 
 export default router;

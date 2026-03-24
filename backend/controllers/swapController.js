@@ -49,7 +49,7 @@ if (item.mode === "Swap" && swapType !== "item-for-item") {
 
     let ownerName = "Unknown";
     try {
-      // Try to find user - if it fails, just use "Unknown"
+      
       const owner = await User.findById(item.ownerId);
       if (owner) ownerName = owner.username;
     } catch (userError) {
@@ -63,10 +63,10 @@ if (item.mode === "Swap" && swapType !== "item-for-item") {
     })) || [];
 
     const requestedItem = {
-      itemId: item._id,  // Use the MongoDB _id directly
+      itemId: item._id,  
       name: item.title,
       ownerName: ownerName,
-      ownerId: item.ownerId,  // Keep as string
+      ownerId: item.ownerId,  
       condition: item.condition || "Good",
       description: item.description || "",
     };
@@ -121,7 +121,7 @@ const getUserSwaps = async (req, res) => {
       $or: [
         { "requestedItem.ownerId": req.params.userId },
         { requesterId: req.params.userId },
-      ], //wants to change userID
+      ], 
     });
     res.json({ success: true, data: swaps });
   } catch (error) {
@@ -145,7 +145,7 @@ const getPendingRequests = async (req, res) => {
 //get swap by id-user
 const getSwapById = async (req, res) => {
   try {
-    const swap = await Swap.findById(req.params.id); //id
+    const swap = await Swap.findById(req.params.id); 
     if (!swap)
       return res.status(404).json({ success: false, message: "Swap not found" });
     res.json({ success: true, data: swap });
@@ -239,7 +239,44 @@ const getAllSwaps=async(req,res)=>{
     };
 }
 
+//delete
+const deleteSwap=async(req,res)=>{
+  try{
+    const swap=await Swap.findById(req.params.id);
 
+    if (!swap){
+      return res.status(404).json({
+        success:false,
+        message:"Swap not found"
+
+      });
+    }
+    ///make item available again
+    if(swap.status==="pending"){
+      const item=await Item.findById(swap.requestedItem.itemId);
+      if(item){
+        item.isActive=true;
+        await item.save();
+        console.log(`Item ${item._id} is now availbale`);
+
+      }
+    }
+
+    //permenant delete 
+    await Swap.findByIdAndDelete(req.params.id);
+
+    res.json({
+      succes:true,
+      message:"Swao permenantly deleted",
+      deletedId:req.params.id
+    })
+  }catch(error){
+    res.status(500).json({
+      success:false,
+      message:error.message
+    });
+  }
+}
 export {
     createSwapRequest,
     getUserSwaps,
@@ -247,5 +284,6 @@ export {
     getSwapById,
     updateSwapStatus,
     cancelSwapRequest,
-    getAllSwaps
+    getAllSwaps,
+    deleteSwap
 };
