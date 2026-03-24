@@ -1,326 +1,364 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
-    <div className="bg-background text-on-surface overflow-x-hidden font-body">
+    <div className="bg-background text-on-surface font-body selection:bg-secondary-fixed selection:text-on-secondary-container antialiased overflow-x-hidden">
       
-      {/* Top Navigation Bar */}
-      <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl shadow-sm">
-        <div className="flex justify-between items-center w-full px-8 py-4 max-w-7xl mx-auto">
-          <div className="text-2xl font-extrabold text-primary font-headline tracking-tight">
-            SwapNest
-          </div>
+      {/* TopNavBar */}
+      <nav className="sticky top-0 z-50 w-full bg-[#fbf9f5]/80 backdrop-blur-xl border-b border-outline-variant/10">
+        <div className="flex justify-between items-center px-6 md:px-8 py-4 max-w-7xl mx-auto">
+          <Link to="/" className="text-2xl font-extrabold text-[#012d1d] font-headline tracking-tight">SwapNest</Link>
+          
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <a className="text-secondary font-bold border-b-2 border-secondary font-headline transition-all" href="#">Home</a>
-            <a className="text-primary hover:text-secondary transition-colors font-headline font-bold" href="#">Categories</a>
-            <a className="text-primary hover:text-secondary transition-colors font-headline font-bold" href="#">How it Works</a>
+            <a className="text-[#a43c12] font-bold border-b-2 border-[#a43c12] pb-1 font-headline" href="#">Explore</a>
+            <a className="text-[#1b4332]/70 hover:text-[#012d1d] transition-all duration-300 font-headline font-bold" href="#">Swaps</a>
+            <a className="text-[#1b4332]/70 hover:text-[#012d1d] transition-all duration-300 font-headline font-bold" href="#">Community</a>
+            <a className="text-[#1b4332]/70 hover:text-[#012d1d] transition-all duration-300 font-headline font-bold" href="#">Impact</a>
           </div>
-          <div className="flex items-center space-x-6">
-            <Link to="/login" className="text-primary font-bold hover:opacity-80 transition-all">
+
+          <div className="flex items-center gap-4">
+            <Link to="/login" className="hidden md:block text-[#012d1d] font-headline font-bold text-lg hover:opacity-80 transition-opacity">
               Sign In
             </Link>
-            
-            {/* 👇 UPDATED BUTTON: Now a Link to the Register page! */}
-            <Link 
-              to="/register" 
-              className="bg-secondary text-on-secondary px-6 py-2.5 rounded-full font-bold hover:scale-105 active:scale-95 transition-all inline-block"
-            >
+            <Link to="/register" className="hidden md:inline-block bg-secondary text-on-secondary px-6 py-2.5 rounded-full font-bold hover:scale-105 active:scale-95 transition-all">
               Sign Up
             </Link>
-
+            
+            {/* Mobile Hamburger Button */}
+            <button 
+              className="md:hidden p-2 text-[#012d1d]"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              <span className="material-symbols-outlined">{isMobileMenuOpen ? 'close' : 'menu'}</span>
+            </button>
           </div>
         </div>
+
+        {/* Mobile Dropdown Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 w-full bg-[#fbf9f5] border-b border-outline-variant/10 shadow-lg py-4 px-6 flex flex-col gap-4 animate-fade-in-down">
+            <a className="text-[#a43c12] font-bold font-headline text-lg" href="#">Explore</a>
+            <a className="text-[#1b4332] font-bold font-headline text-lg" href="#">Swaps</a>
+            <a className="text-[#1b4332] font-bold font-headline text-lg" href="#">Community</a>
+            <div className="h-px bg-outline-variant/20 my-2"></div>
+            <Link to="/login" className="text-[#012d1d] font-headline font-bold text-lg">Sign In</Link>
+            <Link to="/register" className="bg-secondary text-on-secondary px-6 py-3 rounded-full font-bold text-center mt-2">Sign Up</Link>
+          </div>
+        )}
       </nav>
 
-      <main className="pt-24">
-        
-        {/* Hero Section */}
-        <section className="relative px-8 py-20 max-w-7xl mx-auto overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            <div className="lg:col-span-7 z-10">
-              <h1 className="text-6xl md:text-7xl font-extrabold text-primary leading-[1.1] mb-6 tracking-tight font-headline">
-                Your Trash, <br/><span className="text-secondary">Their Treasure.</span>
+      <main>
+        {/* Hero Section: Split Screen */}
+        <section className="relative min-h-[85vh] flex flex-col md:flex-row overflow-hidden">
+          {/* Left Side: Content */}
+          <div className="flex-1 flex items-center px-6 md:px-12 lg:px-24 py-16 bg-surface">
+            <div className="max-w-xl space-y-8 md:space-y-10">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-headline font-extrabold text-primary leading-[1.1] tracking-tight">
+                Trade what you <span className="text-secondary">have</span>, get what you <span className="text-secondary">need</span>
               </h1>
-              <p className="text-xl text-on-surface-variant max-w-lg mb-10 leading-relaxed">
-                Join the community-led movement to swap, share, and sustain. Exchange premium goods with neighbors without spending a dime.
+              <p className="text-lg text-on-surface-variant font-medium leading-relaxed">
+                Join Sri Lanka's most curated swap community. Give your pre-loved items a new life and discover unique treasures from neighbors near you.
               </p>
               
-              {/* Glassmorphic Search Bar */}
-              <div className="relative max-w-xl group">
-                <div className="absolute inset-0 bg-primary/5 rounded-full blur-xl group-focus-within:bg-secondary/10 transition-all"></div>
-                <div className="relative flex items-center bg-surface-container-low/80 backdrop-blur-md p-2 rounded-full border border-outline-variant/20">
-                  <span className="material-symbols-outlined ml-4 text-on-surface-variant">search</span>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-grow max-w-md">
+                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/40">search</span>
                   <input 
-                    className="w-full bg-transparent border-none outline-none focus:ring-0 px-4 text-on-surface placeholder:text-on-surface-variant/60" 
-                    placeholder="Search for vintage cameras, plants, decor..." 
+                    className="w-full pl-12 pr-4 py-4 rounded-full border-none outline-none bg-surface-container-high focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-primary/40" 
+                    placeholder="Search for textbooks, electronics, decor..." 
                     type="text"
                   />
-                  <button className="bg-primary text-on-primary px-8 py-3 rounded-full font-bold hover:bg-primary-container transition-all">
-                    Explore
-                  </button>
                 </div>
+                <Link to="/register" className="bg-secondary text-on-secondary px-8 py-4 rounded-full font-bold text-center hover:scale-105 transition-transform active:scale-95 whitespace-nowrap shadow-lg shadow-secondary/20">
+                  Start Swapping
+                </Link>
               </div>
-            </div>
-            
-            <div className="lg:col-span-5 relative">
-              {/* Asymmetric Image Grid */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-4 pt-12">
-                  <div className="rounded-3xl overflow-hidden aspect-[4/5] shadow-lg">
-                    <img className="w-full h-full object-cover" alt="sustainable fashion" src="https://picsum.photos/400/500?random=1" />
-                  </div>
-                  <div className="rounded-3xl overflow-hidden aspect-square shadow-lg">
-                    <img className="w-full h-full object-cover" alt="minimalist living room" src="https://picsum.photos/400/400?random=2" />
-                  </div>
+
+              <div className="flex flex-wrap items-center gap-4 pt-4">
+                <div className="flex -space-x-3">
+                  <img className="w-10 h-10 rounded-full border-2 border-surface object-cover" alt="user" src="https://images.unsplash.com/photo-1615813967515-e1838c1f56d6?auto=format&fit=crop&q=80&w=100"/>
+                  <img className="w-10 h-10 rounded-full border-2 border-surface object-cover" alt="user" src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=100"/>
+                  <img className="w-10 h-10 rounded-full border-2 border-surface object-cover" alt="user" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100"/>
                 </div>
-                <div className="space-y-4">
-                  <div className="rounded-3xl overflow-hidden aspect-square shadow-lg">
-                    <img className="w-full h-full object-cover" alt="designer watch" src="https://picsum.photos/400/400?random=3" />
-                  </div>
-                  <div className="rounded-3xl overflow-hidden aspect-[4/5] shadow-lg">
-                    <img className="w-full h-full object-cover" alt="vintage vinyl records" src="https://picsum.photos/400/500?random=4" />
-                  </div>
-                </div>
+                <p className="text-sm font-semibold text-primary/60">Trusted by 12,000+ Sri Lankans</p>
               </div>
-              {/* Decorative Element */}
-              <div className="absolute -z-10 -bottom-10 -right-10 w-64 h-64 bg-primary-fixed opacity-30 rounded-full blur-3xl"></div>
             </div>
           </div>
-        </section>
 
-        {/* Featured Categories */}
-        <section className="py-24 bg-surface-container-low">
-          <div className="max-w-7xl mx-auto px-8">
-            <div className="flex justify-between items-end mb-16">
-              <div>
-                <h2 className="text-4xl font-extrabold text-primary mb-4 font-headline">Curated Categories</h2>
-                <p className="text-on-surface-variant">Find exactly what you need in your local nest.</p>
+          {/* Right Side: Visual */}
+          <div className="hidden md:block flex-1 relative h-[500px] md:h-auto overflow-hidden">
+            <img className="absolute inset-0 w-full h-full object-cover" alt="Tropical interior" src="https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?auto=format&fit=crop&q=80&w=1000"/>
+            
+            {/* Floating Tags */}
+            <div className="absolute top-1/4 left-1/4 bg-[#fbf9f5]/80 backdrop-blur-md p-3 rounded-2xl flex items-center gap-3 animate-[bounce_4s_infinite] shadow-xl">
+              <div className="bg-secondary p-2 rounded-xl text-on-secondary flex items-center justify-center">
+                <span className="material-symbols-outlined text-sm">chair</span>
               </div>
-              <button className="text-primary font-bold flex items-center gap-2 hover:gap-3 transition-all">
-                View All <span className="material-symbols-outlined">arrow_forward</span>
-              </button>
+              <div>
+                <p className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">Available for Swap</p>
+                <p className="text-sm font-bold text-primary">Teak Wood Chair</p>
+              </div>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-              <div className="group cursor-pointer">
-                <div className="bg-surface-container-lowest p-8 rounded-3xl mb-4 group-hover:-translate-y-2 transition-transform duration-300 flex items-center justify-center aspect-square">
-                  <span className="material-symbols-outlined text-5xl text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>checkroom</span>
-                </div>
-                <h3 className="font-bold text-center text-primary group-hover:text-secondary transition-colors font-headline">Vintage Clothing</h3>
+            <div className="absolute bottom-1/3 right-1/4 bg-[#fbf9f5]/80 backdrop-blur-md p-3 rounded-2xl flex items-center gap-3 animate-[bounce_5s_infinite_1s] shadow-xl">
+              <div className="bg-tertiary p-2 rounded-xl text-white flex items-center justify-center">
+                <span className="material-symbols-outlined text-sm">potted_plant</span>
               </div>
-              <div className="group cursor-pointer">
-                <div className="bg-surface-container-lowest p-8 rounded-3xl mb-4 group-hover:-translate-y-2 transition-transform duration-300 flex items-center justify-center aspect-square">
-                  <span className="material-symbols-outlined text-5xl text-tertiary-fixed-variant" style={{ fontVariationSettings: "'FILL' 1" }}>chair</span>
-                </div>
-                <h3 className="font-bold text-center text-primary group-hover:text-secondary transition-colors font-headline">Home Decor</h3>
-              </div>
-              <div className="group cursor-pointer">
-                <div className="bg-surface-container-lowest p-8 rounded-3xl mb-4 group-hover:-translate-y-2 transition-transform duration-300 flex items-center justify-center aspect-square">
-                  <span className="material-symbols-outlined text-5xl text-on-tertiary-container" style={{ fontVariationSettings: "'FILL' 1" }}>devices</span>
-                </div>
-                <h3 className="font-bold text-center text-primary group-hover:text-secondary transition-colors font-headline">Electronics</h3>
-              </div>
-              <div className="group cursor-pointer">
-                <div className="bg-surface-container-lowest p-8 rounded-3xl mb-4 group-hover:-translate-y-2 transition-transform duration-300 flex items-center justify-center aspect-square">
-                  <span className="material-symbols-outlined text-5xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>menu_book</span>
-                </div>
-                <h3 className="font-bold text-center text-primary group-hover:text-secondary transition-colors font-headline">Books & Media</h3>
-              </div>
-              <div className="group cursor-pointer">
-                <div className="bg-surface-container-lowest p-8 rounded-3xl mb-4 group-hover:-translate-y-2 transition-transform duration-300 flex items-center justify-center aspect-square">
-                  <span className="material-symbols-outlined text-5xl text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>potted_plant</span>
-                </div>
-                <h3 className="font-bold text-center text-primary group-hover:text-secondary transition-colors font-headline">Garden & Outdoors</h3>
+              <div>
+                <p className="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant">Trending</p>
+                <p className="text-sm font-bold text-primary">Indoor Areca Palm</p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* How It Works */}
-        <section className="py-32 px-8 max-w-7xl mx-auto">
-          <div className="text-center mb-20">
-            <span className="bg-primary-fixed text-on-primary-fixed px-4 py-1.5 rounded-full text-sm font-bold tracking-widest uppercase mb-6 inline-block">The Process</span>
-            <h2 className="text-5xl font-extrabold text-primary font-headline">Simple. Sustainable. Social.</h2>
+        {/* Value Proposition */}
+        <section className="py-20 px-6 md:px-8 max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <span className="bg-primary-fixed text-on-primary-fixed px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest">How it works</span>
+            <h2 className="text-4xl md:text-5xl font-headline font-extrabold text-primary mt-6">Swap in three simple steps</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
-            <div className="relative z-10 text-center flex flex-col items-center">
-              <div className="w-24 h-24 rounded-full bg-surface-container-high flex items-center justify-center mb-8 relative group">
-                <div className="absolute inset-0 bg-primary/5 rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
-                <span className="material-symbols-outlined text-4xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>add_a_photo</span>
-                <div className="absolute -top-2 -right-2 w-10 h-10 bg-secondary rounded-full flex items-center justify-center text-white font-bold text-xl">1</div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+            <div className="group p-8 md:p-10 bg-surface-container-low rounded-xl hover:bg-surface-container transition-colors duration-500 relative overflow-hidden text-center md:text-left">
+              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform mx-auto md:mx-0">
+                <span className="material-symbols-outlined text-3xl text-secondary">add_a_photo</span>
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-primary font-headline">Snap</h3>
-              <p className="text-on-surface-variant leading-relaxed">Take a quick photo of the item you no longer use. Add a brief description of its condition.</p>
+              <h3 className="text-2xl font-headline font-bold text-primary mb-4">Post</h3>
+              <p className="text-on-surface-variant leading-relaxed">Photograph your item and list it in seconds. Our platform helps you with the perfect description.</p>
             </div>
             
-            <div className="relative z-10 text-center flex flex-col items-center">
-              <div className="w-24 h-24 rounded-full bg-surface-container-high flex items-center justify-center mb-8 relative group">
-                <div className="absolute inset-0 bg-primary/5 rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
-                <span className="material-symbols-outlined text-4xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>handshake</span>
-                <div className="absolute -top-2 -right-2 w-10 h-10 bg-secondary rounded-full flex items-center justify-center text-white font-bold text-xl">2</div>
+            <div className="group p-8 md:p-10 bg-surface-container-low rounded-xl hover:bg-surface-container transition-colors duration-500 relative overflow-hidden text-center md:text-left">
+              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform mx-auto md:mx-0">
+                <span className="material-symbols-outlined text-3xl text-secondary">handshake</span>
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-primary font-headline">Match</h3>
-              <p className="text-on-surface-variant leading-relaxed">Our curator algorithm matches your items with people nearby who have what you want.</p>
+              <h3 className="text-2xl font-headline font-bold text-primary mb-4">Match</h3>
+              <p className="text-on-surface-variant leading-relaxed">Find items of similar value and aesthetic from people right here in your local area.</p>
             </div>
             
-            <div className="relative z-10 text-center flex flex-col items-center">
-              <div className="w-24 h-24 rounded-full bg-surface-container-high flex items-center justify-center mb-8 relative group">
-                <div className="absolute inset-0 bg-primary/5 rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
-                <span className="material-symbols-outlined text-4xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>sync_alt</span>
-                <div className="absolute -top-2 -right-2 w-10 h-10 bg-secondary rounded-full flex items-center justify-center text-white font-bold text-xl">3</div>
+            <div className="group p-8 md:p-10 bg-surface-container-low rounded-xl hover:bg-surface-container transition-colors duration-500 relative overflow-hidden text-center md:text-left">
+              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-8 shadow-sm group-hover:scale-110 transition-transform mx-auto md:mx-0">
+                <span className="material-symbols-outlined text-3xl text-secondary">swap_horiz</span>
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-primary font-headline">Swap</h3>
-              <p className="text-on-surface-variant leading-relaxed">Meet up in a safe, local spot and complete the exchange. Zero waste, zero cost.</p>
-            </div>
-            
-            <div className="hidden md:block absolute top-12 left-1/4 right-1/4 h-[2px] bg-outline-variant/30 -z-0"></div>
-          </div>
-        </section>
-
-        {/* Community Stats */}
-        <section className="mx-8 mb-24">
-          <div className="max-w-7xl mx-auto bg-primary rounded-xl p-16 md:p-24 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-primary-container rounded-full translate-x-1/2 -translate-y-1/2 blur-3xl opacity-50"></div>
-            <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-16 text-center">
-              <div>
-                <div className="text-6xl font-extrabold text-primary-fixed mb-4 font-headline">12K+</div>
-                <div className="text-on-primary-container font-medium tracking-wide uppercase text-sm">Items Swapped</div>
-              </div>
-              <div>
-                <div className="text-6xl font-extrabold text-secondary-container mb-4 font-headline">4.8t</div>
-                <div className="text-on-primary-container font-medium tracking-wide uppercase text-sm">Waste Diverted</div>
-              </div>
-              <div>
-                <div className="text-6xl font-extrabold text-tertiary-fixed mb-4 font-headline">850</div>
-                <div className="text-on-primary-container font-medium tracking-wide uppercase text-sm">Active Hubs</div>
-              </div>
+              <h3 className="text-2xl font-headline font-bold text-primary mb-4">Swap</h3>
+              <p className="text-on-surface-variant leading-relaxed">Chat, confirm, and meet up locally (like at a cafe in Colombo) to complete your exchange securely.</p>
             </div>
           </div>
         </section>
 
-        {/* Testimonials */}
-        <section className="py-24 px-8 max-w-7xl mx-auto">
-          <h2 className="text-4xl font-extrabold text-primary text-center mb-16 font-headline">Loved by the Community</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-surface-container-low p-10 rounded-3xl border border-outline-variant/10">
-              <div className="flex gap-1 mb-6">
-                <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+        {/* Featured Swaps: Horizontal Gallery */}
+        <section className="py-20 bg-[radial-gradient(circle_at_top_right,#1b4332,#012d1d)] overflow-hidden">
+          <div className="px-6 md:px-8 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-headline font-extrabold text-white">Trending in your area</h2>
+              <p className="text-primary-fixed/70 mt-2">Hand-picked swaps matching your aesthetic.</p>
+            </div>
+            <button className="flex items-center gap-2 text-primary-fixed font-bold hover:text-white transition-colors">
+              View Gallery <span className="material-symbols-outlined">arrow_forward</span>
+            </button>
+          </div>
+          
+          <div className="flex overflow-x-auto gap-6 md:gap-8 px-6 md:px-8 pb-12 scroll-smooth snap-x" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {/* Item 1 */}
+            <div className="min-w-[300px] md:min-w-[400px] snap-center group">
+              <div className="relative h-[400px] md:h-[450px] rounded-xl overflow-hidden shadow-2xl">
+                <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="vintage camera" src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=500"/>
+                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[14px] text-green-600" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-primary">Verified Swap</span>
+                </div>
+                <div className="absolute bottom-0 inset-x-0 p-5 md:p-6 bg-[#fbf9f5]/90 backdrop-blur-md translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                  <div className="flex flex-col mb-2">
+                    <h4 className="text-xl font-headline font-extrabold text-primary">Sony A6000 Camera</h4>
+                    <span className="text-xs font-bold text-on-surface-variant flex items-center gap-1 mt-1">
+                      <span className="material-symbols-outlined text-xs">location_on</span> Colombo 03 • 2 km away
+                    </span>
+                  </div>
+                  <p className="text-sm text-on-surface-variant mb-4">Excellent condition, looking for a good laptop or tablet.</p>
+                  <button className="w-full bg-primary text-white py-3 rounded-full font-bold hover:bg-primary/90 transition-colors">Make Offer</button>
+                </div>
               </div>
-              <p className="text-lg text-on-surface mb-8 italic">"I swapped an old DSLR I wasn't using for a beautiful vintage coffee table. The process was so easy and I met a wonderful neighbor!"</p>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full overflow-hidden">
-                  <img className="w-full h-full object-cover" alt="user" src="https://picsum.photos/100/100?random=5" />
+            </div>
+
+            {/* Item 2 */}
+            <div className="min-w-[300px] md:min-w-[400px] snap-center group">
+              <div className="relative h-[400px] md:h-[450px] rounded-xl overflow-hidden shadow-2xl">
+                <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="bike" src="https://images.unsplash.com/photo-1485965120184-e220f721d03e?auto=format&fit=crop&q=80&w=500"/>
+                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[14px] text-green-600" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-primary">Verified Swap</span>
+                </div>
+                <div className="absolute bottom-0 inset-x-0 p-5 md:p-6 bg-[#fbf9f5]/90 backdrop-blur-md translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                  <div className="flex flex-col mb-2">
+                    <h4 className="text-xl font-headline font-extrabold text-primary">Mountain Bike</h4>
+                    <span className="text-xs font-bold text-on-surface-variant flex items-center gap-1 mt-1">
+                      <span className="material-symbols-outlined text-xs">location_on</span> Nugegoda • 5 km away
+                    </span>
+                  </div>
+                  <p className="text-sm text-on-surface-variant mb-4">Lightweight frame, used for 6 months. Swap for a gym bench.</p>
+                  <button className="w-full bg-primary text-white py-3 rounded-full font-bold hover:bg-primary/90 transition-colors">Make Offer</button>
+                </div>
+              </div>
+            </div>
+
+            {/* Item 3 */}
+            <div className="min-w-[300px] md:min-w-[400px] snap-center group">
+              <div className="relative h-[400px] md:h-[450px] rounded-xl overflow-hidden shadow-2xl">
+                <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="books" src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=500"/>
+                <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[14px] text-green-600" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-primary">Verified Swap</span>
+                </div>
+                <div className="absolute bottom-0 inset-x-0 p-5 md:p-6 bg-[#fbf9f5]/90 backdrop-blur-md translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                  <div className="flex flex-col mb-2">
+                    <h4 className="text-xl font-headline font-extrabold text-primary">University Textbooks</h4>
+                    <span className="text-xs font-bold text-on-surface-variant flex items-center gap-1 mt-1">
+                      <span className="material-symbols-outlined text-xs">location_on</span> Dehiwala • 3 km away
+                    </span>
+                  </div>
+                  <p className="text-sm text-on-surface-variant mb-4">CS and Engineering textbooks. Open to graphic novels or art prints.</p>
+                  <button className="w-full bg-primary text-white py-3 rounded-full font-bold hover:bg-primary/90 transition-colors">Make Offer</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Community Impact */}
+        <section className="py-20 px-6 md:px-8 overflow-hidden bg-surface relative">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-10 md:gap-16">
+            <div className="flex-1 space-y-6 md:space-y-8 order-2 md:order-1 text-center md:text-left">
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-headline font-extrabold text-primary leading-tight">Better for your wallet, <span className="text-secondary">better for Sri Lanka.</span></h2>
+              <p className="text-lg md:text-xl text-on-surface-variant leading-relaxed">We believe in a circular economy. By swapping instead of buying, our community is actively reducing waste and building sustainable connections.</p>
+              <div className="grid grid-cols-2 gap-6 md:gap-8 pt-6 md:pt-8">
+                <div>
+                  <p className="text-4xl md:text-5xl font-headline font-extrabold text-secondary">24.5k+</p>
+                  <p className="text-xs md:text-sm font-bold text-primary/60 mt-2 uppercase tracking-widest">Items Saved</p>
                 </div>
                 <div>
-                  <div className="font-bold text-primary font-headline">Sarah Jenkins</div>
-                  <div className="text-sm text-on-surface-variant">Brooklyn, NY</div>
+                  <p className="text-4xl md:text-5xl font-headline font-extrabold text-tertiary">120t</p>
+                  <p className="text-xs md:text-sm font-bold text-primary/60 mt-2 uppercase tracking-widest">CO2 Offset</p>
                 </div>
               </div>
             </div>
-            
-            <div className="bg-surface-container-low p-10 rounded-3xl border border-outline-variant/10">
-              <div className="flex gap-1 mb-6">
-                <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>star_half</span>
-              </div>
-              <p className="text-lg text-on-surface mb-8 italic">"Best eco-conscious app out there. It's not just about getting free stuff, it's about building a circular economy that actually works."</p>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full overflow-hidden">
-                  <img className="w-full h-full object-cover" alt="user" src="https://picsum.photos/100/100?random=6" />
-                </div>
-                <div>
-                  <div className="font-bold text-primary font-headline">Marcus Thorne</div>
-                  <div className="text-sm text-on-surface-variant">Austin, TX</div>
-                </div>
-              </div>
+            <div className="flex-1 relative order-1 md:order-2 w-full max-w-sm md:max-w-none mx-auto">
+              <div className="absolute -inset-4 bg-primary-fixed rounded-full blur-3xl opacity-30"></div>
+              <img className="relative rounded-xl shadow-2xl aspect-square object-cover w-full" alt="Lush tropical plant" src="https://images.unsplash.com/photo-1534620808146-d33bb39128b2?auto=format&fit=crop&q=80&w=600"/>
             </div>
+          </div>
+        </section>
 
-            <div className="bg-surface-container-low p-10 rounded-3xl border border-outline-variant/10">
-              <div className="flex gap-1 mb-6">
-                <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                <span className="material-symbols-outlined text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+        {/* Trust / Testimonials */}
+        <section className="py-20 px-6 md:px-8 bg-stone-100 overflow-hidden">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12 md:mb-16">
+              <h2 className="text-3xl md:text-4xl font-headline font-extrabold text-primary">The community loves to swap</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+              
+              <div className="p-6 md:p-8 bg-white rounded-xl shadow-sm space-y-6">
+                <div className="flex items-center gap-4">
+                  <img className="w-14 h-14 rounded-full object-cover" alt="Dinithi" src="https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=crop&q=80&w=100"/>
+                  <div>
+                    <h4 className="font-bold text-primary">Dinithi Perera</h4>
+                    <div className="flex text-secondary-container">
+                      <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-on-surface-variant italic">"I swapped my old DSLR for a beautiful teak armchair. The process was so seamless and I met a great neighbor in Colombo!"</p>
               </div>
-              <p className="text-lg text-on-surface mb-8 italic">"I've found so many rare books on SwapNest. The community is high-quality and people really take care of the items they list."</p>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full overflow-hidden">
-                  <img className="w-full h-full object-cover" alt="user" src="https://picsum.photos/100/100?random=7" />
+              
+              <div className="p-6 md:p-8 bg-white rounded-xl shadow-sm space-y-6">
+                <div className="flex items-center gap-4">
+                  <img className="w-14 h-14 rounded-full object-cover" alt="Kasun" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=100"/>
+                  <div>
+                    <h4 className="font-bold text-primary">Kasun Silva</h4>
+                    <div className="flex text-secondary-container">
+                      <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div className="font-bold text-primary font-headline">Elena Rodriguez</div>
-                  <div className="text-sm text-on-surface-variant">Portland, OR</div>
+                <p className="text-on-surface-variant italic">"Found some rare university notes in exchange for a monitor I wasn't using anymore. SwapNest is a game changer for students."</p>
+              </div>
+              
+              <div className="p-6 md:p-8 bg-white rounded-xl shadow-sm space-y-6">
+                <div className="flex items-center gap-4">
+                  <img className="w-14 h-14 rounded-full object-cover" alt="Amani" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100"/>
+                  <div>
+                    <h4 className="font-bold text-primary">Amani Fernando</h4>
+                    <div className="flex text-secondary-container">
+                      <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                    </div>
+                  </div>
                 </div>
+                <p className="text-on-surface-variant italic">"The curation is amazing. Every item feels high-quality and the community is so respectful. Love the impact we're making together."</p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-24 px-8 max-w-7xl mx-auto">
-          <div className="bg-surface-container-high rounded-xl p-16 text-center relative overflow-hidden group">
-            <div className="absolute -top-24 -left-24 w-64 h-64 bg-secondary/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"></div>
-            <h2 className="text-5xl font-extrabold text-primary mb-6 relative z-10 font-headline">Ready to join the movement?</h2>
-            <p className="text-xl text-on-surface-variant mb-12 max-w-2xl mx-auto relative z-10">
-              Start swapping today and help us build a world where everything has a second life. It only takes 60 seconds to list your first item.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
-              <Link to="/login" className="bg-secondary text-on-secondary px-10 py-5 rounded-full font-bold text-lg hover:scale-105 transition-all shadow-xl shadow-secondary/20">
-                Start Swapping
-              </Link>
-              <button className="bg-primary text-on-primary px-10 py-5 rounded-full font-bold text-lg hover:opacity-90 transition-all">
-                How it Works
-              </button>
+        {/* Final CTA */}
+        <section className="py-20 px-6 md:px-8">
+          <div className="max-w-5xl mx-auto bg-primary rounded-xl overflow-hidden relative shadow-2xl">
+            <div className="absolute inset-0 opacity-40 pointer-events-none">
+              <img className="w-full h-full object-cover" alt="Tropical community cafe vibe" src="https://images.unsplash.com/photo-1538356345943-424a1380ea0d?auto=format&fit=crop&q=80&w=1000"/>
+            </div>
+            <div className="relative px-6 py-16 md:py-20 text-center space-y-8">
+              <h2 className="text-3xl md:text-5xl font-headline font-extrabold text-white">Ready to find your next treasure?</h2>
+              <p className="text-primary-fixed/90 max-w-2xl mx-auto text-base md:text-lg font-medium">Join SwapNest today and start trading with locals. Your first swap is just a few clicks away.</p>
+              <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
+                <Link to="/register" className="bg-secondary text-on-secondary px-8 py-4 rounded-full font-bold text-lg hover:scale-105 transition-transform shadow-lg shadow-secondary/20">
+                  Create My Profile
+                </Link>
+                <button className="bg-primary-container text-on-primary-container px-8 py-4 rounded-full font-bold text-lg hover:bg-primary-container/80 transition-colors border border-primary-fixed/20">
+                  How it Works
+                </button>
+              </div>
             </div>
           </div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="bg-surface-container-low w-full rounded-t-[3rem] mt-20 pb-8 pt-16 border-t border-outline-variant/20">
-        <div className="flex flex-col md:flex-row justify-between items-start w-full px-12 max-w-7xl mx-auto mb-16">
-          <div className="mb-12 md:mb-0">
-            <span className="text-xl font-bold text-primary mb-4 block font-headline">SwapNest</span>
-            <p className="max-w-xs text-on-surface-variant text-sm leading-relaxed">
-              Building a circular economy, one swap at a time. Join our community of sustainable curators.
+      <footer className="w-full rounded-t-[2rem] md:rounded-t-[3rem] mt-10 bg-stone-100">
+        <div className="flex flex-col md:flex-row justify-between items-center px-8 md:px-12 py-12 md:py-16 gap-8 max-w-7xl mx-auto">
+          <div className="space-y-4 text-center md:text-left">
+            <div className="text-xl font-bold text-primary font-headline">SwapNest</div>
+            <p className="font-body text-sm text-primary/60 max-w-xs mx-auto md:mx-0">
+              © 2026 SwapNest. Cultivating Sustainable Communities through conscious curation and circular trade in Sri Lanka.
             </p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-12">
-            <div className="flex flex-col space-y-3">
-              <span className="font-bold text-primary mb-2">Company</span>
-              <a className="text-on-surface-variant hover:text-secondary transition-colors text-sm" href="#">Mission</a>
-              <a className="text-on-surface-variant hover:text-secondary transition-colors text-sm" href="#">Privacy</a>
-              <a className="text-on-surface-variant hover:text-secondary transition-colors text-sm" href="#">Terms</a>
-            </div>
-            <div className="flex flex-col space-y-3">
-              <span className="font-bold text-primary mb-2">Community</span>
-              <a className="text-on-surface-variant hover:text-secondary transition-colors text-sm" href="#">Guidelines</a>
-              <a className="text-on-surface-variant hover:text-secondary transition-colors text-sm" href="#">Contact</a>
-              <a className="text-on-surface-variant hover:text-secondary transition-colors text-sm" href="#">Blog</a>
-            </div>
-            <div className="flex flex-col space-y-4">
-              <span className="font-bold text-primary mb-2">Social</span>
-              <div className="flex gap-4">
-                <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-fixed cursor-pointer hover:bg-secondary transition-colors">
-                  <span className="material-symbols-outlined">public</span>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-fixed cursor-pointer hover:bg-secondary transition-colors">
-                  <span className="material-symbols-outlined">favorite</span>
-                </div>
-              </div>
-            </div>
+          <div className="flex flex-wrap justify-center md:justify-end gap-x-6 gap-y-4 max-w-md">
+            <a className="font-body text-sm text-primary/60 hover:text-secondary transition-colors" href="#">Sustainability Report</a>
+            <a className="font-body text-sm text-primary/60 hover:text-secondary transition-colors" href="#">Privacy Policy</a>
+            <a className="font-body text-sm text-primary/60 hover:text-secondary transition-colors" href="#">Terms of Service</a>
+            <a className="font-body text-sm text-primary/60 hover:text-secondary transition-colors" href="#">How it Works</a>
+            <a className="font-body text-sm text-primary/60 hover:text-secondary transition-colors" href="#">Contact Us</a>
           </div>
-        </div>
-        <div className="max-w-7xl mx-auto px-12 pt-8 border-t border-outline-variant/20 text-center md:text-left">
-          <p className="text-on-surface-variant text-sm opacity-60">© 2026 SwapNest. Elevated Sustainability.</p>
+          <div className="flex gap-4">
+            <button className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center hover:bg-secondary hover:text-white transition-all">
+              <span className="material-symbols-outlined text-xl">language</span>
+            </button>
+            <button className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center hover:bg-secondary hover:text-white transition-all">
+              <span className="material-symbols-outlined text-xl">public</span>
+            </button>
+          </div>
         </div>
       </footer>
     </div>
