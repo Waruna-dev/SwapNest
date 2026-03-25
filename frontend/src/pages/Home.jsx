@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import API from '../services/api'; // Added API import
 
 // Lightweight hook for fast, high-performance scroll animations
 const useScrollReveal = () => {
@@ -26,6 +27,10 @@ const useScrollReveal = () => {
 const Home = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  
+  // --- AUTHENTICATION STATES ---
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [profilePic, setProfilePic] = useState('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80');
 
   useScrollReveal();
 
@@ -34,6 +39,29 @@ const Home = () => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // --- CHECK LOGIN STATUS ---
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      const token = localStorage.getItem('swapnest_token');
+      if (token) {
+        setIsLoggedIn(true);
+        try {
+          // Fetch user data to grab their custom profile picture
+          const response = await API.get('/users/me');
+          if (response.data.profilePic) {
+            setProfilePic(response.data.profilePic);
+          }
+        } catch (error) {
+          // If token is invalid/expired, log them out silently
+          console.error("Token verification failed", error);
+          setIsLoggedIn(false);
+          localStorage.removeItem('swapnest_token');
+        }
+      }
+    };
+    checkAuthStatus();
   }, []);
 
   return (
@@ -54,12 +82,25 @@ const Home = () => {
           </div>
           
           <div className="hidden md:flex items-center gap-6">
-            <Link to="/login" className="text-[#012d1d] font-bold text-sm hover:opacity-70 transition-opacity">
-              Sign In
-            </Link>
-            <Link to="/register" className="bg-[#a43c12] text-white px-7 py-2.5 rounded-full font-bold text-sm hover:scale-105 active:scale-95 transition-transform duration-200 shadow-md shadow-[#a43c12]/20">
-              Sign Up
-            </Link>
+            {/* CONDITIONAL RENDERING FOR DESKTOP NAV */}
+            {isLoggedIn ? (
+              <Link 
+                to="/dashboard" 
+                className="w-10 h-10 rounded-full border-2 border-[#012d1d]/10 overflow-hidden cursor-pointer hover:ring-2 hover:ring-[#a43c12] transition-all shadow-md"
+                title="Go to Dashboard"
+              >
+                <img src={profilePic} alt="Profile" className="w-full h-full object-cover" />
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" className="text-[#012d1d] font-bold text-sm hover:opacity-70 transition-opacity">
+                  Sign In
+                </Link>
+                <Link to="/register" className="bg-[#a43c12] text-white px-7 py-2.5 rounded-full font-bold text-sm hover:scale-105 active:scale-95 transition-transform duration-200 shadow-md shadow-[#a43c12]/20">
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
           <button className="md:hidden text-[#012d1d]" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
@@ -74,8 +115,19 @@ const Home = () => {
             <a href="#how-it-works" className="text-[#012d1d] font-bold text-lg">How it Works</a>
             <a href="#community" className="text-[#012d1d] font-bold text-lg">Community</a>
             <div className="h-px bg-gray-200"></div>
-            <Link to="/login" className="text-[#012d1d] font-bold text-lg">Sign In</Link>
-            <Link to="/register" className="bg-[#a43c12] text-white px-6 py-3 rounded-xl font-bold text-center">Create Account</Link>
+            
+            {/* CONDITIONAL RENDERING FOR MOBILE NAV */}
+            {isLoggedIn ? (
+              <Link to="/dashboard" className="bg-[#012d1d] text-white px-6 py-3 rounded-xl font-bold text-center flex items-center justify-center gap-2">
+                <img src={profilePic} alt="Profile" className="w-6 h-6 rounded-full object-cover border border-white/20" />
+                Go to Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" className="text-[#012d1d] font-bold text-lg">Sign In</Link>
+                <Link to="/register" className="bg-[#a43c12] text-white px-6 py-3 rounded-xl font-bold text-center">Create Account</Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -92,8 +144,8 @@ const Home = () => {
               Elevate your lifestyle through Sri Lanka's premium circular marketplace. Exchange stories, not just items.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/register" className="bg-[#012d1d] text-white px-8 py-4 rounded-full font-bold text-center hover:bg-[#1b4332] transition-colors shadow-xl shadow-[#012d1d]/20">
-                Explore Gallery
+              <Link to={isLoggedIn ? "/dashboard" : "/register"} className="bg-[#012d1d] text-white px-8 py-4 rounded-full font-bold text-center hover:bg-[#1b4332] transition-colors shadow-xl shadow-[#012d1d]/20">
+                {isLoggedIn ? "Go to Dashboard" : "Explore Gallery"}
               </Link>
               <a href="#how-it-works" className="px-8 py-4 rounded-full font-bold text-center text-[#012d1d] border border-gray-300 hover:bg-gray-100 transition-colors">
                 Learn More
@@ -123,7 +175,7 @@ const Home = () => {
                 <h2 className="text-4xl md:text-5xl font-serif font-bold text-[#012d1d] tracking-tight">The Circular Gallery</h2>
                 <p className="text-gray-500 mt-4 font-medium text-lg">Hand-picked treasures looking for their next chapter.</p>
               </div>
-              <Link to="/register" className="text-[#012d1d] font-bold flex items-center gap-2 group hover:text-[#a43c12] transition-colors pb-2">
+              <Link to={isLoggedIn ? "/marketplace" : "/register"} className="text-[#012d1d] font-bold flex items-center gap-2 group hover:text-[#a43c12] transition-colors pb-2">
                 View All Listings 
                 <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
               </Link>
@@ -321,15 +373,15 @@ const Home = () => {
 
         {/* --- FINAL CTA --- */}
         <section className="py-24 px-6 overflow-hidden reveal-on-scroll opacity-0 translate-y-12 transition-all duration-1000 ease-out">
-          <div className="max-w-6xl mx-auto bg-[#1b4332] rounded-[3.5rem] p-12 md:p-24 text-center relative shadow-2xl">
+          <div className="max-w-6xl mx-auto bg-[#1b4332] rounded-[3.5rem] p-12 md:p-24 text-center relative shadow-2xl overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-[#012d1d] to-transparent opacity-80 pointer-events-none"></div>
             
             <div className="relative z-10 max-w-3xl mx-auto">
               <h2 className="text-4xl md:text-6xl lg:text-7xl font-serif font-bold text-white mb-8 tracking-tight">Ready to join the movement?</h2>
               <p className="text-[#a5d0b9] text-xl mb-12 leading-relaxed font-medium">Start your circular journey today. Your next favorite treasure is waiting for a new home.</p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-                <Link to="/register" className="bg-[#a43c12] text-white px-10 py-5 rounded-full font-bold text-lg hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/20 w-full sm:w-auto">
-                  Start Swapping
+                <Link to={isLoggedIn ? "/dashboard" : "/register"} className="bg-[#a43c12] text-white px-10 py-5 rounded-full font-bold text-lg hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/20 w-full sm:w-auto">
+                  {isLoggedIn ? "Go to Dashboard" : "Start Swapping"}
                 </Link>
                 <a href="#how-it-works" className="bg-white/10 backdrop-blur-md text-white border border-white/20 px-10 py-5 rounded-full font-bold text-lg hover:bg-white/20 transition-colors w-full sm:w-auto">
                   How it Works

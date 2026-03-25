@@ -13,7 +13,7 @@ import {
 
 // Import middlewares and configs
 // 1. We imported the 'admin' middleware here
-import { protect, admin } from '../middlewares/authMiddleware.js';
+import { protect, admin, adminOrOwner } from '../middlewares/authMiddleware.js';
 import upload from '../config/cloudinary.js';
 
 // --- PUBLIC ROUTES ---
@@ -28,6 +28,6 @@ router.put('/password', protect, updatePassword);
 
 // --- ADMIN ONLY ROUTES ---
 // 2. We added both 'protect' and 'admin' middlewares here
-router.delete('/:id', protect, admin, deleteUser);
+router.delete('/:id', protect, adminOrOwner, deleteUser);
 
 export default router;
