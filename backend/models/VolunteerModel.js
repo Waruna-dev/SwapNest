@@ -38,6 +38,14 @@ const VolunteerSchema = new mongoose.Schema(
 		agreeTerms: { type: Boolean, default: false },
 		agreePrivacy: { type: Boolean, default: false },
 		agreeNotif: { type: Boolean, default: false }
+		,
+		// Used for the dashboard accept/reject workflow.
+		// Existing records without this field will behave like "Pending" on the UI.
+		applicationStatus: {
+			type: String,
+			enum: ["Pending", "Accepted", "Rejected"],
+			default: "Pending",
+		}
 	},
 	{ timestamps: true }
 );

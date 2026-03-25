@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 // Images
 import impactHero from "../pictures/fe64b3e246ca0c38c7bb835868f2c100.jpg";
 import visionImg from "../pictures/221ffbd54d806c6864d9c45505a28b6c.jpg";
-import missionImg from "../pictures/8e9f9071f80d78b121337300604eac54.jpg";
+import missionImg from "../pictures/f963b1ad542156ddd22273e82f7c1910.jpg";
 
 export default function AboutUs() {
   return (
@@ -40,7 +40,7 @@ export default function AboutUs() {
             </p>
 
             <p>
-              SwapNest goes beyond a simple exchange platform — it creates a meaningful ecosystem where individuals can give a second life 
+              SwapNest goes beyond a simple exchange platform it creates a meaningful ecosystem where individuals can give a second life 
               to unused items instead of discarding them. By encouraging responsible consumption, we help minimize environmental impact 
               while making essential goods more accessible.
             </p>
