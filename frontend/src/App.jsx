@@ -7,6 +7,7 @@ import Register from "./pages/Register";
 import Pickup from "./Component/Volunteer/pickup";
 import Center from "./Component/Volunteer/center";
 import Volunteer from "./Component/Volunteer/volunteer";
+import VolunteerPage from "./Component/Volunteer/Volunteerpage";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/volunteer" element={<Volunteer />} />
           <Route path="/pickup" element={<Pickup />} />
           <Route path="/center" element={<Center />} />
+          <Route path="/volunteer-hero" element={<VolunteerPage />} />
         </Routes>
       </div>
     </Router>
