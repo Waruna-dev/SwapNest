@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const Volunteer = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [scrolled, setScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const totalSteps = 5;
   const progressPct = [20, 40, 60, 80, 100];
 
@@ -14,15 +17,22 @@ const Volunteer = () => {
     agreeTerms: false, agreePrivacy: false, agreeNotif: false
   });
 
+  // Navbar scroll effect
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const handleInputChange = (e) => {
     const { id, name, value, type, checked } = e.target;
     const fieldName = id || name;
-    
+
     if (type === "checkbox") {
       if (["days", "time", "skills", "tasks"].includes(name)) {
-        const newList = checked 
-          ? [...formData[name], value] 
-          : formData[name].filter(i => i !== value);
+        const newList = checked
+          ? [...formData[name], value]
+          : formData[name].filter((i) => i !== value);
         setFormData({ ...formData, [name]: newList });
       } else {
         setFormData({ ...formData, [fieldName]: checked });
@@ -52,22 +62,107 @@ const Volunteer = () => {
         <div className="max-w-md w-full bg-white rounded-3xl p-10 shadow-xl text-center border border-[#D0C9BA]">
           <div className="text-6xl mb-6">🎉</div>
           <h2 className="text-3xl font-bold text-[#1A1A1A] mb-4">Application Submitted!</h2>
-          <p className="text-gray-600 mb-8">Thank you for applying to be a SwapNest volunteer. Our team will review your application and contact you within 3–5 business days.</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="w-full py-4 bg-[#2D4A35] text-white rounded-xl font-bold hover:bg-[#1f3325] transition-colors"
+          <p className="text-gray-600 mb-8">
+            Thank you for applying to be a SwapNest volunteer. Our team will review your
+            application and contact you within 3–5 business days.
+          </p>
+          <Link
+            to="/"
+            className="block w-full py-4 bg-[#2D4A35] text-white rounded-xl font-bold hover:bg-[#1f3325] transition-colors text-center"
           >
             ← Back to Home
-          </button>
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F0E8] font-sans text-[#1A1A1A] pb-20">
-      {/* Hero Section */}
-      <div className="bg-[#2D4A35] text-white pt-16 pb-32 px-6">
+    <div className="min-h-screen bg-[#F5F0E8] font-sans text-[#1A1A1A]">
+
+      {/* ── NAVBAR ── */}
+      <nav
+        className={`fixed top-0 w-full z-50 transition-all duration-500 ${
+          scrolled ? "bg-white/80 backdrop-blur-xl shadow-sm py-3" : "bg-transparent py-5"
+        }`}
+      >
+        <div className="flex justify-between items-center px-6 md:px-12 max-w-[1400px] mx-auto">
+          <Link
+            to="/"
+            className="text-2xl font-bold tracking-tighter text-[#012d1d] font-serif"
+          >
+            SwapNest
+          </Link>
+
+          {/* Desktop links */}
+          <div className="hidden md:flex items-center gap-8 font-semibold text-sm tracking-tight">
+            <Link to="/" className="text-[#012d1d]/80 hover:text-[#012d1d] transition-colors">
+              Home
+            </Link>
+            <Link
+              to="/volunteer"
+              className="text-[#a43c12] border-b-2 border-[#a43c12] pb-1"
+            >
+              Volunteer
+            </Link>
+          </div>
+
+          {/* Desktop auth */}
+          <div className="hidden md:flex items-center gap-6">
+            <Link
+              to="/login"
+              className="text-[#012d1d] font-bold text-sm hover:opacity-70 transition-opacity"
+            >
+              Sign In
+            </Link>
+            <Link
+              to="/register"
+              className="bg-[#a43c12] text-white px-7 py-2.5 rounded-full font-bold text-sm hover:scale-105 active:scale-95 transition-transform duration-200 shadow-md shadow-[#a43c12]/20"
+            >
+              Sign Up
+            </Link>
+          </div>
+
+          {/* Mobile hamburger */}
+          <button
+            className="md:hidden text-[#012d1d]"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            <span className="material-symbols-outlined text-3xl">
+              {isMobileMenuOpen ? "close" : "menu"}
+            </span>
+          </button>
+        </div>
+
+        {/* Mobile Menu */}
+        <div
+          className={`md:hidden absolute top-full left-0 w-full bg-[#fbf9f5] border-b border-gray-200 shadow-xl transition-all duration-300 overflow-hidden ${
+            isMobileMenuOpen ? "max-h-[400px] py-6" : "max-h-0 py-0"
+          }`}
+        >
+          <div className="flex flex-col gap-6 px-6">
+            <Link to="/" className="text-[#012d1d] font-bold text-lg">
+              Home
+            </Link>
+            <Link to="/volunteer" className="text-[#a43c12] font-bold text-lg">
+              Volunteer
+            </Link>
+            <div className="h-px bg-gray-200"></div>
+            <Link to="/login" className="text-[#012d1d] font-bold text-lg">
+              Sign In
+            </Link>
+            <Link
+              to="/register"
+              className="bg-[#a43c12] text-white px-6 py-3 rounded-xl font-bold text-center"
+            >
+              Create Account
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* ── HERO SECTION ── */}
+      <div className="bg-[#2D4A35] text-white pt-28 pb-32 px-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-2 mb-8 group cursor-pointer w-fit">
             <div className="text-2xl transition-transform group-hover:rotate-180 duration-500">🔄</div>
@@ -77,35 +172,53 @@ const Volunteer = () => {
             Become a <span className="text-[#7A9E7E]">Volunteer</span>
           </h1>
           <p className="text-lg text-gray-300 max-w-2xl mb-12">
-            Join our network of changemakers helping communities swap, share, and thrive. 
+            Join our network of changemakers helping communities swap, share, and thrive.
             Choose your center, share your skills, make a difference.
           </p>
 
           {/* Stepper Header */}
           <div className="hidden md:flex items-center justify-between relative">
-             {[1, 2, 3, 4, 5].map((step, idx) => (
-               <React.Fragment key={step}>
-                 <div className={`flex flex-col items-center gap-3 z-10 transition-opacity ${currentStep >= step ? 'opacity-100' : 'opacity-40'}`}>
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border-2 ${currentStep === step ? 'bg-[#C4622D] border-[#C4622D]' : currentStep > step ? 'bg-[#7A9E7E] border-[#7A9E7E]' : 'border-white'}`}>
-                      {currentStep > step ? "✓" : step}
-                    </div>
-                    <span className="text-xs font-medium uppercase tracking-wider">
-                      {["Personal", "Location", "Skills", "Availability", "Docs"][idx]}
-                    </span>
-                 </div>
-                 {step < 5 && <div className={`flex-1 h-[2px] mb-7 mx-4 ${currentStep > step ? 'bg-[#7A9E7E]' : 'bg-gray-600'}`}></div>}
-               </React.Fragment>
-             ))}
+            {[1, 2, 3, 4, 5].map((step, idx) => (
+              <React.Fragment key={step}>
+                <div
+                  className={`flex flex-col items-center gap-3 z-10 transition-opacity ${
+                    currentStep >= step ? "opacity-100" : "opacity-40"
+                  }`}
+                >
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border-2 ${
+                      currentStep === step
+                        ? "bg-[#C4622D] border-[#C4622D]"
+                        : currentStep > step
+                        ? "bg-[#7A9E7E] border-[#7A9E7E]"
+                        : "border-white"
+                    }`}
+                  >
+                    {currentStep > step ? "✓" : step}
+                  </div>
+                  <span className="text-xs font-medium uppercase tracking-wider">
+                    {["Personal", "Location", "Skills", "Availability", "Docs"][idx]}
+                  </span>
+                </div>
+                {step < 5 && (
+                  <div
+                    className={`flex-1 h-[2px] mb-7 mx-4 ${
+                      currentStep > step ? "bg-[#7A9E7E]" : "bg-gray-600"
+                    }`}
+                  ></div>
+                )}
+              </React.Fragment>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Form Card */}
-      <div className="max-w-4xl mx-auto -mt-20 px-4">
+      {/* ── FORM CARD ── */}
+      <div className="max-w-4xl mx-auto -mt-20 px-4 pb-20">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-[#D0C9BA]">
           {/* Progress Bar */}
           <div className="h-2 bg-gray-100">
-            <div 
+            <div
               className="h-full bg-[#C4622D] transition-all duration-500 ease-out"
               style={{ width: `${progressPct[currentStep - 1]}%` }}
             ></div>
@@ -114,11 +227,15 @@ const Volunteer = () => {
           <div className="p-8 md:p-12">
             {/* Step 1: Personal */}
             {currentStep === 1 && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="text-xs font-bold text-[#C4622D] uppercase tracking-widest mb-2">📋 Step 1 of 5</div>
+              <div>
+                <div className="text-xs font-bold text-[#C4622D] uppercase tracking-widest mb-2">
+                  📋 Step 1 of 5
+                </div>
                 <h2 className="text-3xl font-bold mb-2">Personal Information</h2>
-                <p className="text-gray-500 mb-8">Tell us about yourself so we can get to know you better.</p>
-                
+                <p className="text-gray-500 mb-8">
+                  Tell us about yourself so we can get to know you better.
+                </p>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <InputField label="First Name" required placeholder="Nimal" id="firstName" value={formData.firstName} onChange={handleInputChange} />
                   <InputField label="Last Name" required placeholder="Perera" id="lastName" value={formData.lastName} onChange={handleInputChange} />
@@ -130,7 +247,7 @@ const Volunteer = () => {
                   <InputField label="Emergency Contact" type="tel" placeholder="+94 77 987 6543" id="emergencyContact" value={formData.emergencyContact} onChange={handleInputChange} />
                   <div className="md:col-span-2">
                     <label className="block text-sm font-semibold mb-2">Home Address</label>
-                    <textarea 
+                    <textarea
                       id="address"
                       value={formData.address}
                       onChange={handleInputChange}
@@ -144,14 +261,18 @@ const Volunteer = () => {
 
             {/* Step 2: Location */}
             {currentStep === 2 && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="text-xs font-bold text-[#C4622D] uppercase tracking-widest mb-2">📍 Step 2 of 5</div>
+              <div>
+                <div className="text-xs font-bold text-[#C4622D] uppercase tracking-widest mb-2">
+                  📍 Step 2 of 5
+                </div>
                 <h2 className="text-3xl font-bold mb-2">Center & Location</h2>
                 <p className="text-gray-500 mb-8">Choose your preferred SwapNest center.</p>
-                
+
                 <div className="bg-[#E8F0E9] p-4 rounded-xl border border-[#7A9E7E] flex gap-3 mb-8">
                   <span className="text-xl">💡</span>
-                  <p className="text-sm text-[#2D4A35]">Selecting a center close to your home makes pickup and sorting tasks much easier.</p>
+                  <p className="text-sm text-[#2D4A35]">
+                    Selecting a center close to your home makes pickup and sorting tasks much easier.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -172,11 +293,15 @@ const Volunteer = () => {
 
             {/* Step 3: Skills */}
             {currentStep === 3 && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="text-xs font-bold text-[#C4622D] uppercase tracking-widest mb-2">💪 Step 3 of 5</div>
+              <div>
+                <div className="text-xs font-bold text-[#C4622D] uppercase tracking-widest mb-2">
+                  💪 Step 3 of 5
+                </div>
                 <h2 className="text-3xl font-bold mb-2">Skills & Tasks</h2>
-                
-                <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mt-8 mb-4">Your Skills *</label>
+
+                <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mt-8 mb-4">
+                  Your Skills *
+                </label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
                   <CheckCard icon="🗣️" label="Communication" name="skills" value="communication" checked={formData.skills.includes("communication")} onChange={handleInputChange} />
                   <CheckCard icon="🚗" label="Driving" name="skills" value="driving" checked={formData.skills.includes("driving")} onChange={handleInputChange} />
@@ -194,15 +319,33 @@ const Volunteer = () => {
 
             {/* Step 4: Availability */}
             {currentStep === 4 && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="text-xs font-bold text-[#C4622D] uppercase tracking-widest mb-2">🗓️ Step 4 of 5</div>
+              <div>
+                <div className="text-xs font-bold text-[#C4622D] uppercase tracking-widest mb-2">
+                  🗓️ Step 4 of 5
+                </div>
                 <h2 className="text-3xl font-bold mb-2">Your Availability</h2>
-                
-                <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mt-8 mb-4">Days Available *</label>
+
+                <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mt-8 mb-4">
+                  Days Available *
+                </label>
                 <div className="grid grid-cols-4 md:grid-cols-7 gap-2 mb-8">
-                  {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map(day => (
-                    <label key={day} className={`flex flex-col items-center p-3 rounded-xl border-2 cursor-pointer transition-all ${formData.days.includes(day.toLowerCase()) ? 'border-[#C4622D] bg-[#FDF8F5]' : 'border-gray-100 hover:border-[#D0C9BA]'}`}>
-                      <input type="checkbox" name="days" value={day.toLowerCase()} className="hidden" checked={formData.days.includes(day.toLowerCase())} onChange={handleInputChange} />
+                  {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
+                    <label
+                      key={day}
+                      className={`flex flex-col items-center p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                        formData.days.includes(day.toLowerCase())
+                          ? "border-[#C4622D] bg-[#FDF8F5]"
+                          : "border-gray-100 hover:border-[#D0C9BA]"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        name="days"
+                        value={day.toLowerCase()}
+                        className="hidden"
+                        checked={formData.days.includes(day.toLowerCase())}
+                        onChange={handleInputChange}
+                      />
                       <span className="text-sm font-bold">{day.substring(0, 2)}</span>
                     </label>
                   ))}
@@ -217,13 +360,15 @@ const Volunteer = () => {
 
             {/* Step 5: Documents */}
             {currentStep === 5 && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="text-xs font-bold text-[#C4622D] uppercase tracking-widest mb-2">📎 Step 5 of 5</div>
+              <div>
+                <div className="text-xs font-bold text-[#C4622D] uppercase tracking-widest mb-2">
+                  📎 Step 5 of 5
+                </div>
                 <h2 className="text-3xl font-bold mb-2">Documents & Agreement</h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                   <FileUpload label="NIC Copy *" icon="🪪" />
-                   <FileUpload label="Driving License" icon="🚗" />
+                  <FileUpload label="NIC Copy *" icon="🪪" />
+                  <FileUpload label="Driving License" icon="🚗" />
                 </div>
 
                 <div className="bg-[#F5F0E8] p-6 rounded-2xl border border-[#D0C9BA]">
@@ -244,14 +389,18 @@ const Volunteer = () => {
 
             {/* Navigation Buttons */}
             <div className="mt-12 flex items-center justify-between gap-4 border-t border-gray-100 pt-8">
-              <button 
+              <button
                 onClick={goBack}
                 disabled={currentStep === 1}
-                className={`px-8 py-3 rounded-xl font-bold transition-all ${currentStep === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-[#2D4A35] hover:bg-gray-50'}`}
+                className={`px-8 py-3 rounded-xl font-bold transition-all ${
+                  currentStep === 1
+                    ? "text-gray-300 cursor-not-allowed"
+                    : "text-[#2D4A35] hover:bg-gray-50"
+                }`}
               >
                 Back
               </button>
-              <button 
+              <button
                 onClick={goNext}
                 className="px-10 py-3 bg-[#2D4A35] text-white rounded-xl font-bold hover:bg-[#1f3325] shadow-lg shadow-[#2d4a3544] transition-all transform active:scale-95"
               >
@@ -261,16 +410,68 @@ const Volunteer = () => {
           </div>
         </div>
       </div>
+
+      {/* ── FOOTER ── */}
+      <footer className="bg-[#012d1d] w-full rounded-t-[3rem]">
+        <div className="flex flex-col md:flex-row justify-between items-start w-full px-8 md:px-16 py-20 max-w-7xl mx-auto gap-12">
+          <div className="mb-8 md:mb-0 max-w-sm">
+            <div className="text-3xl font-bold text-white mb-6 font-serif tracking-tighter">
+              SwapNest
+            </div>
+            <p className="text-[#86af99] text-base leading-relaxed mb-8 font-medium">
+              Cultivating a circular future for the teardrop island. Join the movement today.
+            </p>
+            <div className="flex gap-4">
+              <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-[#a43c12] hover:border-transparent cursor-pointer transition-all">
+                <span className="material-symbols-outlined text-xl">public</span>
+              </div>
+              <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-[#a43c12] hover:border-transparent cursor-pointer transition-all">
+                <span className="material-symbols-outlined text-xl">chat_bubble</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-12 md:gap-24 w-full md:w-auto">
+            <div className="flex flex-col gap-4">
+              <h4 className="text-white font-bold tracking-widest text-xs uppercase mb-2">Navigate</h4>
+              <Link to="/" className="text-[#86af99] hover:text-white transition-colors font-medium">Home</Link>
+              <Link to="/volunteer" className="text-[#86af99] hover:text-white transition-colors font-medium">Volunteer</Link>
+              <Link to="/login" className="text-[#86af99] hover:text-white transition-colors font-medium">Sign In</Link>
+              <Link to="/register" className="text-[#86af99] hover:text-white transition-colors font-medium">Sign Up</Link>
+            </div>
+            <div className="flex flex-col gap-4">
+              <h4 className="text-white font-bold tracking-widest text-xs uppercase mb-2">Company</h4>
+              <a className="text-[#86af99] hover:text-white transition-colors font-medium" href="#">Privacy Policy</a>
+              <a className="text-[#86af99] hover:text-white transition-colors font-medium" href="#">Community Guidelines</a>
+              <a className="text-[#86af99] hover:text-white transition-colors font-medium" href="#">Contact Us</a>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-8 md:px-16 pb-12">
+          <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
+            <p className="text-[#86af99] text-sm font-medium">
+              © 2026 SwapNest Sri Lanka. Circularity by design.
+            </p>
+            <div className="flex gap-8 text-sm font-medium text-[#86af99]">
+              <a className="hover:text-white transition-colors" href="#">Terms of Service</a>
+              <a className="hover:text-white transition-colors" href="#">Cookie Policy</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
 
-/* Helper Sub-Components for Cleanliness */
+/* ── Helper Sub-Components ── */
 
 const InputField = ({ label, required, type = "text", placeholder, id, value, onChange }) => (
   <div className="flex flex-col gap-2">
-    <label className="text-sm font-semibold">{label} {required && <span className="text-red-500">*</span>}</label>
-    <input 
+    <label className="text-sm font-semibold">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <input
       type={type} id={id} value={value} onChange={onChange} placeholder={placeholder}
       className="px-4 py-3 rounded-xl border border-[#D0C9BA] focus:ring-2 focus:ring-[#7A9E7E] focus:border-transparent outline-none transition-all"
     />
@@ -279,13 +480,15 @@ const InputField = ({ label, required, type = "text", placeholder, id, value, on
 
 const SelectField = ({ label, required, id, value, onChange, options }) => (
   <div className="flex flex-col gap-2">
-    <label className="text-sm font-semibold">{label} {required && <span className="text-red-500">*</span>}</label>
-    <select 
+    <label className="text-sm font-semibold">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <select
       id={id} value={value} onChange={onChange}
       className="px-4 py-3 rounded-xl border border-[#D0C9BA] bg-white focus:ring-2 focus:ring-[#7A9E7E] outline-none transition-all cursor-pointer"
     >
       <option value="">Select option</option>
-      {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+      {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
     </select>
   </div>
 );
@@ -304,7 +507,7 @@ const ToggleRow = ({ id, title, desc, checked, onChange }) => (
 );
 
 const CheckCard = ({ icon, label, name, value, checked, onChange }) => (
-  <label className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${checked ? 'border-[#7A9E7E] bg-[#E8F0E9]' : 'border-gray-100 hover:border-[#D0C9BA]'}`}>
+  <label className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${checked ? "border-[#7A9E7E] bg-[#E8F0E9]" : "border-gray-100 hover:border-[#D0C9BA]"}`}>
     <input type="checkbox" name={name} value={value} className="hidden" checked={checked} onChange={onChange} />
     <span className="text-xl">{icon}</span>
     <span className="text-sm font-medium">{label}</span>
@@ -318,7 +521,7 @@ const FileUpload = ({ label, icon }) => (
       <input type="file" className="hidden" />
       <span className="text-3xl mb-2">{icon}</span>
       <span className="text-xs text-center text-gray-500">
-        <strong className="text-[#2D4A35]">Click to upload</strong> or drag & drop<br/>Max 5MB
+        <strong className="text-[#2D4A35]">Click to upload</strong> or drag & drop<br />Max 5MB
       </span>
     </label>
   </div>

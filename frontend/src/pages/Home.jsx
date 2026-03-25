@@ -51,6 +51,13 @@ const Home = () => {
             <a className="text-[#012d1d]/80 hover:text-[#012d1d] transition-colors" href="#how-it-works">How it Works</a>
             <a className="text-[#012d1d]/80 hover:text-[#012d1d] transition-colors" href="#impact">Impact</a>
             <a className="text-[#012d1d]/80 hover:text-[#012d1d] transition-colors" href="#community">Community</a>
+          <Link 
+    to="/volunteer" 
+    className="text-[#012d1d]/80 hover:text-[#012d1d] transition-colors"
+  >
+    Volunteer
+  </Link>
+
           </div>
           
           <div className="hidden md:flex items-center gap-6">
