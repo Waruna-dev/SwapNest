@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const Volunteer = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -7,6 +7,12 @@ const Volunteer = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const totalSteps = 5;
   const progressPct = [20, 40, 60, 80, 100];
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+  const location = useLocation();
+  const selectedCenter = location.state?.center;
 
   const [formData, setFormData] = useState({
     firstName: "", lastName: "", email: "", phone: "", nic: "", dob: "",
@@ -16,6 +22,18 @@ const Volunteer = () => {
     bio: "", days: [], time: [], hoursPerWeek: "", startDate: "",
     agreeTerms: false, agreePrivacy: false, agreeNotif: false
   });
+
+  // If user came from a center row, prefill center field.
+  useEffect(() => {
+    if (!selectedCenter) return;
+    const centerValue =
+      selectedCenter.centerName ||
+      selectedCenter.name ||
+      selectedCenter.center ||
+      "";
+    if (!centerValue) return;
+    setFormData((prev) => ({ ...prev, center: centerValue }));
+  }, [selectedCenter]);
 
   // Navbar scroll effect
   useEffect(() => {
@@ -43,11 +61,97 @@ const Volunteer = () => {
   };
 
   const goNext = () => {
+    setSubmitError("");
+
+    // On the last step, submit to backend instead of only showing success.
     if (currentStep === totalSteps) {
-      setCurrentStep("success");
-    } else {
-      setCurrentStep((s) => Math.min(s + 1, totalSteps));
+      const requiredMissing = [];
+      if (!formData.firstName.trim()) requiredMissing.push("First Name");
+      if (!formData.lastName.trim()) requiredMissing.push("Last Name");
+      if (!formData.email.trim()) requiredMissing.push("Email");
+      if (!formData.nic.trim()) requiredMissing.push("NIC");
+      if (!formData.dob) requiredMissing.push("Date of Birth");
+
+      if (requiredMissing.length > 0) {
+        setSubmitError(`Please fill: ${requiredMissing.join(", ")}`);
+        return;
+      }
+
+      const toISO = (value) => {
+        if (!value) return null;
+        const d = new Date(value);
+        return Number.isNaN(d.getTime()) ? value : d.toISOString();
+      };
+
+      const payload = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone,
+        nic: formData.nic,
+        dob: toISO(formData.dob),
+        gender: formData.gender,
+        emergencyContact: formData.emergencyContact,
+        address: formData.address,
+        district: formData.district,
+        city: formData.city,
+        center: formData.center,
+        centerReason: formData.centerReason,
+        hasVehicle: formData.hasVehicle,
+        hasLicense: formData.hasLicense,
+        canTravel: formData.canTravel,
+        skills: formData.skills,
+        tasks: formData.tasks,
+        experience: formData.experience,
+        maxTasks: formData.maxTasks,
+        bio: formData.bio,
+        days: formData.days,
+        time: formData.time,
+        hoursPerWeek: formData.hoursPerWeek,
+        startDate: toISO(formData.startDate),
+        agreeTerms: formData.agreeTerms,
+        agreePrivacy: formData.agreePrivacy,
+        agreeNotif: formData.agreeNotif,
+      };
+
+      (async () => {
+        try {
+          setIsSubmitting(true);
+          const res = await fetch(`${API_BASE}/api/volunteers`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          if (!res.ok) {
+            let errJson = null;
+            try {
+              errJson = await res.json();
+            } catch {
+              errJson = null;
+            }
+            const message =
+              errJson?.message ||
+              (errJson?.errors ? JSON.stringify(errJson.errors) : null) ||
+              `Request failed with status ${res.status}`;
+            setSubmitError(message);
+            return;
+          }
+
+          setCurrentStep("success");
+        } catch (err) {
+          setSubmitError(String(err?.message || err));
+        } finally {
+          setIsSubmitting(false);
+        }
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      })();
+
+      return;
     }
+
+    setCurrentStep((s) => Math.min(s + 1, totalSteps));
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -67,7 +171,7 @@ const Volunteer = () => {
             application and contact you within 3–5 business days.
           </p>
           <Link
-            to="/"
+            to="/dashboard/volunteer"
             className="block w-full py-4 bg-[#2D4A35] text-white rounded-xl font-bold hover:bg-[#1f3325] transition-colors text-center"
           >
             ← Back to Home
@@ -403,8 +507,13 @@ const Volunteer = () => {
               <button
                 onClick={goNext}
                 className="px-10 py-3 bg-[#2D4A35] text-white rounded-xl font-bold hover:bg-[#1f3325] shadow-lg shadow-[#2d4a3544] transition-all transform active:scale-95"
+                disabled={isSubmitting}
               >
-                {currentStep === totalSteps ? "Submit Application" : "Next Step →"}
+                {isSubmitting
+                  ? "Submitting..."
+                  : currentStep === totalSteps
+                    ? "Submit Application"
+                    : "Next Step →"}
               </button>
             </div>
           </div>
