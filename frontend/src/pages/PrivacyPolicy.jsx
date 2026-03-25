@@ -1,8 +1,7 @@
-// src/pages/PrivacyPolicy.jsx
 import React, { useEffect } from 'react';
 
 const PrivacyPolicy = () => {
-  // Smooth scroll to top on page load
+  
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);

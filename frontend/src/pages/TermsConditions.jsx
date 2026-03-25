@@ -1,8 +1,7 @@
-// src/pages/TermsConditions.jsx
 import React, { useEffect } from 'react';
 
 const TermsConditions = () => {
-  // Smooth scroll to top on page load
+  
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
