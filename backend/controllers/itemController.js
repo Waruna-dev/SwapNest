@@ -11,7 +11,8 @@ const toInt = (v, def) => {
   return Number.isFinite(n) && n > 0 ? n : def;
 };
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
-const hasValue = (v) => v !== undefined && v !== null && String(v).trim() !== "";
+const hasValue = (v) =>
+  v !== undefined && v !== null && String(v).trim() !== "";
 const asArray = (v) => (Array.isArray(v) ? v : v ? [v] : []);
 const normalizeIncomingImages = (raw) => {
   // Supports JSON body images such as:
@@ -36,7 +37,12 @@ const normalizeIncomingImages = (raw) => {
         };
       }
 
-      if (img && typeof img === "object" && typeof img.url === "string" && img.url.trim()) {
+      if (
+        img &&
+        typeof img === "object" &&
+        typeof img.url === "string" &&
+        img.url.trim()
+      ) {
         return {
           url: img.url.trim(),
           publicId: img.publicId || `external_${Date.now()}_${idx}`,
@@ -49,7 +55,8 @@ const normalizeIncomingImages = (raw) => {
 };
 
 const parseLocation = (latRaw, lngRaw) => {
-  if (!hasValue(latRaw) && !hasValue(lngRaw)) return { ok: true, value: undefined };
+  if (!hasValue(latRaw) && !hasValue(lngRaw))
+    return { ok: true, value: undefined };
   if (!hasValue(latRaw) || !hasValue(lngRaw)) {
     return { ok: false, message: "Both lat and lng are required together" };
   }
@@ -60,7 +67,10 @@ const parseLocation = (latRaw, lngRaw) => {
     return { ok: false, message: "lat and lng must be valid numbers" };
   }
   if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-    return { ok: false, message: "lat must be [-90, 90] and lng must be [-180, 180]" };
+    return {
+      ok: false,
+      message: "lat must be [-90, 90] and lng must be [-180, 180]",
+    };
   }
 
   return { ok: true, value: { type: "Point", coordinates: [lng, lat] } };
@@ -150,7 +160,10 @@ export const createItem = async (req, res, next) => {
 
     if (files.length > 0) {
       for (const f of files) {
-        const result = await uploadBufferToCloudinary(f.buffer, "swapnest/items");
+        const result = await uploadBufferToCloudinary(
+          f.buffer,
+          "swapnest/items",
+        );
         uploaded.push({ url: result.secure_url, publicId: result.public_id });
       }
     } else if (bodyImages.length > 0) {
@@ -404,7 +417,10 @@ export const deleteItem = async (req, res, next) => {
         try {
           await deleteFromCloudinary(img.publicId);
         } catch (cloudErr) {
-          console.error(`Failed to delete image ${img.publicId}:`, cloudErr.message);
+          console.error(
+            `Failed to delete image ${img.publicId}:`,
+            cloudErr.message,
+          );
         }
       }
     }
@@ -542,7 +558,15 @@ export const getTrendingItems = async (req, res, next) => {
 
     const items = await Item.find(
       { isActive: true, createdAt: { $gte: since } },
-      { itemId: 1, title: 1, price: 1, category: 1, coverImage: 1, views: 1, mode: 1 },
+      {
+        itemId: 1,
+        title: 1,
+        price: 1,
+        category: 1,
+        coverImage: 1,
+        views: 1,
+        mode: 1,
+      },
     )
       .sort({ views: -1 })
       .limit(limit)
