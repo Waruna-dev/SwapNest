@@ -4,13 +4,15 @@ const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5001/api",
 });
 
-// Automatically attach the JWT tok
-// en to every request
-
-export const getItems = async () => API.get("/items");
+export const getItems = async (params = {}) => API.get("/items", { params });
 export const getItem = async (id) => API.get(`/items/${id}`);
 export const createItem = async (itemData) => API.post("/items", itemData);
 export const updateItem = async (id, itemData) =>
   API.put(`/items/${id}`, itemData);
 export const deleteItem = async (id) => API.delete(`/items/${id}`);
-export const searchItems = async (query) => API.get(`/items/search?q=${query}`);
+export const getNearbyItems = async (params = {}) =>
+  API.get("/items/nearby", { params });
+export const getSuggestions = async (params = {}) =>
+  API.get("/items/suggestions", { params });
+export const getTrendingItems = async (params = {}) =>
+  API.get("/items/trending", { params });

@@ -73,7 +73,14 @@ const buildFilters = (q) => {
 
   if (q.category) filter.category = q.category;
   if (q.mode) filter.mode = q.mode;
-  if (q.condition) filter.condition = q.condition;
+  if (q.condition) {
+    const conditions = String(q.condition)
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+    if (conditions.length === 1) filter.condition = conditions[0];
+    if (conditions.length > 1) filter.condition = { $in: conditions };
+  }
 
   if (q.minPrice || q.maxPrice) {
     filter.price = {};
@@ -212,7 +219,11 @@ export const getItems = async (req, res, next) => {
       price: 1,
       category: 1,
       mode: 1,
+      condition: 1,
+      contact: 1,
+      images: 1,
       coverImage: 1,
+      location: 1,
       views: 1,
       isActive: 1,
       createdAt: 1,
@@ -444,11 +455,17 @@ export const getNearbyItems = async (req, res, next) => {
         $project: {
           itemId: 1,
           title: 1,
+          description: 1,
           price: 1,
           category: 1,
           mode: 1,
+          condition: 1,
+          contact: 1,
+          images: 1,
           coverImage: 1,
+          location: 1,
           distanceMeters: 1,
+          views: 1,
           createdAt: 1,
         },
       },

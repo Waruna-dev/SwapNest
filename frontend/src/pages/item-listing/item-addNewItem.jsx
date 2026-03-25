@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createItem } from "../../services/item/itemApi";
 
@@ -15,6 +15,7 @@ const categoryOptions = [
 
 const modeOptions = ["Swap", "Sell", "Swap + Sell"];
 const conditionOptions = ["New", "Like New", "Used", "Vintage", "Refurbished"];
+const defaultMapCenter = { lat: 6.9271, lng: 79.8612 };
 
 const initialForm = {
   title: "",
@@ -45,6 +46,51 @@ const decodeTokenOwnerId = () => {
   }
 };
 
+const loadLeafletAssets = () => {
+  if (typeof window === "undefined") {
+    return Promise.reject(new Error("Leaflet can only load in the browser."));
+  }
+
+  if (window.L) {
+    return Promise.resolve(window.L);
+  }
+
+  const existingStylesheet = document.querySelector(
+    'link[data-leaflet="swapnest"]',
+  );
+  if (!existingStylesheet) {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    link.dataset.leaflet = "swapnest";
+    document.head.appendChild(link);
+  }
+
+  const existingScript = document.querySelector(
+    'script[data-leaflet="swapnest"]',
+  );
+  if (existingScript) {
+    return new Promise((resolve, reject) => {
+      existingScript.addEventListener("load", () => resolve(window.L));
+      existingScript.addEventListener("error", () =>
+        reject(new Error("Unable to load the OpenStreetMap map assets.")),
+      );
+    });
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    script.async = true;
+    script.defer = true;
+    script.dataset.leaflet = "swapnest";
+    script.onload = () => resolve(window.L);
+    script.onerror = () =>
+      reject(new Error("Unable to load the OpenStreetMap map assets."));
+    document.head.appendChild(script);
+  });
+};
+
 const ItemAddNewItem = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState(initialForm);
@@ -52,6 +98,15 @@ const ItemAddNewItem = () => {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [status, setStatus] = useState({ type: "", message: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [locationSearch, setLocationSearch] = useState("");
+  const [selectedAddress, setSelectedAddress] = useState("");
+  const [locationState, setLocationState] = useState({
+    type: "",
+    message: "",
+  });
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const markerRef = useRef(null);
 
   useEffect(() => {
     setFormData((current) => ({
@@ -77,9 +132,102 @@ const ItemAddNewItem = () => {
     };
   }, [images]);
 
+  const isSwapOnly = formData.mode === "Swap";
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const initializeMap = async () => {
+      if (!mapRef.current || mapInstanceRef.current) return;
+
+      try {
+        const L = await loadLeafletAssets();
+        if (!isMounted) return;
+
+        const initialCenter = defaultMapCenter;
+
+        const map = L.map(mapRef.current).setView(
+          [initialCenter.lat, initialCenter.lng],
+          11,
+        );
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "&copy; OpenStreetMap contributors",
+        }).addTo(map);
+
+        const marker = L.marker([initialCenter.lat, initialCenter.lng]).addTo(
+          map,
+        );
+
+        mapInstanceRef.current = map;
+        markerRef.current = marker;
+
+        map.on("click", async (event) => {
+          const lat = event.latlng?.lat;
+          const lng = event.latlng?.lng;
+          if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+          marker.setLatLng([lat, lng]);
+          map.setView([lat, lng], 15);
+          setFormData((current) => ({
+            ...current,
+            lat: String(lat),
+            lng: String(lng),
+          }));
+
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`,
+            );
+            const results = await response.json();
+            if (results?.display_name) {
+              const address = results.display_name;
+              setSelectedAddress(address);
+              setLocationSearch(address);
+              setLocationState({
+                type: "success",
+                message: "Map location selected successfully.",
+              });
+            } else {
+              setSelectedAddress("Selected map point");
+              setLocationState({
+                type: "success",
+                message: "Map point selected. Address could not be resolved.",
+              });
+            }
+          } catch {
+            setSelectedAddress("Selected map point");
+            setLocationState({
+              type: "success",
+              message: "Map point selected. Address could not be resolved.",
+            });
+          }
+        });
+      } catch (error) {
+        if (!isMounted) return;
+        setLocationState({
+          type: "error",
+          message:
+            error.message ||
+            "OpenStreetMap location picker could not be loaded.",
+        });
+      }
+    };
+
+    initializeMap();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setFormData((current) => ({ ...current, [name]: value }));
+    setFormData((current) => ({
+      ...current,
+      [name]: value,
+      ...(name === "mode" && value === "Swap" ? { price: "" } : {}),
+    }));
   };
 
   const handleImageChange = (event) => {
@@ -91,6 +239,127 @@ const ItemAddNewItem = () => {
     setImages((current) =>
       current.filter((_, index) => index !== indexToRemove),
     );
+  };
+
+  const handleUseCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationState({
+        type: "error",
+        message: "Current device location is not supported in this browser.",
+      });
+      return;
+    }
+
+    setLocationState({
+      type: "loading",
+      message: "Detecting your current location...",
+    });
+
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        const nextPosition = {
+          lat: coords.latitude,
+          lng: coords.longitude,
+        };
+
+        setFormData((current) => ({
+          ...current,
+          lat: String(nextPosition.lat),
+          lng: String(nextPosition.lng),
+        }));
+
+        if (markerRef.current)
+          markerRef.current.setLatLng([nextPosition.lat, nextPosition.lng]);
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.setView(
+            [nextPosition.lat, nextPosition.lng],
+            15,
+          );
+        }
+
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${nextPosition.lat}&lon=${nextPosition.lng}`,
+          );
+          const results = await response.json();
+          const address =
+            results?.display_name || "Current device location selected";
+          setSelectedAddress(address);
+          setLocationSearch(address);
+        } catch {
+          setSelectedAddress("Current device location selected");
+        }
+
+        setLocationState({
+          type: "success",
+          message: "Current device location added successfully.",
+        });
+      },
+      () => {
+        setLocationState({
+          type: "error",
+          message:
+            "Unable to access current device location. Check browser permissions.",
+        });
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    );
+  };
+
+  const handleLocationSearch = async () => {
+    const query = locationSearch.trim();
+    if (!query) {
+      setLocationState({
+        type: "error",
+        message: "Enter a place name or address to search on the map.",
+      });
+      return;
+    }
+
+    setLocationState({
+      type: "loading",
+      message: "Searching OpenStreetMap location...",
+    });
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(query)}&limit=1`,
+      );
+      const results = await response.json();
+      const firstResult = results?.[0];
+
+      if (!firstResult) {
+        setLocationState({
+          type: "error",
+          message: "No matching location found. Try a more specific address.",
+        });
+        return;
+      }
+
+      const lat = Number(firstResult.lat);
+      const lng = Number(firstResult.lon);
+
+      setFormData((current) => ({
+        ...current,
+        lat: String(lat),
+        lng: String(lng),
+      }));
+      setSelectedAddress(firstResult.display_name || query);
+
+      if (markerRef.current) markerRef.current.setLatLng([lat, lng]);
+      if (mapInstanceRef.current)
+        mapInstanceRef.current.setView([lat, lng], 15);
+
+      setLocationState({
+        type: "success",
+        message: "Location selected from OpenStreetMap search.",
+      });
+    } catch {
+      setLocationState({
+        type: "error",
+        message: "Unable to search OpenStreetMap right now.",
+      });
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -192,9 +461,9 @@ const ItemAddNewItem = () => {
                 Add a new item with gallery-first storytelling.
               </h1>
               <p className="max-w-lg text-base leading-7 text-white/72">
-                Create a listing that feels intentional, tactile, and premium.
+                {/* Create a listing that feels intentional, tactile, and premium.
                 Upload imagery, define the exchange mode, and publish a piece
-                worth discovering.
+                worth discovering. */}
               </p>
             </div>
 
@@ -253,15 +522,14 @@ const ItemAddNewItem = () => {
                 <div className="min-h-[220px] overflow-hidden rounded-[26px] bg-[#e8dfd3]">
                   {imagePreviews[0] ? (
                     <img
-                      alt={imagePreviews[0].name}
+                      alt={imagePreviews[0].name} // Use the name of the first image as alt text for better accessibility
                       className="h-full w-full object-cover"
                       src={imagePreviews[0].url}
                     />
                   ) : (
                     <div className="flex h-full min-h-[220px] items-end bg-[linear-gradient(160deg,#ded0bc_0%,#f1e8db_42%,#c9a777_100%)] p-6">
                       <p className="max-w-[220px] font-headline text-2xl font-bold leading-tight text-[#0a3327]">
-                        Visual-first listing cards make each object feel
-                        collected, not dumped.
+                        Your main image preview appears here.
                       </p>
                     </div>
                   )}
@@ -278,12 +546,18 @@ const ItemAddNewItem = () => {
                   <div className="mt-6 space-y-3 text-sm">
                     <div className="flex items-center justify-between border-b border-[#0a3327]/10 pb-2">
                       <span className="text-[#0a3327]/50">Condition</span>
-                      <span className="font-semibold">{formData.condition}</span>
+                      <span className="font-semibold">
+                        {formData.condition}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between border-b border-[#0a3327]/10 pb-2">
                       <span className="text-[#0a3327]/50">Price</span>
                       <span className="font-semibold">
-                        {formData.price ? `$${formData.price}` : "Negotiable"}
+                        {isSwapOnly
+                          ? "Not required for swap"
+                          : formData.price
+                            ? `$${formData.price}`
+                            : "Negotiable"}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -305,12 +579,12 @@ const ItemAddNewItem = () => {
               New Listing
             </span>
             <h2 className="font-headline text-4xl font-extrabold tracking-tight text-[#0a3327]">
-              Compose your next exchange.
+              New Listing Form
             </h2>
             <p className="max-w-2xl text-base leading-7 text-[#0a3327]/68">
-              This form follows the backend `Item` schema exactly, including
+              {/* This form follows the backend `Item` schema exactly, including
               title, price, category, mode, condition, owner, gallery, and
-              optional location.
+              optional location. */}
             </p>
           </div>
 
@@ -413,20 +687,22 @@ const ItemAddNewItem = () => {
                 </select>
               </div>
 
-              <div className="space-y-2">
-                <label className="ml-1 text-[11px] font-bold uppercase tracking-[0.28em] text-[#0a3327]/55">
-                  Price
-                </label>
-                <input
-                  min="0"
-                  name="price"
-                  type="number"
-                  value={formData.price}
-                  onChange={handleChange}
-                  placeholder="120"
-                  className="h-16 w-full rounded-[24px] border border-[#0a3327]/8 bg-[#efebe4] px-6 text-[#0a3327] outline-none transition placeholder:text-[#0a3327]/32 focus:border-[#b14716]/25 focus:ring-4 focus:ring-[#b14716]/10"
-                />
-              </div>
+              {!isSwapOnly && (
+                <div className="space-y-2">
+                  <label className="ml-1 text-[11px] font-bold uppercase tracking-[0.28em] text-[#0a3327]/55">
+                    Price
+                  </label>
+                  <input
+                    min="0"
+                    name="price"
+                    type="number"
+                    value={formData.price}
+                    onChange={handleChange}
+                    placeholder="120"
+                    className="h-16 w-full rounded-[24px] border border-[#0a3327]/8 bg-[#efebe4] px-6 text-[#0a3327] outline-none transition placeholder:text-[#0a3327]/32 focus:border-[#b14716]/25 focus:ring-4 focus:ring-[#b14716]/10"
+                  />
+                </div>
+              )}
 
               <div className="space-y-2">
                 <label className="ml-1 text-[11px] font-bold uppercase tracking-[0.28em] text-[#0a3327]/55">
@@ -517,41 +793,88 @@ const ItemAddNewItem = () => {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <label className="ml-1 text-[11px] font-bold uppercase tracking-[0.28em] text-[#0a3327]/55">
-                  Latitude
-                </label>
-                <input
-                  name="lat"
-                  type="number"
-                  step="any"
-                  value={formData.lat}
-                  onChange={handleChange}
-                  placeholder="6.9271"
-                  className="h-16 w-full rounded-[24px] border border-[#0a3327]/8 bg-[#efebe4] px-6 text-[#0a3327] outline-none transition placeholder:text-[#0a3327]/32 focus:border-[#b14716]/25 focus:ring-4 focus:ring-[#b14716]/10"
-                />
-              </div>
+              <div className="space-y-4 md:col-span-2">
+                <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                  <div>
+                    <label className="ml-1 text-[11px] font-bold uppercase tracking-[0.28em] text-[#0a3327]/55">
+                      Location
+                    </label>
+                    <p className="mt-2 text-sm leading-6 text-[#0a3327]/58">
+                      Search with OpenStreetMap, use your current location, or
+                      click on the map to choose the exact point.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleUseCurrentLocation}
+                    className="inline-flex h-12 items-center justify-center rounded-full bg-[#0a3327] px-5 text-sm font-bold text-white transition hover:bg-[#08261f]"
+                  >
+                    Current Location
+                  </button>
+                </div>
 
-              <div className="space-y-2">
-                <label className="ml-1 text-[11px] font-bold uppercase tracking-[0.28em] text-[#0a3327]/55">
-                  Longitude
-                </label>
-                <input
-                  name="lng"
-                  type="number"
-                  step="any"
-                  value={formData.lng}
-                  onChange={handleChange}
-                  placeholder="79.8612"
-                  className="h-16 w-full rounded-[24px] border border-[#0a3327]/8 bg-[#efebe4] px-6 text-[#0a3327] outline-none transition placeholder:text-[#0a3327]/32 focus:border-[#b14716]/25 focus:ring-4 focus:ring-[#b14716]/10"
-                />
+                <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+                  <input
+                    type="text"
+                    value={locationSearch}
+                    onChange={(event) => setLocationSearch(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        handleLocationSearch();
+                      }
+                    }}
+                    placeholder="Search your item location"
+                    className="h-16 w-full rounded-[24px] border border-[#0a3327]/8 bg-[#efebe4] px-6 text-[#0a3327] outline-none transition placeholder:text-[#0a3327]/32 focus:border-[#b14716]/25 focus:ring-4 focus:ring-[#b14716]/10"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleLocationSearch}
+                    className="inline-flex h-16 items-center justify-center rounded-[24px] bg-[#b14716] px-6 text-sm font-bold text-white shadow-[0_18px_35px_-18px_rgba(177,71,22,0.9)] transition hover:scale-[1.01]"
+                  >
+                    Search Map
+                  </button>
+                </div>
+
+                <div className="overflow-hidden rounded-[28px] border border-[#0a3327]/10 bg-white shadow-[0_18px_40px_-30px_rgba(10,51,39,0.25)]">
+                  <div
+                    ref={mapRef}
+                    className="h-[320px] w-full bg-[linear-gradient(160deg,#ded0bc_0%,#f1e8db_42%,#c9a777_100%)]"
+                  />
+                </div>
+
+                <div className="rounded-[24px] border border-[#0a3327]/8 bg-[#efe6db] px-5 py-4">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#0a3327]/45">
+                    Selected address
+                  </p>
+                  <p className="mt-2 text-sm font-medium leading-6 text-[#0a3327]">
+                    {selectedAddress || "No location selected yet."}
+                  </p>
+                  {locationState.message ? (
+                    <p
+                      className={`mt-3 text-sm font-medium ${
+                        locationState.type === "error"
+                          ? "text-red-700"
+                          : locationState.type === "success"
+                            ? "text-emerald-700"
+                            : "text-[#0a3327]/60"
+                      }`}
+                    >
+                      {locationState.message}
+                    </p>
+                  ) : null}
+                </div>
+
+                <input type="hidden" name="lat" value={formData.lat} />
+                <input type="hidden" name="lng" value={formData.lng} />
               </div>
             </div>
 
             <div className="flex flex-col gap-4 border-t border-[#0a3327]/10 pt-6 md:flex-row md:items-center md:justify-between">
               <p className="max-w-xl text-sm leading-6 text-[#0a3327]/56">
-                If you provide one coordinate, the backend requires both
-                latitude and longitude together. Images are required too.
+                Location is now selected through the map flow, and the form
+                still submits hidden latitude and longitude values for your
+                backend. Images are required too.
               </p>
               <button
                 type="submit"
