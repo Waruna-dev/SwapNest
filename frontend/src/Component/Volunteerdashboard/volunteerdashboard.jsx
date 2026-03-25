@@ -1,9 +1,14 @@
 import React from "react";
-import VolunteerDashboardLayout from "../Volunteer/VolunteerDashboardLayout";
+import { Outlet } from "react-router-dom";
 
-// Wrapper component requested at this path.
-// Uses the shared dashboard layout (sidebar + Outlet).
+// Layout for dashboard (sidebar + header)
+import VolunteerDashboardLayout from "./VolunteerDashboardLayout";
+
 export default function VolunteerDashboard() {
-  return <VolunteerDashboardLayout />;
+  return (
+    <VolunteerDashboardLayout>
+      {/* Nested routes will render here */}
+      <Outlet />
+    </VolunteerDashboardLayout>
+  );
 }
-
