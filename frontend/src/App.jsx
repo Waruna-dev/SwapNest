@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import AboutUs from "./pages/aboutus";
 import Pickup from "./Component/Volunteer/pickup";
 import Center from "./Component/Volunteer/center";
 import Volunteer from "./Component/Volunteer/volunteer";
@@ -20,6 +21,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/volunteer" element={<Volunteer />} />
+          <Route path="/about" element={<AboutUs />} />
           <Route path="/pickup" element={<Pickup />} />
           <Route path="/center" element={<Center />} />
           <Route path="/volunteer-hero" element={<VolunteerPage />} />
