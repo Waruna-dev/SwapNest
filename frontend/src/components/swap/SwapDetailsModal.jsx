@@ -1,4 +1,3 @@
-// src/components/swap/SwapDetailsModal.jsx
 import React from 'react';
 import StatusBadge from '../common/StatusBadge';
 

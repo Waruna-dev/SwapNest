@@ -1,4 +1,3 @@
-// src/components/swap/SwapCard.jsx
 import React from 'react';
 import StatusBadge from '../common/StatusBadge';
 
@@ -58,7 +57,7 @@ const SwapCard = ({ swap, userId, onAccept, onReject, onComplete, onCancel }) =>
           </p>
         )}
       </div>
-      
+
       <div className="flex gap-2 mt-4 pt-3 border-t border-outline-variant">
         {isPending && isOwner && (
           <>
