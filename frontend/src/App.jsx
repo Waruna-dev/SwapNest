@@ -16,6 +16,8 @@ import DistributionPlan from "./Component/Volunteer/distributionPlan";
 // Volunteer Dashboard components
 import VolunteerDashboard from "./Component/Volunteerdashboard/volunteerdashboard";
 import DashboardOverview from "./Component/Volunteerdashboard/dashboardOverview";
+import DashboardCenters from "./Component/Volunteerdashboard/dashboardcenters";
+import CenterEdit from "./Component/Volunteerdashboard/centeredit.jsx";
 import VolunteerDashboardVolunteersTable from "./Component/Volunteerdashboard/VolunteerDashboardVolunteersTable";
 import VolunteerEdit from "./Component/Volunteerdashboard/volunteeredit";
 
@@ -41,7 +43,9 @@ function App() {
             <Route path="volunteer" element={<VolunteerDashboardVolunteersTable />} />
             <Route path="volunteer/apply" element={<Volunteer />} />
             <Route path="volunteer/:id/edit" element={<VolunteerEdit />} />
-            <Route path="center" element={<Center />} />
+            <Route path="center" element={<DashboardCenters />} />
+            <Route path="center/:id/edit" element={<CenterEdit />} />
+            <Route path="add-center" element={<Center />} />
             <Route path="distribution-plan" element={<DistributionPlan />} />
           </Route>
         </Routes>
