@@ -14,9 +14,11 @@ function ItemTable({
 }) {
   return (
     <div className="mt-6 overflow-hidden rounded-[22px] border border-[#d7dfdc] bg-[#f8faf9]">
-      <div className="overflow-x-auto">
+      {/* ✅ Added height limit + vertical scroll */}
+      <div className="max-h-[500px] overflow-y-auto overflow-x-auto">
         <table className="min-w-full bg-white">
-          <thead className="bg-[#303030] text-left">
+          {/* ✅ Sticky header added */}
+          <thead className="bg-[#303030] text-left sticky top-0 z-10">
             <tr className="text-[11px] uppercase tracking-[0.18em] text-white/80">
               <th className="px-4 py-3 font-semibold">Item Name</th>
               <th className="px-4 py-3 font-semibold">Category</th>
@@ -32,6 +34,7 @@ function ItemTable({
 
           <tbody>
             {loading ? (
+              // 🔄 Loading skeleton rows
               Array.from({ length: 6 }, (_, index) => (
                 <tr key={index} className="border-t border-[#edf1ef]">
                   {Array.from({ length: 9 }, (_, cellIndex) => (
@@ -42,6 +45,7 @@ function ItemTable({
                 </tr>
               ))
             ) : filteredItems.length ? (
+              // 📦 Show items
               filteredItems.map((item) => (
                 <ItemTableRow
                   key={getItemId(item)}
@@ -57,6 +61,7 @@ function ItemTable({
                 />
               ))
             ) : (
+              // ❌ No data
               <tr>
                 <td
                   colSpan="9"

@@ -206,21 +206,6 @@ const ItemFormSection = ({
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="ml-1 text-[11px] font-bold uppercase tracking-[0.28em] text-[#0a3327]/55">
-              Owner ID
-            </label>
-            <input
-              required
-              name="ownerId"
-              type="text"
-              value={formData.ownerId}
-              onChange={handleChange}
-              placeholder="Auto-filled from login token"
-              className="h-16 w-full rounded-[24px] border border-[#0a3327]/8 bg-[#efebe4] px-6 text-[#0a3327] outline-none transition placeholder:text-[#0a3327]/32 focus:border-[#b14716]/25 focus:ring-4 focus:ring-[#b14716]/10"
-            />
-          </div>
-
           <ImageUploader
             imagePreviews={imagePreviews}
             handleImageChange={handleImageChange}

@@ -1,19 +1,21 @@
 const dialogConfig = {
   success: {
-    accent: "bg-emerald-500/20 text-emerald-300",
+    accent: "bg-[#dff4ea] text-[#295848]",
     icon: "check",
     panel:
-      "border-emerald-500/20 bg-[#1d2737] text-white shadow-[0_30px_90px_-35px_rgba(16,185,129,0.35)]",
-    message: "text-slate-300",
-    button: "bg-[#635bff] text-white hover:bg-[#726bff]",
+      "border-[#0a3327]/10 bg-[rgba(255,252,247,0.96)] text-[#0a3327] shadow-[0_32px_85px_-38px_rgba(10,51,39,0.42)]",
+    message: "text-[#0a3327]/65",
+    button:
+      "bg-[#b14716] text-white shadow-[0_22px_45px_-20px_rgba(177,71,22,0.92)] hover:bg-[#9b3f14]",
   },
   error: {
-    accent: "bg-rose-500/20 text-rose-300",
+    accent: "bg-[#ffe9e5] text-[#b14716]",
     icon: "close",
     panel:
-      "border-rose-500/20 bg-[#1d2737] text-white shadow-[0_30px_90px_-35px_rgba(244,63,94,0.35)]",
-    message: "text-slate-300",
-    button: "bg-[#635bff] text-white hover:bg-[#726bff]",
+      "border-[#b14716]/12 bg-[rgba(255,252,247,0.96)] text-[#0a3327] shadow-[0_32px_85px_-38px_rgba(177,71,22,0.28)]",
+    message: "text-[#0a3327]/65",
+    button:
+      "bg-[#0a3327] text-white shadow-[0_22px_45px_-20px_rgba(10,51,39,0.72)] hover:bg-[#08291f]",
   },
 };
 
@@ -30,19 +32,21 @@ function StatusDialog({
   const tone = dialogConfig[type] || dialogConfig.error;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#07111f]/78 px-4 py-6 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[rgba(10,51,39,0.32)] px-4 py-6 backdrop-blur-md">
       <div
-        className={`w-full max-w-xl rounded-[22px] border px-7 py-8 text-center ${tone.panel}`}
+        className={`w-full max-w-xl rounded-[30px] border px-7 py-8 text-center ${tone.panel}`}
       >
         <div
-          className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${tone.accent}`}
+          className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full shadow-[0_18px_40px_-22px_rgba(10,51,39,0.45)] ${tone.accent}`}
         >
           <span className="material-symbols-outlined text-4xl">
             {tone.icon}
           </span>
         </div>
 
-        <h2 className="mt-7 text-3xl font-bold tracking-tight">{title}</h2>
+        <h2 className="mt-7 font-headline text-4xl font-extrabold tracking-tight">
+          {title}
+        </h2>
         <p className={`mx-auto mt-4 max-w-md text-lg leading-8 ${tone.message}`}>
           {message}
         </p>
@@ -50,7 +54,7 @@ function StatusDialog({
         <button
           type="button"
           onClick={onAction}
-          className={`mt-8 inline-flex w-full items-center justify-center rounded-xl px-6 py-4 text-lg font-semibold transition ${tone.button}`}
+          className={`mt-8 inline-flex h-16 w-full items-center justify-center rounded-full px-6 text-lg font-semibold transition ${tone.button}`}
         >
           {actionLabel}
         </button>

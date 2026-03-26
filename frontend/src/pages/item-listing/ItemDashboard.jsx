@@ -405,8 +405,7 @@ function ItemDashboard() {
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f5ede2_0%,#faf6ef_36%,#e8f1ec_100%)] text-[#0a3327]">
-      <DashboardNavbar />
-
+      {/* <DashboardNavbar /> */}
       <main className="relative z-10 mx-auto max-w-[1400px] px-4 py-8 md:px-8">
         <DashboardSummaryCards summary={summary} formatPrice={formatPrice} />
 
@@ -414,10 +413,10 @@ function ItemDashboard() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#b1461a]">
-                Table management
+                Item management
               </p>
               <h1 className="mt-2 text-3xl font-black tracking-tight text-[#082d24]">
-                Item row dashboard for easy admin control.
+                Item dashboard
               </h1>
             </div>
 
@@ -454,7 +453,6 @@ function ItemDashboard() {
           />
         </section>
       </main>
-
       <ItemModal
         showModal={showModal}
         selectedItem={selectedItem}
@@ -484,8 +482,7 @@ function ItemDashboard() {
         setStatus={setStatus}
         handleToggleHidden={handleToggleHidden}
       />
-
-      <DashboardFooter loadItems={loadItems} />
+      {/* <DashboardFooter loadItems={loadItems} /> */}
     </div>
   );
 }

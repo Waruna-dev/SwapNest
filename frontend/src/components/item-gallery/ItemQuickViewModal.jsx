@@ -108,9 +108,16 @@ function ItemQuickViewModal({ item, loading, onClose }) {
                   {item?.title}
                 </h2>
 
-                <p className="font-headline text-3xl font-bold text-[#b1461a]">
-                  {formatPrice(item?.price)}
-                </p>
+                {isSwapItem ? (
+                  <div className="inline-flex items-center gap-2 rounded-full bg-[#dff7ec] px-4 py-2 text-sm font-semibold text-[#166534]">
+                    <IconSwap />
+                    <span>Swap item</span>
+                  </div>
+                ) : (
+                  <p className="font-headline text-3xl font-bold text-[#b1461a]">
+                    {formatPrice(item?.price)}
+                  </p>
+                )}
               </div>
 
               <div className="grid gap-4 rounded-[26px] bg-[#f4ece1] p-5 text-sm text-[#163f35]">
@@ -145,7 +152,7 @@ function ItemQuickViewModal({ item, loading, onClose }) {
                   type="button"
                   className="flex-1 rounded-full bg-[#b1461a] px-5 py-4 text-sm font-semibold text-white shadow-[0_18px_45px_-25px_rgba(177,70,26,0.95)] transition hover:bg-[#99360f]"
                 >
-                  Add to cart
+                  Add to favorites
                 </button>
 
                 {isSwapItem ? (

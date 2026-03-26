@@ -8,6 +8,7 @@ import {
 } from "../../services/item/itemApi";
 
 import MarketplaceHero from "../../components/item-gallery/MarketplaceHero";
+import FavoriteItemsModal from "../../components/item-gallery/FavoriteItemsModal";
 import FilterSidebar from "../../components/item-gallery/FilterSidebar";
 import ItemGrid from "../../components/item-gallery/ItemGrid";
 import PaginationControls from "../../components/item-gallery/PaginationControls";
@@ -56,10 +57,12 @@ function ItemGalleryPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [favorites, setFavorites] = useState([]);
+  const [favoriteItems, setFavoriteItems] = useState({});
   const [displayMode, setDisplayMode] = useState("pagination");
   const [selectedItem, setSelectedItem] = useState(null);
   const [quickViewLoading, setQuickViewLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showFavoritesModal, setShowFavoritesModal] = useState(false);
   const [locationState, setLocationState] = useState({
     status: "idle",
     coords: null,
@@ -172,18 +175,19 @@ function ItemGalleryPage() {
   }, [displayMode, hasMore, loadItems, loading, loadingMore, page]);
 
   useEffect(() => {
-    if (!showModal) return;
+    if (!showModal && !showFavoritesModal) return;
 
     const handleEscape = (event) => {
       if (event.key === "Escape") {
         setShowModal(false);
         setSelectedItem(null);
+        setShowFavoritesModal(false);
       }
     };
 
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
-  }, [showModal]);
+  }, [showFavoritesModal, showModal]);
 
   const categoryCounts = useMemo(() => {
     const counts = items.reduce((acc, item) => {
@@ -202,6 +206,31 @@ function ItemGalleryPage() {
       .sort((a, b) => a - b);
   }, [page, totalPages]);
 
+  const favoriteCountLabel = `${favorites.length} liked item${favorites.length === 1 ? "" : "s"}`;
+
+  const favoriteItemsList = useMemo(
+    () => favorites.map((itemId) => favoriteItems[itemId]).filter(Boolean),
+    [favoriteItems, favorites],
+  );
+
+  useEffect(() => {
+    if (!items.length || !favorites.length) return;
+
+    setFavoriteItems((current) => {
+      const next = { ...current };
+      let changed = false;
+
+      items.forEach((item) => {
+        if (favorites.includes(item.itemId)) {
+          next[item.itemId] = item;
+          changed = true;
+        }
+      });
+
+      return changed ? next : current;
+    });
+  }, [favorites, items]);
+
   const handleFilterChange = (key, value) => {
     setFilters((current) => ({ ...current, [key]: value }));
   };
@@ -217,11 +246,28 @@ function ItemGalleryPage() {
   };
 
   const handleToggleFavorite = (itemId) => {
+    const matchedItem = items.find((item) => item.itemId === itemId);
+
     setFavorites((current) =>
       current.includes(itemId)
         ? current.filter((entry) => entry !== itemId)
         : [...current, itemId],
     );
+
+    setFavoriteItems((current) => {
+      if (favorites.includes(itemId)) {
+        const next = { ...current };
+        delete next[itemId];
+        return next;
+      }
+
+      if (!matchedItem) return current;
+
+      return {
+        ...current,
+        [itemId]: matchedItem,
+      };
+    });
   };
 
   const handleQuickView = async (itemId) => {
@@ -236,6 +282,20 @@ function ItemGalleryPage() {
     } finally {
       setQuickViewLoading(false);
     }
+  };
+
+  const handleFavoriteQuickView = (itemId) => {
+    setShowFavoritesModal(false);
+    handleQuickView(itemId);
+  };
+
+  const handleRemoveFavorite = (itemId) => {
+    setFavorites((current) => current.filter((entry) => entry !== itemId));
+    setFavoriteItems((current) => {
+      const next = { ...current };
+      delete next[itemId];
+      return next;
+    });
   };
 
   const closeModal = () => {
@@ -312,11 +372,15 @@ function ItemGalleryPage() {
 
           <section>
             <div className="mb-6 flex flex-col gap-4 rounded-[30px] border border-[#0b3b30]/10 bg-white/80 p-5 shadow-[0_20px_60px_-42px_rgba(11,59,48,0.4)] backdrop-blur md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-sm text-[#55716b]">
-                  Showing curated cards with larger visuals, quick actions, and
-                  seller highlights.
-                </p>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="rounded-full bg-[#0b3b30] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white">
+                    {favoriteCountLabel}
+                  </span>
+                  <p className="text-sm font-medium text-[#0b3b30]">
+                    Favourite items
+                  </p>
+                </div>
                 {error ? (
                   <p className="mt-2 text-sm font-medium text-[#b1461a]">
                     {error}
@@ -324,7 +388,15 @@ function ItemGalleryPage() {
                 ) : null}
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowFavoritesModal(true)}
+                  className="rounded-full border border-[#0b3b30]/12 bg-[#eff6f3] px-5 py-3 text-sm font-semibold text-[#0b3b30] transition hover:bg-[#e4f0eb]"
+                >
+                  View favourite items list
+                </button>
+
                 <Link
                   to="/item/new"
                   className="rounded-full border border-[#0b3b30]/12 px-5 py-3 text-sm font-semibold text-[#0b3b30] transition hover:bg-[#f3f8f6]"
@@ -411,6 +483,15 @@ function ItemGalleryPage() {
           item={selectedItem}
           loading={quickViewLoading}
           onClose={closeModal}
+        />
+      ) : null}
+
+      {showFavoritesModal ? (
+        <FavoriteItemsModal
+          items={favoriteItemsList}
+          onClose={() => setShowFavoritesModal(false)}
+          onQuickView={handleFavoriteQuickView}
+          onRemoveFavorite={handleRemoveFavorite}
         />
       ) : null}
     </div>
