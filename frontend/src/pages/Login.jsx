@@ -6,23 +6,29 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // Added loading state
   
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     try {
       // Send login request to backend
       const response = await API.post('/users/login', { email, password });
       
-      // Save token and redirect to Home
+      // Save token to localStorage
       localStorage.setItem('swapnest_token', response.data.token);
-      navigate('/');
+      
+      // Redirect to Dashboard (instead of '/')
+      navigate('/dashboard');
       
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -98,7 +104,8 @@ const Login = () => {
 
             {/* Dynamic Error Message */}
             {error && (
-              <div className="bg-error-container text-on-error-container p-4 rounded-2xl text-sm font-bold text-center border border-error/20">
+              <div className="bg-error-container text-on-error-container p-4 rounded-2xl text-sm font-bold text-center border border-error/20 flex items-center justify-center gap-2">
+                <span className="material-symbols-outlined text-[18px]">error</span>
                 {error}
               </div>
             )}
@@ -133,10 +140,11 @@ const Login = () => {
               
               <button 
                 type="submit"
-                className="w-full h-16 bg-secondary text-on-secondary rounded-full font-headline font-bold text-lg hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_20px_40px_-15px_rgba(27,28,26,0.2)] flex items-center justify-center gap-2 mt-8"
+                disabled={isLoading}
+                className="w-full h-16 bg-secondary text-on-secondary rounded-full font-headline font-bold text-lg hover:bg-[#822800] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_20px_40px_-15px_rgba(27,28,26,0.2)] flex items-center justify-center gap-2 mt-8 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Sign In
-                <span className="material-symbols-outlined text-xl">arrow_right_alt</span>
+                {isLoading ? 'Signing In...' : 'Sign In'}
+                {!isLoading && <span className="material-symbols-outlined text-xl">arrow_right_alt</span>}
               </button>
             </form>
 

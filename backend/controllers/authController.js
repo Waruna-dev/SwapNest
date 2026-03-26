@@ -86,7 +86,8 @@ const updateProfile = asyncHandler(async (req, res) => {
         req.user.id,
         {
             username: req.body.username || user.username,
-            location: req.body.location || user.location,
+            // --- WE SWAPPED LOCATION FOR BIO HERE ---
+            bio: req.body.bio !== undefined ? req.body.bio : user.bio, 
             profilePic: profileImageUrl,
         },
         { new: true, runValidators: true } 

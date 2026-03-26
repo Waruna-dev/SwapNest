@@ -132,19 +132,7 @@ const SwapForm = ({
         </div>
         
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div className="bg-primary-fixed/10 rounded-xl p-4 border border-primary-fixed/30">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center">
-                <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-xs text-on-surface-variant">Item Owner</p>
-                <p className="font-medium text-on-surface">{ownerName}</p>
-              </div>
-            </div>
-          </div>
+          
           
           {error && (
             <div className="bg-error-container border-l-4 border-error p-4 rounded-xl">
@@ -169,7 +157,7 @@ const SwapForm = ({
                     : 'bg-surface border-outline-variant text-on-surface-variant hover:border-primary hover:bg-primary-fixed/10'
                 }`}
               >
-                <span>🔄</span>
+                <span></span>
                 <span className="text-sm font-medium">Item for Item</span>
               </button>
               <button
@@ -181,7 +169,7 @@ const SwapForm = ({
                     : 'bg-surface border-outline-variant text-on-surface-variant hover:border-primary hover:bg-primary-fixed/10'
                 }`}
               >
-                <span>💰</span>
+                <span></span>
                 <span className="text-sm font-medium">Item + Cash</span>
               </button>
             </div>
@@ -330,7 +318,7 @@ const SwapForm = ({
                         : 'bg-surface border-outline-variant text-on-surface-variant hover:border-primary'
                     }`}
                   >
-                    <span>💰</span>
+                    <span></span>
                     <span className="text-sm">I pay owner</span>
                   </button>
                   <button
@@ -342,7 +330,7 @@ const SwapForm = ({
                         : 'bg-surface border-outline-variant text-on-surface-variant hover:border-primary'
                     }`}
                   >
-                    <span>💸</span>
+                    <span></span>
                     <span className="text-sm">Owner pays me</span>
                   </button>
                 </div>

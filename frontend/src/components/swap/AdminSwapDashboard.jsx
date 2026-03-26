@@ -139,7 +139,6 @@ const AdminSwapDashboard = () => {
             </div>
           </div>
 
-          {/* Pending Reviews Card */}
           <div className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-outline-variant">
             <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-100 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
             <div className="relative p-6">
@@ -158,7 +157,6 @@ const AdminSwapDashboard = () => {
             </div>
           </div>
 
-          {/* Accepted Card */}
           <div className="group relative overflow-hidden bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-outline-variant">
             <div className="absolute top-0 right-0 w-32 h-32 bg-green-100 rounded-full -translate-y-1/2 translate-x-1/2 group-hover:scale-150 transition-transform duration-500"></div>
             <div className="relative p-6">
