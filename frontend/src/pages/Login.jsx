@@ -1,14 +1,38 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import API from '../services/api';
+// 1. Import the Google Login hook
+import { useGoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Added loading state
+  const [isLoading, setIsLoading] = useState(false); 
   
   const navigate = useNavigate();
+
+  // 2. Setup the Google Login Hook
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setIsLoading(true);
+      try {
+        // Send the Google Access Token to our backend route
+        const response = await API.post('/users/google', {
+          googleAccessToken: tokenResponse.access_token
+        });
+        
+        // Save the token and go to Dashboard
+        localStorage.setItem('swapnest_token', response.data.token);
+        navigate('/dashboard');
+      } catch (err) {
+        setError('Google Authentication failed. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    onError: () => setError('Google Authentication failed.'),
+  });
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -22,7 +46,7 @@ const Login = () => {
       // Save token to localStorage
       localStorage.setItem('swapnest_token', response.data.token);
       
-      // Redirect to Dashboard (instead of '/')
+      // Redirect to Dashboard
       navigate('/dashboard');
       
     } catch (err) {
@@ -37,16 +61,12 @@ const Login = () => {
       
       {/* Top Navigation Bar */}
       <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl shadow-sm border-b border-outline-variant/10">
-        {/* Added 'relative' to this container */}
         <div className="relative flex justify-between items-center px-6 md:px-8 py-4 max-w-7xl mx-auto">
           
-          {/* Left Side: Logo */}
           <Link to="/" className="text-2xl font-extrabold text-primary tracking-tighter font-headline hover:opacity-80 transition-opacity z-10">
             SwapNest
           </Link>
           
-          {/* Center: Navigation Links */}
-          {/* Added: absolute left-1/2 -translate-x-1/2 to perfectly center it */}
           <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center space-x-8 font-headline font-bold text-sm tracking-tight">
             <Link to="/" className="text-secondary font-bold border-b-2 border-secondary pb-1">Discover</Link>
             <a className="text-primary/80 hover:text-primary transition-colors" href="#">How it Works</a>
@@ -154,8 +174,13 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <button type="button" className="flex items-center justify-center gap-3 h-14 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl hover:bg-surface-container transition-colors group shadow-sm">
+            {/* CHANGED: Replaced grid-cols-2 with w-full, and added w-full to the button */}
+            <div className="w-full pb-2">
+              <button 
+                type="button" 
+                onClick={() => loginWithGoogle()}
+                className="w-full flex items-center justify-center gap-3 h-14 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl hover:bg-surface-container transition-colors group shadow-sm"
+              >
                 <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
                   <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
@@ -163,12 +188,6 @@ const Login = () => {
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
                 </svg>
                 <span className="font-headline font-bold text-sm text-primary">Google</span>
-              </button>
-              <button type="button" className="flex items-center justify-center gap-3 h-14 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl hover:bg-surface-container transition-colors group shadow-sm">
-                <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
-                  <path className="text-primary" d="M17.05 20.28c-.96 0-2.04-.6-3.22-.6-1.2 0-2.4.61-3.22.61-1.24 0-2.52-.73-3.32-1.92-1.61-2.41-1.61-6.32 0-8.73.81-1.2 2.08-1.92 3.32-1.92.96 0 2.04.6 3.22.6s2.26-.6 3.22-.6c1.24 0 2.52.73 3.32 1.92a9.14 9.14 0 0 1 1.02 2.05c-.03.02-1.84.72-1.84 2.86 0 2.14 1.81 2.84 1.84 2.86-.25.7-.63 1.34-1.02 2.05-.8 1.19-1.88 1.92-3.12 1.92zM13.83 5.32c0-1.22 1.02-2.22 2.22-2.22 0 0 .02.01.02.01a2.23 2.23 0 0 1-2.24 2.21zm4.24-2.81c0-1.12-.9-2.02-2.02-2.02s-2.02.9-2.02 2.02 2.02 2.02 2.02 2.02 2.02-.9 2.02-2.02z" fill="currentColor"></path>
-                </svg>
-                <span className="font-headline font-bold text-sm text-primary">Apple</span>
               </button>
             </div>
 

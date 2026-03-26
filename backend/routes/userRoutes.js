@@ -16,11 +16,13 @@ import {
 // 1. We imported the 'admin' middleware here
 import { protect, admin, adminOrOwner } from '../middlewares/authMiddleware.js';
 import upload from '../config/cloudinary.js';
+import { googleAuth } from '../controllers/authController.js';
 
 // --- PUBLIC ROUTES ---
 // Anyone can register or log in
 router.post('/register', registerUser);
 router.post('/login', loginUser);
+router.post('/google', googleAuth);
 
 // --- PROTECTED ROUTES (All logged-in users: Users, Volunteers, Admins) ---
 router.get('/me', protect, getMe);
