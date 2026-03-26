@@ -10,15 +10,7 @@ import { errorHandler } from './middlewares/errorMiddleware.js';
 
 import userRoutes from './routes/userRoutes.js';
 
-// Import Routes
-import userRoutes from "./routes/userRoutes.js"; 
-import itemRoutes from "./routes/itemRoutes.js";
-import swapRoutes from "./routes/swapRoutes.js";
-import volunteerRoutes from "./routes/VolunteerRoutes.js";
-import pickupRoutes from "./routes/PickupRoutes.js";
-import centerRoutes from "./routes/CenterRoutes.js";
-
-// Connect to MongoDB
+// Initialize MongoDB connection
 connectDB();
 
 const app = express();
