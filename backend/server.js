@@ -1,21 +1,14 @@
 import 'dotenv/config';
 
-import express from "express";
-import cors from "cors";
-import morgan from "morgan";
-import mongoose from "mongoose";
-import { fileURLToPath } from "url";
-import path from "path";
+import express from 'express';
+import cors from 'cors';
 
-// Fix __dirname for ES modules 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
-// Import DB Connection
-import connectDB from "./config/db.js";
+import connectDB from './config/db.js';
+import { errorHandler } from './middlewares/errorMiddleware.js';
 
-// Import Middlewares
-import { notFound, errorHandler } from "./middlewares/volunteermiddlewares.js";
+
+import userRoutes from './routes/userRoutes.js';
 
 // Import Routes
 import userRoutes from "./routes/userRoutes.js"; 
@@ -35,42 +28,25 @@ const app = express();
 // =======================
 app.use(cors());
 app.use(express.json());
-// Using extended: true from the team's code to support complex form data
-app.use(express.urlencoded({ extended: true }));
-
-// Prevent destructure errors inside middlewares / routes
-app.use((req, res, next) => {
-  if (!req.body) req.body = {};
-  next();
-});
-
-// Logging middleware
-app.use(morgan("dev"));
+app.use(express.urlencoded({ extended: true })); 
 
 // =======================
 // ROUTES
 // =======================
+app.use('/api/users', userRoutes);
 
-app.use("/api/users", userRoutes);
-app.use("/api/items", itemRoutes);
-app.use("/api/swaps", swapRoutes);
-app.use("/api/volunteers", volunteerRoutes);
-app.use("/api/pickups", pickupRoutes);
-app.use("/api/centers", centerRoutes);
-
-// TEST ROUTE (Combined)
-app.get("/", (req, res) => {
-  res.status(200).json({ message: "SwapNest API is running..." });
+// A simple test route to prove your server is live during the demo
+app.get('/', (req, res) => {
+    res.status(200).json({ message: 'SwapNest API is running perfectly.' });
 });
 
 // =======================
 // ERROR HANDLING
 // =======================
-app.use(notFound);
 app.use(errorHandler);
 
 // =======================
 // SERVER STARTUP
 // =======================
 const port = process.env.PORT || 5000;
-app.listen(port, () => console.log(`Server started on port ${port}`));
+app.listen(port, () => console.log(`SwapNest User Server started on port ${port}`));
