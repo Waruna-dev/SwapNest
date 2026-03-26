@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import API from '../services/api'; // Added API import
 
-// Lightweight hook for fast, high-performance scroll animations
+// Import your new components!
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+
 const useScrollReveal = () => {
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -25,112 +27,20 @@ const useScrollReveal = () => {
 };
 
 const Home = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  
-  // --- AUTHENTICATION STATES ---
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [profilePic, setProfilePic] = useState('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80');
-
   useScrollReveal();
 
-  // Dynamic navbar background
+  // We need to keep a tiny check here just for the CTA button logic
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // --- CHECK LOGIN STATUS ---
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      const token = localStorage.getItem('swapnest_token');
-      if (token) {
-        setIsLoggedIn(true);
-        try {
-          // Fetch user data to grab their custom profile picture
-          const response = await API.get('/users/me');
-          if (response.data.profilePic) {
-            setProfilePic(response.data.profilePic);
-          }
-        } catch (error) {
-          // If token is invalid/expired, log them out silently
-          console.error("Token verification failed", error);
-          setIsLoggedIn(false);
-          localStorage.removeItem('swapnest_token');
-        }
-      }
-    };
-    checkAuthStatus();
+    const token = localStorage.getItem('swapnest_token');
+    if (token) setIsLoggedIn(true);
   }, []);
 
   return (
     <div className="bg-[#fbf9f5] text-[#1b1c1a] font-sans antialiased selection:bg-[#fe7e4f] selection:text-white">
       
-      {/* --- TOP NAVIGATION --- */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${scrolled ? 'bg-white/80 backdrop-blur-xl shadow-sm py-3' : 'bg-transparent py-5'}`}>
-        <div className="flex justify-between items-center px-6 md:px-12 max-w-[1400px] mx-auto">
-          <Link to="/" className="text-2xl font-bold tracking-tighter text-[#012d1d] font-serif">
-            SwapNest
-          </Link>
-          
-          <div className="hidden md:flex items-center gap-8 font-semibold text-sm tracking-tight">
-            <a className="text-[#a43c12] border-b-2 border-[#a43c12] pb-1" href="#discover">Discover</a>
-            <a className="text-[#012d1d]/80 hover:text-[#012d1d] transition-colors" href="#how-it-works">How it Works</a>
-            <a className="text-[#012d1d]/80 hover:text-[#012d1d] transition-colors" href="#impact">Impact</a>
-            <a className="text-[#012d1d]/80 hover:text-[#012d1d] transition-colors" href="#community">Community</a>
-          </div>
-          
-          <div className="hidden md:flex items-center gap-6">
-            {/* CONDITIONAL RENDERING FOR DESKTOP NAV */}
-            {isLoggedIn ? (
-              <Link 
-                to="/dashboard" 
-                className="w-10 h-10 rounded-full border-2 border-[#012d1d]/10 overflow-hidden cursor-pointer hover:ring-2 hover:ring-[#a43c12] transition-all shadow-md"
-                title="Go to Dashboard"
-              >
-                <img src={profilePic} alt="Profile" className="w-full h-full object-cover" />
-              </Link>
-            ) : (
-              <>
-                <Link to="/login" className="text-[#012d1d] font-bold text-sm hover:opacity-70 transition-opacity">
-                  Sign In
-                </Link>
-                <Link to="/register" className="bg-[#a43c12] text-white px-7 py-2.5 rounded-full font-bold text-sm hover:scale-105 active:scale-95 transition-transform duration-200 shadow-md shadow-[#a43c12]/20">
-                  Sign Up
-                </Link>
-              </>
-            )}
-          </div>
-
-          <button className="md:hidden text-[#012d1d]" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-            <span className="material-symbols-outlined text-3xl">{isMobileMenuOpen ? 'close' : 'menu'}</span>
-          </button>
-        </div>
-
-        {/* Mobile Menu */}
-        <div className={`md:hidden absolute top-full left-0 w-full bg-[#fbf9f5] border-b border-gray-200 shadow-xl transition-all duration-300 overflow-hidden ${isMobileMenuOpen ? 'max-h-[400px] py-6' : 'max-h-0 py-0'}`}>
-          <div className="flex flex-col gap-6 px-6">
-            <a href="#discover" className="text-[#a43c12] font-bold text-lg">Discover</a>
-            <a href="#how-it-works" className="text-[#012d1d] font-bold text-lg">How it Works</a>
-            <a href="#community" className="text-[#012d1d] font-bold text-lg">Community</a>
-            <div className="h-px bg-gray-200"></div>
-            
-            {/* CONDITIONAL RENDERING FOR MOBILE NAV */}
-            {isLoggedIn ? (
-              <Link to="/dashboard" className="bg-[#012d1d] text-white px-6 py-3 rounded-xl font-bold text-center flex items-center justify-center gap-2">
-                <img src={profilePic} alt="Profile" className="w-6 h-6 rounded-full object-cover border border-white/20" />
-                Go to Dashboard
-              </Link>
-            ) : (
-              <>
-                <Link to="/login" className="text-[#012d1d] font-bold text-lg">Sign In</Link>
-                <Link to="/register" className="bg-[#a43c12] text-white px-6 py-3 rounded-xl font-bold text-center">Create Account</Link>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
+      {/* USE THE HEADER COMPONENT */}
+      <Header />
 
       <main>
         {/* --- IMMERSIVE HERO SECTION --- */}
@@ -392,50 +302,8 @@ const Home = () => {
         </section>
       </main>
 
-      {/* --- FOOTER --- */}
-      <footer className="bg-[#012d1d] w-full rounded-t-[3rem] mt-10 overflow-hidden reveal-on-scroll opacity-0 translate-y-12 transition-all duration-1000 ease-out">
-        <div className="flex flex-col md:flex-row justify-between items-start w-full px-8 md:px-16 py-20 max-w-7xl mx-auto gap-12">
-          
-          <div className="mb-8 md:mb-0 max-w-sm">
-            <div className="text-3xl font-bold text-white mb-6 font-serif tracking-tighter">SwapNest</div>
-            <p className="text-[#86af99] text-base leading-relaxed mb-8 font-medium">Cultivating a circular future for the teardrop island. Join the movement today.</p>
-            <div className="flex gap-4">
-              <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-[#a43c12] hover:border-transparent cursor-pointer transition-all">
-                <span className="material-symbols-outlined text-xl">public</span>
-              </div>
-              <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-[#a43c12] hover:border-transparent cursor-pointer transition-all">
-                <span className="material-symbols-outlined text-xl">chat_bubble</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-12 md:gap-24 w-full md:w-auto">
-            <div className="flex flex-col gap-4">
-              <h4 className="text-white font-bold tracking-widest text-xs uppercase mb-2">Resources</h4>
-              <a className="text-[#86af99] hover:text-white transition-colors font-medium" href="#how-it-works">How it Works</a>
-              <a className="text-[#86af99] hover:text-white transition-colors font-medium" href="#impact">Sustainability Report</a>
-              <a className="text-[#86af99] hover:text-white transition-colors font-medium" href="#community">Local Hubs</a>
-            </div>
-            <div className="flex flex-col gap-4">
-              <h4 className="text-white font-bold tracking-widest text-xs uppercase mb-2">Company</h4>
-              <a className="text-[#86af99] hover:text-white transition-colors font-medium" href="#">Privacy Policy</a>
-              <a className="text-[#86af99] hover:text-white transition-colors font-medium" href="#">Community Guidelines</a>
-              <a className="text-[#86af99] hover:text-white transition-colors font-medium" href="#">Contact Us</a>
-            </div>
-          </div>
-          
-        </div>
-        
-        <div className="max-w-7xl mx-auto px-8 md:px-16 pb-12">
-          <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="text-[#86af99] text-sm font-medium">© 2026 SwapNest Sri Lanka. Circularity by design.</p>
-            <div className="flex gap-8 text-sm font-medium text-[#86af99]">
-              <a className="hover:text-white transition-colors" href="#">Terms of Service</a>
-              <a className="hover:text-white transition-colors" href="#">Cookie Policy</a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      {/* USE THE FOOTER COMPONENT */}
+      <Footer />
 
     </div>
   );

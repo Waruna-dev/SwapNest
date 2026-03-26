@@ -37,25 +37,22 @@ const Login = () => {
       
       {/* Top Navigation Bar */}
       <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl shadow-sm border-b border-outline-variant/10">
-        <div className="flex justify-between items-center px-6 md:px-8 py-4 max-w-7xl mx-auto">
-          <Link to="/" className="text-2xl font-extrabold text-primary tracking-tighter font-headline hover:opacity-80 transition-opacity">
+        {/* Added 'relative' to this container */}
+        <div className="relative flex justify-between items-center px-6 md:px-8 py-4 max-w-7xl mx-auto">
+          
+          {/* Left Side: Logo */}
+          <Link to="/" className="text-2xl font-extrabold text-primary tracking-tighter font-headline hover:opacity-80 transition-opacity z-10">
             SwapNest
           </Link>
           
-          <div className="hidden md:flex items-center space-x-8 font-headline font-bold text-sm tracking-tight">
+          {/* Center: Navigation Links */}
+          {/* Added: absolute left-1/2 -translate-x-1/2 to perfectly center it */}
+          <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center space-x-8 font-headline font-bold text-sm tracking-tight">
             <Link to="/" className="text-secondary font-bold border-b-2 border-secondary pb-1">Discover</Link>
             <a className="text-primary/80 hover:text-primary transition-colors" href="#">How it Works</a>
             <a className="text-primary/80 hover:text-primary transition-colors" href="#">Our Story</a>
           </div>
-          
-          <div className="flex items-center space-x-4">
-            <Link to="/register" className="hidden md:block bg-secondary text-on-secondary px-6 py-2.5 rounded-full font-headline font-bold text-sm hover:scale-105 transition-transform duration-200 shadow-md">
-              Create Account
-            </Link>
-            <Link to="/" className="text-primary cursor-pointer hover:scale-95 duration-200 flex items-center justify-center">
-              <span className="material-symbols-outlined text-3xl">close</span>
-            </Link>
-          </div>
+                    
         </div>
       </nav>
 
