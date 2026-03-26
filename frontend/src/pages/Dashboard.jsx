@@ -15,9 +15,20 @@ const Dashboard = () => {
   const profileMenuRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
-  const handleLogout = () => {
-    localStorage.removeItem('swapnest_token');
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      // Tell the backend to actively kill the session in MongoDB
+      await API.post('/users/logout');
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      // The 'finally' block ensures we ALWAYS wipe the local token, 
+      // even if the user's internet drops and the backend call fails.
+      localStorage.removeItem('swapnest_token');
+      
+      // Send them back to the login screen
+      navigate('/login');
+    }
   };
 
   // --- URL SECURITY & USER DATA FETCHING ---

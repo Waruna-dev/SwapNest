@@ -138,5 +138,21 @@ const deleteUser = asyncHandler(async (req, res) => {
     });
 });
 
+const logoutUser = asyncHandler(async (req, res) => {
+    // req.user is provided by your 'protect' middleware
+    const user = await User.findById(req.user.id);
+
+    if (user) {
+        // Destroy the token in the database
+        user.activeToken = null; 
+        await user.save();
+        
+        res.status(200).json({ message: 'Successfully logged out.' });
+    } else {
+        res.status(404);
+        throw new Error('User not found');
+    }
+});
+
 // Export all functions securely
-export { registerUser, loginUser, getMe, updateProfile, updatePassword, deleteUser };
+export { registerUser, loginUser, getMe, updateProfile, updatePassword, deleteUser, logoutUser };

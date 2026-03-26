@@ -5,6 +5,7 @@ const router = express.Router();
 import { 
   registerUser, 
   loginUser, 
+  logoutUser,
   getMe, 
   updateProfile,
   updatePassword,
@@ -29,5 +30,6 @@ router.put('/password', protect, updatePassword);
 // --- ADMIN ONLY ROUTES ---
 // 2. We added both 'protect' and 'admin' middlewares here
 router.delete('/:id', protect, adminOrOwner, deleteUser);
+router.post('/logout', protect, logoutUser);
 
 export default router;
