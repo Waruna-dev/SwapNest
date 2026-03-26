@@ -1,3 +1,9 @@
+
+
+// Import the test API component
+import ItemAddNewItems from "./pages/item-listing/ItemAddNewItem";
+import ItemGalleryPage from "./pages/item-gallery/ItemGalleryPage";
+import ItemDashboard1 from "./pages/item-listing/ItemDashboard";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // Import Pages
@@ -20,6 +26,11 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+            
+            {/*Item routes*/}
+          <Route path="/item/new" element={<ItemAddNewItems />} />
+          <Route path="/item/gallery" element={<ItemGalleryPage />} />
+          <Route path="/item/dashboard" element={<ItemDashboard1 />} />
 
           {/* --- PROTECTED ROUTES --- */}
           {/* You MUST have a token to visit anything inside this wrapper */}
