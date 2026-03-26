@@ -7,6 +7,8 @@ import { useGoogleLogin } from '@react-oauth/google';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  // --- NEW: State to toggle password visibility ---
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false); 
   
@@ -140,19 +142,31 @@ const Login = () => {
                 />
               </div>
               
+              {/* --- CHANGED: PASSWORD FIELD WITH EYE ICON --- */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center px-1">
                   <label className="font-label text-xs font-bold uppercase tracking-widest text-primary/70">Password</label>
                   <a className="text-[11px] font-bold text-secondary uppercase tracking-wider hover:underline transition-all" href="#">Forgot?</a>
                 </div>
-                <input 
-                  className="w-full h-14 px-6 bg-surface-container-highest border-none rounded-2xl focus:ring-2 focus:ring-primary/20 transition-all text-on-surface placeholder:text-on-surface-variant/40 font-medium outline-none" 
-                  placeholder="••••••••" 
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <div className="relative">
+                  <input 
+                    className="w-full h-14 pl-6 pr-12 bg-surface-container-highest border-none rounded-2xl focus:ring-2 focus:ring-primary/20 transition-all text-on-surface placeholder:text-on-surface-variant/40 font-medium outline-none" 
+                    placeholder="••••••••" 
+                    type={showPassword ? "text" : "password"} 
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-on-surface-variant/60 hover:text-primary transition-colors focus:outline-none flex items-center justify-center"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">
+                      {showPassword ? 'visibility' : 'visibility_off'}
+                    </span>
+                  </button>
+                </div>
               </div>
               
               <button 
@@ -174,7 +188,6 @@ const Login = () => {
               </div>
             </div>
 
-            {/* CHANGED: Replaced grid-cols-2 with w-full, and added w-full to the button */}
             <div className="w-full pb-2">
               <button 
                 type="button" 

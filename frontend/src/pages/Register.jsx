@@ -10,12 +10,23 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState(''); 
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false); 
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
-  // Interactive state for the interest chips
   const [selectedInterests, setSelectedInterests] = useState(['Vintage Fashion']);
   const interestsList = ['Vintage Fashion', 'Home Decor', 'Books', 'Art & Prints', 'Ceramics', 'Tech'];
 
   const navigate = useNavigate();
+
+  // --- NEW: Password Strength Validators ---
+  const isLengthValid = password.length >= 8;
+  const hasNumber = /\d/.test(password); // Checks for at least one digit
+  const hasUppercase = /[A-Z]/.test(password); // Checks for an uppercase letter
+  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password); // Checks for a special character
+
+  // Check if ALL conditions are met
+  const isPasswordStrong = isLengthValid && hasNumber && hasUppercase && hasSpecial;
 
   const toggleInterest = (interest) => {
     if (selectedInterests.includes(interest)) {
@@ -47,6 +58,11 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
+
+    // --- NEW: Block submission if password isn't strong ---
+    if (!isPasswordStrong) {
+      return setError('Please ensure your password meets all the security requirements.');
+    }
 
     if (password !== confirmPassword) {
       return setError('Passwords do not match.');
@@ -173,29 +189,73 @@ const Register = () => {
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  
                   <div className="relative group">
                     <label className="block text-[11px] uppercase tracking-widest font-bold text-on-surface-variant mb-1.5 ml-1">Password</label>
-                    <input 
-                      className="w-full bg-surface-container-high border-none rounded-2xl px-6 py-3 text-on-surface focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-on-surface-variant/40 font-medium outline-none" 
-                      placeholder="••••••••••••" 
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
+                    <div className="relative">
+                      <input 
+                        className="w-full bg-surface-container-high border-none rounded-2xl pl-6 pr-12 py-3 text-on-surface focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-on-surface-variant/40 font-medium outline-none" 
+                        placeholder="••••••••••••" 
+                        type={showPassword ? "text" : "password"} 
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-on-surface-variant/60 hover:text-primary transition-colors focus:outline-none flex items-center justify-center"
+                      >
+                        <span className="material-symbols-outlined text-[20px]">
+                          {showPassword ? 'visibility' : 'visibility_off'}
+                        </span>
+                      </button>
+                    </div>
                   </div>
 
                   <div className="relative group">
                     <label className="block text-[11px] uppercase tracking-widest font-bold text-on-surface-variant mb-1.5 ml-1">Confirm Password</label>
-                    <input 
-                      className="w-full bg-surface-container-high border-none rounded-2xl px-6 py-3 text-on-surface focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-on-surface-variant/40 font-medium outline-none" 
-                      placeholder="••••••••••••" 
-                      type="password"
-                      required
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                    />
+                    <div className="relative">
+                      <input 
+                        className="w-full bg-surface-container-high border-none rounded-2xl pl-6 pr-12 py-3 text-on-surface focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-on-surface-variant/40 font-medium outline-none" 
+                        placeholder="••••••••••••" 
+                        type={showConfirmPassword ? "text" : "password"} 
+                        required
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-4 top-1/2 transform -translate-y-1/2 text-on-surface-variant/60 hover:text-primary transition-colors focus:outline-none flex items-center justify-center"
+                      >
+                        <span className="material-symbols-outlined text-[20px]">
+                          {showConfirmPassword ? 'visibility' : 'visibility_off'}
+                        </span>
+                      </button>
+                    </div>
                   </div>
+
+                  {/* --- NEW: Visual Password Strength Tracker --- */}
+                  <div className="col-span-1 md:col-span-2 flex flex-wrap gap-x-4 gap-y-2 pt-1 px-2">
+                    <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${isLengthValid ? 'text-green-600' : 'text-on-surface-variant/40'}`}>
+                      <span className="material-symbols-outlined text-[14px]">{isLengthValid ? 'check_circle' : 'radio_button_unchecked'}</span>
+                      8+ Chars
+                    </div>
+                    <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${hasUppercase ? 'text-green-600' : 'text-on-surface-variant/40'}`}>
+                      <span className="material-symbols-outlined text-[14px]">{hasUppercase ? 'check_circle' : 'radio_button_unchecked'}</span>
+                      1 Uppercase
+                    </div>
+                    <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${hasNumber ? 'text-green-600' : 'text-on-surface-variant/40'}`}>
+                      <span className="material-symbols-outlined text-[14px]">{hasNumber ? 'check_circle' : 'radio_button_unchecked'}</span>
+                      1 Number
+                    </div>
+                    <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${hasSpecial ? 'text-green-600' : 'text-on-surface-variant/40'}`}>
+                      <span className="material-symbols-outlined text-[14px]">{hasSpecial ? 'check_circle' : 'radio_button_unchecked'}</span>
+                      1 Special (!@#)
+                    </div>
+                  </div>
+
                 </div>
               </div>
 
@@ -226,8 +286,9 @@ const Register = () => {
               <div className="pt-4">
                 <button 
                   type="submit"
-                  disabled={isLoading}
-                  className="w-full py-3.5 rounded-full bg-secondary text-on-secondary font-headline font-bold text-base hover:bg-[#822800] transition-all shadow-lg shadow-secondary/20 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                  // --- NEW: Disable the button completely until the password is strong ---
+                  disabled={isLoading || !isPasswordStrong}
+                  className="w-full py-3.5 rounded-full bg-secondary text-on-secondary font-headline font-bold text-base hover:bg-[#822800] transition-all shadow-lg shadow-secondary/20 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-secondary"
                 >
                   {isLoading ? 'Creating Account...' : 'Create Account'}
                 </button>
@@ -241,7 +302,6 @@ const Register = () => {
                 <span className="relative bg-surface-container-low px-4 text-[9px] uppercase tracking-widest text-on-surface-variant font-bold flex justify-center w-fit mx-auto">Or authenticate via</span>
               </div>
 
-              {/* CHANGED: Removed grid-cols-2, made the wrapper w-full, and added w-full to the button */}
               <div className="w-full pb-2">
                 <button 
                   type="button" 
