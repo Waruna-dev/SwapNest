@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createItem } from "../../services/item/itemApi";
 import AddItemNavbar from "../../components/item-listing/AddItemNavbar";
 import AddItemPreview from "../../components/item-listing/AddItemPreview";
 import ItemFormSection from "../../components/item-listing/ItemFormSection";
+import StatusDialog from "../../components/item-listing/StatusDialog";
 import { useItemForm } from "../../hooks/useItemForm";
 import { useLocationPicker } from "../../hooks/useLocationPicker";
 
@@ -23,6 +25,29 @@ const ItemAddNewItem = () => {
     removeImage,
     resetForm,
   } = useItemForm();
+
+  useEffect(() => {
+    const token = localStorage.getItem("swapnest_token");
+
+    if (!token) {
+      setStatus({
+        type: "error",
+        message:
+          "Please log in first. You need an account before adding a new item.",
+      });
+    }
+  }, [setStatus]);
+
+  const token = localStorage.getItem("swapnest_token");
+  const showStatusDialog = Boolean(status.message);
+  const dialogTitle =
+    status.type === "success" ? "Item created successfully" : "Action required";
+  const dialogActionLabel =
+    status.type === "success"
+      ? "View item page"
+      : !token
+        ? "Go to gallery"
+        : "Try again";
 
   const {
     mapRef,
@@ -70,10 +95,6 @@ const ItemAddNewItem = () => {
       });
 
       resetForm();
-
-      window.setTimeout(() => {
-        navigate("/test-api");
-      }, 1200);
     } catch (error) {
       setStatus({
         type: "error",
@@ -88,6 +109,27 @@ const ItemAddNewItem = () => {
 
   return (
     <div className="min-h-screen bg-[#f5f1ea] text-[#0a3327] font-body antialiased overflow-hidden">
+      {/* <StatusDialog
+        open={showStatusDialog}
+        type={status.type}
+        title={dialogTitle}
+        message={status.message}
+        actionLabel={dialogActionLabel}
+        // onAction={() => {
+        //   if (status.type === "success") {
+        //     navigate("/item/test-api");
+        //     return;
+        //   }
+
+        //   if (!token) {
+        //     navigate("/item/gallery", { replace: true });
+        //     return;
+        //   }
+
+        //   setStatus({ type: "", message: "" });
+        // }}
+      /> */}
+
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -top-24 left-[-80px] h-72 w-72 rounded-full bg-[#d7c3a4]/35 blur-3xl" />
         <div className="absolute top-40 right-[-60px] h-80 w-80 rounded-full bg-[#b14716]/12 blur-3xl" />
@@ -108,7 +150,6 @@ const ItemAddNewItem = () => {
           formData={formData}
           handleChange={handleChange}
           handleSubmit={handleSubmit}
-          status={status}
           isSubmitting={isSubmitting}
           imagePreviews={imagePreviews}
           handleImageChange={handleImageChange}

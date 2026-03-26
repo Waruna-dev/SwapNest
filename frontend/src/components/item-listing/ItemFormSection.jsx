@@ -20,7 +20,6 @@ const ItemFormSection = ({
   formData,
   handleChange,
   handleSubmit,
-  status,
   isSubmitting,
   imagePreviews,
   handleImageChange,
@@ -74,18 +73,6 @@ const ItemFormSection = ({
           New Listing Form
         </h2>
       </div>
-
-      {status.message && (
-        <div
-          className={`mb-6 rounded-[24px] border px-5 py-4 text-sm font-semibold ${
-            status.type === "success"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-              : "border-red-200 bg-red-50 text-red-700"
-          }`}
-        >
-          {status.message}
-        </div>
-      )}
 
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div className="grid gap-5 md:grid-cols-2">
