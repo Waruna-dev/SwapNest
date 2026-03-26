@@ -207,11 +207,11 @@ export default function VolunteerPage() {
                 BROWSE CENTERS
               </button>
               <button
-                onClick={() => navigate("/dashboard/volunteer")}
-                className="bg-[#2D4A35] text-white px-8 py-4 rounded-xl font-black text-sm hover:bg-black transition-all shadow-md uppercase tracking-tight"
-              >
-                BECOME VOLUNTEER
-              </button>
+  onClick={() => navigate("/volunteer")}
+  className="bg-[#2D4A35] text-white px-8 py-4 rounded-xl font-black text-sm hover:bg-black transition-all shadow-md uppercase tracking-tight"
+>
+  BECOME VOLUNTEER
+</button>
             </div>
 
             {/* Stats area */}
