@@ -49,7 +49,7 @@ const loadLeafletAssets = () => {
   });
 };
 
-export const useLocationPicker = (setFormData) => {
+export const useLocationPicker = (setFormData, initialLocation = {}) => {
   const [locationSearch, setLocationSearch] = useState("");
   const [selectedAddress, setSelectedAddress] = useState("");
   const [locationState, setLocationState] = useState({
@@ -60,6 +60,14 @@ export const useLocationPicker = (setFormData) => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
+  const hasAppliedInitialLocationRef = useRef(false);
+
+  useEffect(() => {
+    if (initialLocation?.address) {
+      setSelectedAddress(initialLocation.address);
+      setLocationSearch(initialLocation.address);
+    }
+  }, [initialLocation?.address]);
 
   useEffect(() => {
     let isMounted = true;
@@ -71,22 +79,27 @@ export const useLocationPicker = (setFormData) => {
         const L = await loadLeafletAssets();
         if (!isMounted) return;
 
+        const initialLat = Number(initialLocation?.lat);
+        const initialLng = Number(initialLocation?.lng);
+        const hasInitialCoords =
+          Number.isFinite(initialLat) && Number.isFinite(initialLng);
+        const startLat = hasInitialCoords ? initialLat : defaultMapCenter.lat;
+        const startLng = hasInitialCoords ? initialLng : defaultMapCenter.lng;
+
         const map = L.map(mapRef.current).setView(
-          [defaultMapCenter.lat, defaultMapCenter.lng],
-          11,
+          [startLat, startLng],
+          hasInitialCoords ? 15 : 11,
         );
 
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
           attribution: "&copy; OpenStreetMap contributors",
         }).addTo(map);
 
-        const marker = L.marker([
-          defaultMapCenter.lat,
-          defaultMapCenter.lng,
-        ]).addTo(map);
+        const marker = L.marker([startLat, startLng]).addTo(map);
 
         mapInstanceRef.current = map;
         markerRef.current = marker;
+        hasAppliedInitialLocationRef.current = hasInitialCoords;
 
         map.on("click", async (event) => {
           const lat = event.latlng?.lat;
@@ -148,7 +161,24 @@ export const useLocationPicker = (setFormData) => {
     return () => {
       isMounted = false;
     };
-  }, [setFormData]);
+  }, [initialLocation?.lat, initialLocation?.lng, setFormData]);
+
+  useEffect(() => {
+    const lat = Number(initialLocation?.lat);
+    const lng = Number(initialLocation?.lng);
+    const hasCoords = Number.isFinite(lat) && Number.isFinite(lng);
+
+    if (!hasCoords || !mapInstanceRef.current || !markerRef.current) {
+      return;
+    }
+
+    markerRef.current.setLatLng([lat, lng]);
+
+    if (!hasAppliedInitialLocationRef.current) {
+      mapInstanceRef.current.setView([lat, lng], 15);
+      hasAppliedInitialLocationRef.current = true;
+    }
+  }, [initialLocation?.lat, initialLocation?.lng]);
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {

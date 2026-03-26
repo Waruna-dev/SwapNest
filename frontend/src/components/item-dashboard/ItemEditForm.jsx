@@ -1,10 +1,17 @@
 import DashboardStatusMessage from "./DashboardStatusMessage";
+import ImageUploader from "../item-listing/ImageUploader";
+import LocationPicker from "../item-listing/LocationPicker";
+import { useLocationPicker } from "../../hooks/useLocationPicker";
 
 function ItemEditForm({
   formData,
   handleChange,
   handleUpdate,
   isSaving,
+  editImages,
+  handleEditImageChange,
+  removeEditImage,
+  setEditImages,
   setFormData,
   buildFormFromItem,
   selectedItem,
@@ -14,7 +21,26 @@ function ItemEditForm({
   categoryOptions,
   conditionOptions,
   modeOptions,
+  getLocationLabel,
 }) {
+  const isSwapOnly = formData.mode === "Swap";
+  const selectedCoords = Array.isArray(selectedItem?.location?.coordinates)
+    ? selectedItem.location.coordinates
+    : [];
+  const {
+    mapRef,
+    locationSearch,
+    setLocationSearch,
+    selectedAddress,
+    locationState,
+    handleUseCurrentLocation,
+    handleLocationSearch,
+  } = useLocationPicker(setFormData, {
+    lat: selectedCoords[1] ?? "",
+    lng: selectedCoords[0] ?? "",
+    address: selectedItem ? getLocationLabel(selectedItem) : "",
+  });
+
   return (
     <form onSubmit={handleUpdate} className="mt-6 space-y-4">
       <input
@@ -69,15 +95,17 @@ function ItemEditForm({
           ))}
         </select>
 
-        <input
-          type="number"
-          min="0"
-          name="price"
-          value={formData.price}
-          onChange={handleChange}
-          placeholder="Price"
-          className="w-full rounded-2xl border border-[#d8cfc3] bg-white px-4 py-3 text-sm outline-none"
-        />
+        {!isSwapOnly && (
+          <input
+            type="number"
+            min="0"
+            name="price"
+            value={formData.price}
+            onChange={handleChange}
+            placeholder="Price"
+            className="w-full rounded-2xl border border-[#d8cfc3] bg-white px-4 py-3 text-sm outline-none"
+          />
+        )}
       </div>
 
       <textarea
@@ -87,6 +115,24 @@ function ItemEditForm({
         rows={6}
         placeholder="Description"
         className="w-full rounded-[24px] border border-[#d8cfc3] bg-white px-4 py-3 text-sm outline-none"
+      />
+
+      <LocationPicker
+        mapRef={mapRef}
+        locationSearch={locationSearch}
+        setLocationSearch={setLocationSearch}
+        selectedAddress={selectedAddress}
+        locationState={locationState}
+        handleUseCurrentLocation={handleUseCurrentLocation}
+        handleLocationSearch={handleLocationSearch}
+        lat={formData.lat}
+        lng={formData.lng}
+      />
+
+      <ImageUploader
+        imagePreviews={editImages}
+        handleImageChange={handleEditImageChange}
+        removeImage={removeEditImage}
       />
 
       <DashboardStatusMessage status={status} statusTone={statusTone} />
@@ -104,6 +150,15 @@ function ItemEditForm({
           type="button"
           onClick={() => {
             setFormData(buildFormFromItem(selectedItem));
+            setEditImages(
+              (selectedItem?.images || []).slice(0, 5).map((image, index) => ({
+                kind: "existing",
+                id: image?.publicId || `existing-${index}`,
+                name: `Image ${index + 1}`,
+                url: image?.url || "",
+                publicId: image?.publicId || "",
+              })),
+            );
             setIsEditMode(false);
           }}
           className="rounded-full border border-[#d8cfc3] bg-white px-7 py-3 text-sm font-semibold text-[#21463c]"

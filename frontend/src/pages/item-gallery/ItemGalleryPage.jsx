@@ -110,9 +110,9 @@ function ItemGalleryPage() {
 
         const payload = response.data;
 
-        setItems((current) =>
-          append ? [...current, ...(payload.items || [])] : payload.items || [],
-        );
+        const nextItems = (payload.items || []).filter((item) => !item?.isHidden);
+
+        setItems((current) => (append ? [...current, ...nextItems] : nextItems));
         setPage(payload.page || nextPage);
         setTotalPages(payload.totalPages || 1);
         setTotalItems(payload.totalItems || 0);

@@ -1,13 +1,18 @@
+import { IconSwap } from "../item-gallery/icons";
+
 function ItemTableRow({
   item,
   openItemModal,
   handleDelete,
+  handleToggleHidden,
   getItemId,
   getPrimaryImage,
   formatPrice,
   getLocationLabel,
   formatRelativeDate,
 }) {
+  const isSwapItem = item?.mode?.toLowerCase() === "swap";
+
   return (
     <tr className="border-t border-[#edf1ef] text-sm transition hover:bg-[#fafcfc]">
       <td className="px-4 py-3">
@@ -32,15 +37,36 @@ function ItemTableRow({
       <td className="px-4 py-3 text-[#46615a]">{item.condition || "Used"}</td>
       <td className="px-4 py-3 text-[#46615a]">{item.mode || "Sell"}</td>
       <td className="px-4 py-3 font-semibold text-[#b1461a]">
-        {formatPrice(item.price)}
+        {isSwapItem ? (
+          <span
+            className="inline-flex items-center justify-center text-[#b1461a]"
+            aria-label="Swap item"
+            title="Swap item"
+          >
+            <IconSwap />
+          </span>
+        ) : (
+          formatPrice(item.price)
+        )}
       </td>
       <td className="px-4 py-3 text-[#46615a]">{getLocationLabel(item)}</td>
       <td className="px-4 py-3 text-[#46615a]">
         {formatRelativeDate(item.createdAt)}
       </td>
+      <td className="px-4 py-3">
+        <span
+          className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+            item?.isHidden
+              ? "bg-[#fff1f2] text-[#e11d48]"
+              : "bg-[#ecfdf3] text-[#0f9f57]"
+          }`}
+        >
+          {item?.isHidden ? "Hidden" : "Visible"}
+        </span>
+      </td>
 
       <td className="px-4 py-3">
-        <div className="flex min-w-[220px] items-center justify-center gap-2">
+        <div className="flex min-w-[300px] items-center justify-center gap-2">
           <button
             type="button"
             onClick={() => openItemModal(item, "view")}
@@ -54,6 +80,17 @@ function ItemTableRow({
             className="rounded-full bg-[#eef2ff] px-3 py-1.5 text-xs font-semibold text-[#4f46e5]"
           >
             Edit
+          </button>
+          <button
+            type="button"
+            onClick={() => handleToggleHidden(item)}
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+              item?.isHidden
+                ? "bg-[#ecfdf3] text-[#0f9f57]"
+                : "bg-[#fff7ed] text-[#c2410c]"
+            }`}
+          >
+            {item?.isHidden ? "Show" : "Hide"}
           </button>
           <button
             type="button"

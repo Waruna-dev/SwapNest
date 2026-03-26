@@ -9,6 +9,12 @@ const sriLankaLocationHints = [
   { name: "Jaffna", lat: 9.67, lng: 80.01 },
   { name: "Matara", lat: 5.95, lng: 80.54 },
   { name: "Batticaloa", lat: 7.71, lng: 81.69 },
+  { name: "Kadawatha", lat: 7.0, lng: 79.95 },
+  { name: "Kiribathgoda", lat: 6.98, lng: 79.93 },
+  { name: "Malabe", lat: 6.9, lng: 79.97 },
+  { name: "Kaduwela", lat: 6.93, lng: 79.98 },
+  { name: "Maharagama", lat: 6.85, lng: 79.93 },
+  { name: "Nugegoda", lat: 6.87, lng: 79.9 },
 ];
 
 export function formatPrice(price) {

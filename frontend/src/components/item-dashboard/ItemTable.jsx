@@ -5,6 +5,7 @@ function ItemTable({
   filteredItems,
   openItemModal,
   handleDelete,
+  handleToggleHidden,
   getItemId,
   getPrimaryImage,
   formatPrice,
@@ -24,6 +25,7 @@ function ItemTable({
               <th className="px-4 py-3 font-semibold">Price</th>
               <th className="px-4 py-3 font-semibold">Location</th>
               <th className="px-4 py-3 font-semibold">Created</th>
+              <th className="px-4 py-3 font-semibold">Visibility</th>
               <th className="px-4 py-3 font-semibold text-center">Actions</th>
             </tr>
           </thead>
@@ -32,7 +34,7 @@ function ItemTable({
             {loading ? (
               Array.from({ length: 6 }, (_, index) => (
                 <tr key={index} className="border-t border-[#edf1ef]">
-                  {Array.from({ length: 8 }, (_, cellIndex) => (
+                  {Array.from({ length: 9 }, (_, cellIndex) => (
                     <td key={cellIndex} className="px-4 py-3">
                       <div className="h-5 animate-pulse rounded-full bg-[#ece4d8]" />
                     </td>
@@ -46,6 +48,7 @@ function ItemTable({
                   item={item}
                   openItemModal={openItemModal}
                   handleDelete={handleDelete}
+                  handleToggleHidden={handleToggleHidden}
                   getItemId={getItemId}
                   getPrimaryImage={getPrimaryImage}
                   formatPrice={formatPrice}
@@ -56,7 +59,7 @@ function ItemTable({
             ) : (
               <tr>
                 <td
-                  colSpan="8"
+                  colSpan="9"
                   className="px-6 py-14 text-center text-sm text-[#5d726c]"
                 >
                   No items found for the current filter.

@@ -8,6 +8,7 @@ function ItemViewPanel({
   setStatus,
   setIsEditMode,
   handleDelete,
+  handleToggleHidden,
 }) {
   return (
     <>
@@ -64,6 +65,18 @@ function ItemViewPanel({
           className="rounded-full bg-[#c1531c] px-7 py-3 text-sm font-semibold text-white"
         >
           Edit item
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleToggleHidden(selectedItem)}
+          className={`rounded-full px-7 py-3 text-sm font-semibold ${
+            selectedItem?.isHidden
+              ? "bg-[#ecfdf3] text-[#0f9f57]"
+              : "border border-[#ecd9c7] bg-[#fff7ed] text-[#b34d19]"
+          }`}
+        >
+          {selectedItem?.isHidden ? "Show in gallery" : "Hide from gallery"}
         </button>
 
         <button

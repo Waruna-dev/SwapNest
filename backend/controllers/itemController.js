@@ -54,6 +54,21 @@ const normalizeIncomingImages = (raw) => {
     .filter(Boolean);
 };
 
+const normalizeIncomingPublicIds = (raw) => {
+  let value = raw;
+  if (typeof value === "string") {
+    try {
+      value = JSON.parse(value);
+    } catch {
+      value = [value];
+    }
+  }
+
+  return asArray(value)
+    .map((entry) => String(entry || "").trim())
+    .filter(Boolean);
+};
+
 const parseLocation = (latRaw, lngRaw) => {
   if (!hasValue(latRaw) && !hasValue(lngRaw))
     return { ok: true, value: undefined };
@@ -80,6 +95,8 @@ const buildFilters = (q) => {
   const filter = {};
   // by default show active only unless explicitly asked
   if (String(q.includeInactive || "false") !== "true") filter.isActive = true;
+  if (String(q.includeHidden || "false") !== "true")
+    filter.isHidden = { $ne: true };
 
   if (q.category) filter.category = q.category;
   if (q.mode) filter.mode = q.mode;
@@ -195,6 +212,7 @@ export const createItem = async (req, res, next) => {
       images: uploaded,
       coverImage: uploaded[0],
       isActive: true,
+      isHidden: false,
       location: parsedLocation.value,
     });
 
@@ -239,6 +257,7 @@ export const getItems = async (req, res, next) => {
       location: 1,
       views: 1,
       isActive: 1,
+      isHidden: 1,
       createdAt: 1,
       ...(hasTextSearch ? { score: { $meta: "textScore" } } : {}),
     };
@@ -318,6 +337,8 @@ export const updateItem = async (req, res, next) => {
     if (body.price !== undefined) item.price = Number(body.price || 0);
     if (body.isActive !== undefined)
       item.isActive = String(body.isActive) === "true";
+    if (body.isHidden !== undefined)
+      item.isHidden = String(body.isHidden) === "true";
 
     // Update location if given
     if (body.lat !== undefined || body.lng !== undefined) {
@@ -331,9 +352,29 @@ export const updateItem = async (req, res, next) => {
     // Images update (optional)
     const files = req.files || [];
     const replaceImages = String(body.replaceImages || "false") === "true";
+    const keepImagePublicIds = normalizeIncomingPublicIds(body.keepImagePublicIds);
+    const hasKeepImageSelection =
+      body.keepImagePublicIds !== undefined || replaceImages;
+
+    if (hasKeepImageSelection) {
+      const keepSet = new Set(keepImagePublicIds);
+      const removedImages = item.images.filter(
+        (img) => !keepSet.has(String(img.publicId || "")),
+      );
+
+      for (const img of removedImages) {
+        await deleteFromCloudinary(img.publicId);
+      }
+
+      item.images = item.images.filter((img) =>
+        keepSet.has(String(img.publicId || "")),
+      );
+    }
 
     if (files.length > 0) {
-      if (files.length > 5)
+      const remainingSlots = Math.max(0, 5 - item.images.length);
+
+      if (files.length > 5 || files.length > remainingSlots)
         return res.status(400).json({ message: "Maximum 5 images allowed" });
 
       const newUploaded = [];
@@ -349,10 +390,6 @@ export const updateItem = async (req, res, next) => {
       }
 
       if (replaceImages) {
-        // Delete old from Cloudinary
-        for (const img of item.images) {
-          await deleteFromCloudinary(img.publicId);
-        }
         item.images = newUploaded;
       } else {
         // Add images (but keep max 5)
@@ -371,6 +408,19 @@ export const updateItem = async (req, res, next) => {
       if (Number.isFinite(idx) && idx >= 0 && idx < item.images.length) {
         item.coverImage = item.images[idx];
       }
+    }
+
+    if (
+      item.coverImage &&
+      !item.images.some(
+        (img) => String(img.publicId || "") === String(item.coverImage?.publicId || ""),
+      )
+    ) {
+      item.coverImage = item.images[0] || null;
+    }
+
+    if (!item.coverImage && item.images.length > 0) {
+      item.coverImage = item.images[0];
     }
 
     await item.save();
@@ -482,6 +532,7 @@ export const getNearbyItems = async (req, res, next) => {
           location: 1,
           distanceMeters: 1,
           views: 1,
+          isHidden: 1,
           createdAt: 1,
         },
       },
@@ -527,7 +578,11 @@ export const getSuggestions = async (req, res, next) => {
     const limit = clamp(toInt(req.query.limit, 8), 1, 15);
 
     const docs = await Item.find(
-      { isActive: true, title: { $regex: q, $options: "i" } },
+      {
+        isActive: true,
+        isHidden: { $ne: true },
+        title: { $regex: q, $options: "i" },
+      },
       { title: 1 },
     )
       .limit(limit * 2)
@@ -557,7 +612,7 @@ export const getTrendingItems = async (req, res, next) => {
     if (Number.isFinite(days)) since.setDate(since.getDate() - days);
 
     const items = await Item.find(
-      { isActive: true, createdAt: { $gte: since } },
+      { isActive: true, isHidden: { $ne: true }, createdAt: { $gte: since } },
       {
         itemId: 1,
         title: 1,
@@ -589,7 +644,12 @@ export const getSimilarItems = async (req, res, next) => {
     if (!item) return res.status(404).json({ message: "Item not found" });
 
     const items = await Item.find(
-      { _id: { $ne: item._id }, isActive: true, category: item.category },
+      {
+        _id: { $ne: item._id },
+        isActive: true,
+        isHidden: { $ne: true },
+        category: item.category,
+      },
       { title: 1, price: 1, category: 1, coverImage: 1, mode: 1 },
     )
       .sort({ createdAt: -1 })
