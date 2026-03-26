@@ -1,6 +1,9 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
   theme: {
     extend: {
       colors: {
@@ -23,7 +26,7 @@ export default {
         "on-secondary-fixed-variant": "#822800",
         "surface-tint": "#3f6653",
         "tertiary-fixed-dim": "#6fd8c8",
-        error: "#ba1a1a",
+        "error": "#ba1a1a",
         "primary-fixed-dim": "#a5d0b9",
         "primary-fixed": "#c1ecd4",
         "on-tertiary-fixed-variant": "#005048",
@@ -33,51 +36,51 @@ export default {
         "outline-variant": "#c1c8c2",
         "error-container": "#ffdad6",
         "surface-container-low": "#f5f3ef",
-        primary: "#012d1d",
+        "primary": "#012d1d",
         "surface-container": "#efeeea",
-        outline: "#717973",
+        "outline": "#717973",
         "primary-container": "#1b4332",
         "on-secondary-container": "#6b1f00",
         "tertiary-container": "#00443d",
         "on-error": "#ffffff",
-        secondary: "#a43c12",
+        "secondary": "#a43c12",
         "on-primary": "#ffffff",
         "on-tertiary-fixed": "#00201c",
         "secondary-fixed-dim": "#ffb59c",
         "on-secondary": "#ffffff",
         "surface-dim": "#dbdad6",
-        background: "#fbf9f5",
-        surface: "#fbf9f5",
+        "background": "#fbf9f5",
+        "surface": "#fbf9f5",
         "inverse-surface": "#30312e",
-        tertiary: "#002c27",
-        "on-background": "#1b1c1a",
+        "tertiary": "#002c27",
+        "on-background": "#1b1c1a"
       },
       fontFamily: {
-        headline: ["Plus Jakarta Sans", "sans-serif"],
-        body: ["Manrope", "sans-serif"],
+        "headline": ["Plus Jakarta Sans", "sans-serif"],
+        "body": ["Manrope", "sans-serif"],
       },
       // 👇 THIS IS THE ONLY THING ADDED! 👇
       borderRadius: {
-        DEFAULT: "1rem",
-        lg: "2rem",
-        xl: "3rem",
-        full: "9999px",
+        "DEFAULT": "1rem", 
+        "lg": "2rem", 
+        "xl": "3rem", 
+        "full": "9999px"
       },
       keyframes: {
-        "fade-in-up": {
-          "0%": { opacity: "0", transform: "translateY(20px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
+        'fade-in-up': {
+            '0%': { opacity: '0', transform: 'translateY(20px)' },
+            '100%': { opacity: '1', transform: 'translateY(0)' },
         },
-        "fade-in": {
-          "0%": { opacity: "0" },
-          "100%": { opacity: "1" },
-        },
+        'fade-in': {
+            '0%': { opacity: '0' },
+            '100%': { opacity: '1' },
+        }
       },
       animation: {
-        "fade-in-up": "fade-in-up 0.8s ease-out forwards",
-        "fade-in": "fade-in 1s ease-out forwards",
-      },
+        'fade-in-up': 'fade-in-up 0.8s ease-out forwards',
+        'fade-in': 'fade-in 1s ease-out forwards',
+      }
     },
   },
   plugins: [],
-};
+}
