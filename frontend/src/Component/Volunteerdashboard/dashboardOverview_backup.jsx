@@ -213,125 +213,7 @@ export default function DashboardOverview() {
           </div>
         </div>
 
-        {/* Center Details Cards */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between gap-3 mb-6">
-            <div>
-              <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600 mb-2">
-                Active Centers
-              </div>
-              <div className="text-sm text-zinc-500">Discover and manage volunteer centers across the network</div>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-medium">
-                {centers.filter(c => c.status === 'Active').length} Active
-              </div>
-              <div className="px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-xs font-medium">
-                {centers.filter(c => c.status !== 'Active').length} Pending
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {(centers || []).slice(0, 6).map((center, index) => (
-              <div key={center._id} className="group relative">
-                {/* Gradient Border Effect */}
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm"></div>
-                
-                {/* Main Card */}
-                <div className="relative bg-white rounded-3xl border border-zinc-100 p-6 hover:shadow-2xl transition-all duration-300 transform group-hover:-translate-y-1">
-                  {/* Header Section */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center text-white font-bold text-sm">
-                          {center.centerName?.charAt(0) || 'C'}
-                        </div>
-                        <h3 className="text-lg font-bold text-[#1A1A1A]">{center.centerName}</h3>
-                      </div>
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                        center.status === 'Active' 
-                          ? 'bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-800 border border-emerald-200' 
-                          : 'bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 border border-amber-200'
-                      }`}>
-                        <span className={`w-2 h-2 rounded-full mr-2 ${
-                          center.status === 'Active' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
-                        }`}></span>
-                        {center.status || 'Unknown'}
-                      </span>
-                    </div>
-                    <div className="text-3xl opacity-80 group-hover:scale-110 transition-transform duration-300">🏢</div>
-                  </div>
-
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-2 gap-3 mb-4">
-                    <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-3 border border-emerald-100">
-                      <div className="text-xs text-emerald-600 font-medium mb-1">Capacity</div>
-                      <div className="text-lg font-bold text-emerald-900">{center.capacity || 0}</div>
-                      <div className="text-xs text-emerald-600">volunteers</div>
-                    </div>
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-3 border border-blue-100">
-                      <div className="text-xs text-blue-600 font-medium mb-1">District</div>
-                      <div className="text-sm font-bold text-blue-900 truncate">{center.district || 'N/A'}</div>
-                      <div className="text-xs text-blue-600">location</div>
-                    </div>
-                  </div>
-
-                  {/* Contact Information */}
-                  <div className="space-y-2 mb-4">
-                    {center.contactNumber && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <div className="w-6 h-6 bg-zinc-100 rounded-lg flex items-center justify-center text-xs">📞</div>
-                        <span className="text-zinc-600">{center.contactNumber}</span>
-                      </div>
-                    )}
-                    {center.email && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <div className="w-6 h-6 bg-zinc-100 rounded-lg flex items-center justify-center text-xs">✉️</div>
-                        <span className="text-zinc-600 truncate flex-1" title={center.email}>{center.email}</span>
-                      </div>
-                    )}
-                    {center.address && (
-                      <div className="flex items-start gap-2 text-sm">
-                        <div className="w-6 h-6 bg-zinc-100 rounded-lg flex items-center justify-center text-xs mt-0.5">📍</div>
-                        <span className="text-zinc-600 text-xs leading-relaxed flex-1">{center.address}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Footer Actions */}
-                  <div className="flex items-center justify-between pt-4 border-t border-zinc-100">
-                    <div className="text-xs text-zinc-400 font-mono">
-                      ID: {center._id?.slice(-8).toUpperCase() || 'N/A'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {centers.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-20 h-20 bg-gradient-to-br from-zinc-100 to-zinc-200 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                <div className="text-3xl">🏢</div>
-              </div>
-              <div className="text-xl font-bold text-zinc-700 mb-2">No Centers Found</div>
-              <div className="text-zinc-500 mb-6">Start by registering your first volunteer center</div>
-              <button className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-teal-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                Add Your First Center
-              </button>
-            </div>
-          ) : centers.length > 6 ? (
-            <div className="text-center mt-8">
-              <button className="group inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-zinc-200 text-zinc-700 rounded-xl font-semibold hover:border-emerald-300 hover:text-emerald-700 transition-all duration-200 shadow-sm hover:shadow-md">
-                <span>View All {centers.length} Centers</span>
-                <span className="transform group-hover:translate-x-1 transition-transform duration-200">→</span>
-              </button>
-            </div>
-          ) : null}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
           <div className="bg-white rounded-2xl border border-zinc-200 p-5">
             <div className="flex items-center justify-between gap-3 mb-3">
               <div>
@@ -371,6 +253,15 @@ export default function DashboardOverview() {
                 </tbody>
               </table>
             </div>
+            
+            {/* Load More Button */}
+            {volunteers.length > 5 && (
+              <div className="mt-4 pt-4 border-t border-zinc-200">
+                <button className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-medium py-2 px-4 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition-all duration-200 text-sm">
+                  Load More Volunteers →
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="bg-white rounded-2xl border border-zinc-200 p-5">
@@ -410,6 +301,154 @@ export default function DashboardOverview() {
                 </tbody>
               </table>
             </div>
+            
+            {/* Load More Button */}
+            {centers.length > 5 && (
+              <div className="mt-4 pt-4 border-t border-zinc-200">
+                <button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium py-2 px-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 text-sm">
+                  Load More Centers →
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Centers Gallery Section */}
+        <div className="bg-white rounded-2xl border border-zinc-200 p-6">
+          <div className="flex items-center justify-between gap-3 mb-6">
+            <div>
+              <div className="text-sm font-bold uppercase tracking-widest text-zinc-500">
+                Centers Gallery
+              </div>
+              <div className="text-base text-zinc-600 mt-1">Browse centers horizontally</div>
+            </div>
+          </div>
+
+          {/* Horizontal Scroll Container */}
+          <div className="relative">
+            <div className="overflow-x-auto pb-4">
+              <div className="flex gap-4 min-w-max">
+                {(centers || []).slice(0, 6).map((center) => (
+                  <div key={center._id} className="w-80 bg-gradient-to-br from-white via-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] hover:border-emerald-400 flex-shrink-0">
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-4 relative">
+                      <div className="absolute top-2 right-2">
+                        <div className={`px-2 py-1 rounded-full text-xs font-bold text-white ${
+                          center.status === 'Active' 
+                            ? 'bg-green-500'
+                            : center.status === 'Inactive'
+                            ? 'bg-red-500'
+                            : 'bg-yellow-500'
+                        }`}>
+                          {center.status || 'Unknown'}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/20 backdrop-blur rounded-lg flex items-center justify-center text-white text-lg font-bold">
+                          🏢
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-white text-base leading-tight">
+                            {center.centerName}
+                          </h3>
+                          <p className="text-emerald-100 text-xs font-medium">
+                            {center.centerCode}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Content */}
+                    <div className="p-5 space-y-3">
+                      {/* Location Row */}
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-emerald-100 rounded flex items-center justify-center text-emerald-600 flex-shrink-0">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-800 truncate">{center.city}</p>
+                          <p className="text-xs text-gray-600">{center.district}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Email Row */}
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 bg-blue-100 rounded flex items-center justify-center text-blue-600 flex-shrink-0">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-gray-800 truncate">{center.email || 'No email'}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Capacity & Manager Row */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 bg-amber-100 rounded flex items-center justify-center text-amber-600 flex-shrink-0">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-gray-800">{center.capacity || 0}</p>
+                              <p className="text-xs text-gray-600">Volunteers</p>
+                            </div>
+                          </div>
+                          
+                          {center.managerName && (
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 bg-purple-100 rounded flex items-center justify-center text-purple-600 flex-shrink-0">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold text-gray-800 truncate max-w-20">{center.managerName}</p>
+                                <p className="text-xs text-gray-600">Manager</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Footer */}
+                      <div className="bg-gradient-to-r from-emerald-100 to-teal-100 px-5 py-2 border-t border-emerald-200">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs text-emerald-700 font-medium truncate max-w-48">
+                            {center.address ? center.address.substring(0, 25) + '...' : 'No address'}
+                          </p>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                            <span className="text-xs text-emerald-700 font-medium">Live</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Scroll Indicators */}
+              <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent pointer-events-none z-10"></div>
+              <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none z-10"></div>
+            </div>
+            
+            {centers.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-5xl mb-4">🏢</div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">No Centers Found</h3>
+                <p className="text-gray-600 mb-4">Start building your network by registering centers</p>
+                <button className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-2 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
+                  Add First Center
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
