@@ -1,5 +1,7 @@
 
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import API from "../../services/api";
 
 // ── Constants ──────────────────────────────────────────────────────────────
 const STEPS = ["Basic Info", "Operations", "Facilities", "Manager", "Review"];
@@ -76,6 +78,7 @@ function SectionLabel({ children }) {
 
 // ── Main Component ─────────────────────────────────────────────────────────
 export default function Center() {
+  const navigate = useNavigate();
   const [step, setStep]         = useState(1);
   const totalSteps              = 5;
 
@@ -177,16 +180,16 @@ export default function Center() {
       operatingDays, facilities, managerName, managerContact,
     };
     try {
-      const res  = await fetch("/api/centers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (data.success) setSubmitted(true);
-      else alert(data.message || "Submission failed. Please try again.");
-    } catch {
-      setSubmitted(true); // demo fallback
+      const res = await API.post("/api/centers", payload);
+      const data = res.data;
+      if (data.success || data._id) {
+        setSubmitted(true);
+      } else {
+        alert(data.message || "Submission failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error submitting center:", error);
+      alert(error.response?.data?.message || "Submission failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -523,27 +526,44 @@ export default function Center() {
             <div className="px-10 py-16 text-center max-sm:px-5">
               <div className="text-[64px] mb-5">🎉</div>
               <h2 className="text-[26px] font-bold text-primary mb-3">Center Registered!</h2>
-              <p className="text-[15px] text-[#777] max-w-[420px] mx-auto mb-7 leading-[1.65]">
+              <p className="text-[15px] text-[#777] max-w-[420px] mx-auto mb-9 leading-[1.65]">
                 The new SwapNest center has been successfully registered. The manager will be notified shortly.
               </p>
-              <button
-                onClick={() => window.location.reload()}
-                className="mx-auto block bg-primary text-white px-7 py-3 rounded-[10px] text-[14px] font-semibold shadow-[0_2px_12px_rgba(45,74,53,0.25)] hover:bg-[#24392b] hover:-translate-y-px transition-all duration-200"
-              >
-                ← Register Another Center
-              </button>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <button
+                  onClick={() => navigate('/dashboard/center')}
+                  className="bg-white text-primary px-7 py-3 rounded-[10px] text-[14px] font-semibold border-[1.5px] border-primary hover:bg-cream hover:-translate-y-px transition-all duration-200"
+                >
+                  ✕ Close
+                </button>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="bg-primary text-white px-7 py-3 rounded-[10px] text-[14px] font-semibold shadow-[0_2px_12px_rgba(45,74,53,0.25)] hover:bg-[#24392b] hover:-translate-y-px transition-all duration-200"
+                >
+                  ← Register Another Center
+                </button>
+              </div>
             </div>
           )}
 
           {/* ── Navigation ─────────────────────────────────────────────── */}
           {!submitted && (
             <div className="flex items-center justify-between gap-3 px-10 pt-6 pb-8 border-t border-[#F0EBE0] max-sm:px-5">
-              {step > 1 ? (
-                <button onClick={goBack}
-                  className="px-7 py-3 rounded-[10px] text-[14px] font-semibold text-[#888] bg-transparent border-[1.5px] border-border hover:bg-cream hover:text-[#1A1A1A] hover:border-[#bbb] transition-all duration-200">
-                  ← Back
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => navigate('/dashboard/center')}
+                  className="px-7 py-3 rounded-[10px] text-[14px] font-semibold text-[#888] bg-transparent border-[1.5px] border-[#ddd] hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all duration-200"
+                >
+                  ✕ Close
                 </button>
-              ) : <span />}
+                {step > 1 && (
+                  <button onClick={goBack}
+                    className="px-7 py-3 rounded-[10px] text-[14px] font-semibold text-[#888] bg-transparent border-[1.5px] border-border hover:bg-cream hover:text-[#1A1A1A] hover:border-[#bbb] transition-all duration-200"
+                  >
+                    ← Back
+                  </button>
+                )}
+              </div>
 
               <button onClick={goNext} disabled={isLoading}
                 className="ml-auto px-7 py-3 rounded-[10px] text-[14px] font-semibold text-white bg-primary shadow-[0_2px_12px_rgba(45,74,53,0.25)] hover:bg-[#24392b] hover:-translate-y-px hover:shadow-[0_4px_16px_rgba(45,74,53,0.3)] transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed">
