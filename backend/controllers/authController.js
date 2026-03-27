@@ -204,13 +204,52 @@ const forgotPassword = asyncHandler(async (req, res) => {
     await user.save();
 
     const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
-    const message = `You requested a password reset. \n\nPlease go to this link to reset your password: \n\n${resetUrl} \n\nIf you didn't request this, please ignore this email.`;
+    
+    // --- NEW: Beautiful HTML Email Template ---
+    const htmlMessage = `
+      <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #fcfbf9; padding: 40px; border-radius: 12px; border: 1px solid #eaeaea;">
+        
+        <h1 style="color: #1a1a1a; font-size: 28px; text-align: center; letter-spacing: -0.5px; margin-bottom: 30px;">
+          SwapNest
+        </h1>
+        
+        <p style="color: #4a4a4a; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+          Hello,
+        </p>
+        
+        <p style="color: #4a4a4a; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
+          We received a request to reset the password for your SwapNest account. Click the button below to choose a new password. This link will expire in 15 minutes.
+        </p>
+        
+        <div style="text-align: center; margin: 40px 0;">
+          <a href="${resetUrl}" style="background-color: #822800; color: #ffffff; padding: 16px 32px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; display: inline-block;">
+            Reset Password
+          </a>
+        </div>
+        
+        <p style="color: #777777; font-size: 14px; line-height: 1.5; margin-bottom: 10px;">
+          Or copy and paste this link into your browser:
+        </p>
+        
+        <p style="color: #822800; font-size: 14px; word-break: break-all; margin-bottom: 40px;">
+          ${resetUrl}
+        </p>
+        
+        <hr style="border: none; border-top: 1px solid #eaeaea; margin: 30px 0;" />
+        
+        <p style="color: #a3a3a3; font-size: 11px; text-align: center; text-transform: uppercase; letter-spacing: 1.5px;">
+          © 2026 SwapNest. Circularity by design.<br/>
+          If you didn't request this, you can safely ignore this email.
+        </p>
+        
+      </div>
+    `;
 
     try {
       await sendEmail({
         email: user.email,
-        subject: 'SwapNest - Password Reset Token',
-        message: message,
+        subject: 'SwapNest - Password Reset Request',
+        html: htmlMessage, // <-- CHANGED: Passing the new HTML template here
       });
 
       res.status(200).json({ message: 'Token sent to email!' });
