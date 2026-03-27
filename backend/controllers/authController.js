@@ -1,15 +1,16 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import axios from 'axios';
+import crypto from 'crypto';
 import asyncHandler from 'express-async-handler';
-import User from '../models/User.js'; // Must include .js extension!
+import sendEmail from '../utils/sendEmail.js';
+import User from '../models/User.js'; 
 
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
 
 const registerUser = asyncHandler(async (req, res) => {
-    // 1. Extract 'role' from the request body
     const { username, email, password, role } = req.body;
 
     if (!username || !email || !password) {
@@ -26,12 +27,11 @@ const registerUser = asyncHandler(async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 2. Pass the role into the database creation
     const user = await User.create({ 
         username, 
         email, 
         password: hashedPassword,
-        role: role || 'user' // Uses the provided role, or defaults to 'user'
+        role: role || 'user' 
     });
 
     if (user) {
@@ -39,7 +39,7 @@ const registerUser = asyncHandler(async (req, res) => {
             _id: user.id,
             username: user.username,
             email: user.email,
-            role: user.role, // 3. Send the role back in the response
+            role: user.role, 
             token: generateToken(user._id),
         });
     } else {
@@ -87,7 +87,6 @@ const updateProfile = asyncHandler(async (req, res) => {
         req.user.id,
         {
             username: req.body.username || user.username,
-            // --- WE SWAPPED LOCATION FOR BIO HERE ---
             bio: req.body.bio !== undefined ? req.body.bio : user.bio, 
             profilePic: profileImageUrl,
         },
@@ -122,7 +121,6 @@ const updatePassword = asyncHandler(async (req, res) => {
 });
 
 const deleteUser = asyncHandler(async (req, res) => {
-    // 1. Find the user by the ID passed in the URL
     const user = await User.findById(req.params.id);
 
     if (!user) {
@@ -130,7 +128,6 @@ const deleteUser = asyncHandler(async (req, res) => {
         throw new Error('User not found');
     }
 
-    // 2. Delete that specific user from the database
     await User.findByIdAndDelete(req.params.id);
 
     res.status(200).json({ 
@@ -140,14 +137,11 @@ const deleteUser = asyncHandler(async (req, res) => {
 });
 
 const logoutUser = asyncHandler(async (req, res) => {
-    // req.user is provided by your 'protect' middleware
     const user = await User.findById(req.user.id);
 
     if (user) {
-        // Destroy the token in the database
         user.activeToken = null; 
         await user.save();
-        
         res.status(200).json({ message: 'Successfully logged out.' });
     } else {
         res.status(404);
@@ -155,11 +149,9 @@ const logoutUser = asyncHandler(async (req, res) => {
     }
 });
 
-// --- NEW GOOGLE AUTH CONTROLLER ---
 const googleAuth = asyncHandler(async (req, res) => {
     const { googleAccessToken } = req.body;
 
-    // 1. Ask Google for the user's details using their access token
     const googleResponse = await axios.get(
         'https://www.googleapis.com/oauth2/v3/userinfo',
         { headers: { Authorization: `Bearer ${googleAccessToken}` } }
@@ -167,12 +159,9 @@ const googleAuth = asyncHandler(async (req, res) => {
 
     const { email, name, picture } = googleResponse.data;
 
-    // 2. Check if this user already exists in SwapNest
     let user = await User.findOne({ email });
 
-    // 3. If they don't exist, REGISTER them!
     if (!user) {
-        // Generate a random secure password since they use Google to log in
         const randomPassword = Math.random().toString(36).slice(-12);
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(randomPassword, salt);
@@ -181,17 +170,15 @@ const googleAuth = asyncHandler(async (req, res) => {
             username: name,
             email: email,
             password: hashedPassword,
-            profilePic: picture, // We even grab their Google profile picture!
+            profilePic: picture, 
             role: 'user'
         });
     }
 
-    // 4. Generate a SwapNest Token & Set Active Session
     const token = generateToken(user._id);
     user.activeToken = token;
     await user.save();
 
-    // 5. Send them into the app
     res.status(200).json({
         _id: user.id,
         username: user.username,
@@ -201,5 +188,82 @@ const googleAuth = asyncHandler(async (req, res) => {
     });
 });
 
-// Export all functions securely
-export { registerUser, loginUser, getMe, updateProfile, updatePassword, deleteUser, logoutUser, googleAuth };
+// --- FIXED: Wrapped in asyncHandler, removed inline export ---
+const forgotPassword = asyncHandler(async (req, res) => {
+    const user = await User.findOne({ email: req.body.email });
+    
+    if (!user) {
+      return res.status(200).json({ message: 'If an account exists, an email was sent.' });
+    }
+
+    const resetToken = crypto.randomBytes(20).toString('hex');
+
+    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; 
+
+    await user.save();
+
+    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+    const message = `You requested a password reset. \n\nPlease go to this link to reset your password: \n\n${resetUrl} \n\nIf you didn't request this, please ignore this email.`;
+
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'SwapNest - Password Reset Token',
+        message: message,
+      });
+
+      res.status(200).json({ message: 'Token sent to email!' });
+      
+    } catch (emailError) {
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save();
+
+      res.status(500);
+      throw new Error('Email could not be sent');
+    }
+});
+
+// --- FIXED: Added bcrypt hashing for the new password ---
+const resetPassword = asyncHandler(async (req, res) => {
+    const resetPasswordToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() }, 
+    });
+
+    if (!user) {
+      res.status(400);
+      throw new Error('Invalid or expired token');
+    }
+
+    // --- CRITICAL FIX: Hash the newly provided password before saving ---
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(req.body.password, salt);
+
+    user.password = hashedPassword; 
+    
+    // Clear the temporary token fields
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+
+    res.status(200).json({ message: 'Password reset successful' });
+});
+
+// Export all functions securely at the bottom
+export { 
+  registerUser, 
+  loginUser, 
+  getMe, 
+  updateProfile, 
+  updatePassword, 
+  deleteUser, 
+  logoutUser, 
+  googleAuth, 
+  forgotPassword, 
+  resetPassword 
+};
