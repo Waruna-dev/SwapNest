@@ -4,8 +4,6 @@ import API from "../../services/api";
 
 const Volunteer = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [scrolled, setScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const totalSteps = 5;
   const progressPct = [20, 40, 60, 80, 100];
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,6 +28,8 @@ const Volunteer = () => {
   useEffect(() => {
     if (!selectedCenter) return;
     const centerValue = selectedCenter.centerName || selectedCenter.name || selectedCenter.center || "";
+    console.log("Selected center:", selectedCenter);
+    console.log("Center value to set:", centerValue);
     if (!centerValue) return;
     setFormData((prev) => ({ ...prev, center: centerValue }));
   }, [selectedCenter]);
@@ -77,12 +77,7 @@ const Volunteer = () => {
     };
   }, []);
 
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
+  
   const handleInputChange = (e) => {
     const { id, name, value, type, checked } = e.target;
     const fieldName = id || name;
@@ -109,7 +104,18 @@ const Volunteer = () => {
       if (!formData.email.trim()) missing.push("Email");
       if (!formData.phone.trim()) missing.push("Phone Number");
       if (!formData.nic.trim()) missing.push("NIC");
-      if (!formData.dob) missing.push("Date of Birth");
+      if (!formData.dob) {
+        missing.push("Date of Birth");
+      } else {
+        // Validate that birthdate is not today or in the future
+        const birthDate = new Date(formData.dob);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Set to start of day for comparison
+        if (birthDate >= today) {
+          setSubmitError("Date of Birth cannot be today or a future date");
+          return ["Date of Birth validation"];
+        }
+      }
     }
     if (currentStep === 2) {
       if (!formData.district) missing.push("District");
@@ -235,69 +241,8 @@ const Volunteer = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F0E8] font-sans text-[#1A1A1A]">
-
-      {/* ── NAVBAR ── */}
-      <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${scrolled ? "bg-white/80 backdrop-blur-xl shadow-sm py-3" : "bg-transparent py-5"}`}>
-        <div className="flex justify-between items-center px-6 md:px-12 max-w-[1400px] mx-auto">
-          <Link to="/" className="text-2xl font-bold tracking-tighter text-[#012d1d] font-serif">SwapNest</Link>
-          <div className="hidden md:flex items-center gap-8 font-semibold text-sm tracking-tight">
-            <Link to="/" className="text-[#012d1d]/80 hover:text-[#012d1d] transition-colors">Home</Link>
-            <Link to="/volunteer" className="text-[#a43c12] border-b-2 border-[#a43c12] pb-1">Volunteer</Link>
-          </div>
-          <div className="hidden md:flex items-center gap-6">
-            <Link to="/login" className="text-[#012d1d] font-bold text-sm hover:opacity-70 transition-opacity">Sign In</Link>
-            <Link to="/register" className="bg-[#a43c12] text-white px-7 py-2.5 rounded-full font-bold text-sm hover:scale-105 active:scale-95 transition-transform duration-200 shadow-md shadow-[#a43c12]/20">Sign Up</Link>
-          </div>
-          <button className="md:hidden text-[#012d1d]" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-            <span className="material-symbols-outlined text-3xl">{isMobileMenuOpen ? "close" : "menu"}</span>
-          </button>
-        </div>
-        <div className={`md:hidden absolute top-full left-0 w-full bg-[#fbf9f5] border-b border-gray-200 shadow-xl transition-all duration-300 overflow-hidden ${isMobileMenuOpen ? "max-h-[400px] py-6" : "max-h-0 py-0"}`}>
-          <div className="flex flex-col gap-6 px-6">
-            <Link to="/" className="text-[#012d1d] font-bold text-lg">Home</Link>
-            <Link to="/volunteer" className="text-[#a43c12] font-bold text-lg">Volunteer</Link>
-            <div className="h-px bg-gray-200"></div>
-            <Link to="/login" className="text-[#012d1d] font-bold text-lg">Sign In</Link>
-            <Link to="/register" className="bg-[#a43c12] text-white px-6 py-3 rounded-xl font-bold text-center">Create Account</Link>
-          </div>
-        </div>
-      </nav>
-
-      {/* ── HERO ── */}
-      <div className="bg-[#2D4A35] text-white pt-28 pb-32 px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-2 mb-8 group cursor-pointer w-fit">
-            <div className="text-2xl transition-transform group-hover:rotate-180 duration-500">🔄</div>
-            <span className="text-xl font-bold tracking-tight">SwapNest</span>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Become a <span className="text-[#7A9E7E]">Volunteer</span>
-          </h1>
-          <p className="text-lg text-gray-300 max-w-2xl mb-12">
-            Join our network of changemakers helping communities swap, share, and thrive.
-          </p>
-
-          {/* Stepper */}
-          <div className="hidden md:flex items-center justify-between relative">
-            {[1, 2, 3, 4, 5].map((step, idx) => (
-              <React.Fragment key={step}>
-                <div className={`flex flex-col items-center gap-3 z-10 transition-opacity ${currentStep >= step ? "opacity-100" : "opacity-40"}`}>
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border-2 ${currentStep === step ? "bg-[#C4622D] border-[#C4622D]" : currentStep > step ? "bg-[#7A9E7E] border-[#7A9E7E]" : "border-white"}`}>
-                    {currentStep > step ? "✓" : step}
-                  </div>
-                  <span className="text-xs font-medium uppercase tracking-wider">
-                    {["Personal", "Location", "Skills", "Availability", "Confirm"][idx]}
-                  </span>
-                </div>
-                {step < 5 && <div className={`flex-1 h-[2px] mb-7 mx-4 ${currentStep > step ? "bg-[#7A9E7E]" : "bg-gray-600"}`}></div>}
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* ── FORM CARD ── */}
-      <div className="max-w-4xl mx-auto -mt-20 px-4 pb-20">
+      <div className="max-w-4xl mx-auto pt-8 px-4 pb-20">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-[#D0C9BA]">
           <div className="h-2 bg-gray-100">
             <div className="h-full bg-[#C4622D] transition-all duration-500 ease-out" style={{ width: `${progressPct[currentStep - 1]}%` }}></div>
@@ -484,65 +429,37 @@ const Volunteer = () => {
           </div>
         </div>
       </div>
-
-      {/* ── FOOTER ── */}
-      <footer className="bg-[#012d1d] w-full rounded-t-[3rem]">
-        <div className="flex flex-col md:flex-row justify-between items-start w-full px-8 md:px-16 py-20 max-w-7xl mx-auto gap-12">
-          <div className="mb-8 md:mb-0 max-w-sm">
-            <div className="text-3xl font-bold text-white mb-6 font-serif tracking-tighter">SwapNest</div>
-            <p className="text-[#86af99] text-base leading-relaxed mb-8 font-medium">Cultivating a circular future for the teardrop island. Join the movement today.</p>
-            <div className="flex gap-4">
-              <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-[#a43c12] hover:border-transparent cursor-pointer transition-all">
-                <span className="material-symbols-outlined text-xl">public</span>
-              </div>
-              <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-[#a43c12] hover:border-transparent cursor-pointer transition-all">
-                <span className="material-symbols-outlined text-xl">chat_bubble</span>
-              </div>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-12 md:gap-24 w-full md:w-auto">
-            <div className="flex flex-col gap-4">
-              <h4 className="text-white font-bold tracking-widest text-xs uppercase mb-2">Navigate</h4>
-              <Link to="/" className="text-[#86af99] hover:text-white transition-colors font-medium">Home</Link>
-              <Link to="/volunteer" className="text-[#86af99] hover:text-white transition-colors font-medium">Volunteer</Link>
-              <Link to="/login" className="text-[#86af99] hover:text-white transition-colors font-medium">Sign In</Link>
-              <Link to="/register" className="text-[#86af99] hover:text-white transition-colors font-medium">Sign Up</Link>
-            </div>
-            <div className="flex flex-col gap-4">
-              <h4 className="text-white font-bold tracking-widest text-xs uppercase mb-2">Company</h4>
-              <a className="text-[#86af99] hover:text-white transition-colors font-medium" href="#">Privacy Policy</a>
-              <a className="text-[#86af99] hover:text-white transition-colors font-medium" href="#">Community Guidelines</a>
-              <a className="text-[#86af99] hover:text-white transition-colors font-medium" href="#">Contact Us</a>
-            </div>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto px-8 md:px-16 pb-12">
-          <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
-            <p className="text-[#86af99] text-sm font-medium">© 2026 SwapNest Sri Lanka. Circularity by design.</p>
-            <div className="flex gap-8 text-sm font-medium text-[#86af99]">
-              <a className="hover:text-white transition-colors" href="#">Terms of Service</a>
-              <a className="hover:text-white transition-colors" href="#">Cookie Policy</a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
 
 /* ── Helper Sub-Components ── */
 
-const InputField = ({ label, required, type = "text", placeholder, id, value, onChange }) => (
-  <div className="flex flex-col gap-2">
-    <label className="text-sm font-semibold">
-      {label} {required ? <span className="text-red-500">*</span> : <span className="text-gray-400 font-normal text-xs">(optional)</span>}
-    </label>
-    <input
-      type={type} id={id} value={value} onChange={onChange} placeholder={placeholder}
-      className="px-4 py-3 rounded-xl border border-[#D0C9BA] focus:ring-2 focus:ring-[#7A9E7E] focus:border-transparent outline-none transition-all"
-    />
-  </div>
-);
+const InputField = ({ label, required, type = "text", placeholder, id, value, onChange }) => {
+  // Get yesterday's date in YYYY-MM-DD format for max date attribute
+  const getYesterday = () => {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    return yesterday.toISOString().split('T')[0];
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="text-sm font-semibold">
+        {label} {required ? <span className="text-red-500">*</span> : <span className="text-gray-400 font-normal text-xs">(optional)</span>}
+      </label>
+      <input
+        type={type} 
+        id={id} 
+        value={value} 
+        onChange={onChange} 
+        placeholder={placeholder}
+        max={type === "date" ? getYesterday() : undefined}
+        className="px-4 py-3 rounded-xl border border-[#D0C9BA] focus:ring-2 focus:ring-[#7A9E7E] focus:border-transparent outline-none transition-all"
+      />
+    </div>
+  );
+};
 
 const SelectField = ({ label, required, id, value, onChange, options }) => (
   <div className="flex flex-col gap-2">
