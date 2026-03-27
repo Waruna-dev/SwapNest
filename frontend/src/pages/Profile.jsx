@@ -177,23 +177,23 @@ const Profile = () => {
   };
 
   return (
-    <div className="bg-background text-on-surface font-body min-h-screen antialiased selection:bg-secondary-fixed selection:text-white">
+    <div className="bg-background text-on-surface font-body min-h-screen antialiased selection:bg-secondary-fixed selection:text-on-secondary-fixed">
       
       {/* --- LOGGED-IN NAVBAR --- */}
       <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl shadow-sm border-b border-outline-variant/10 py-3">
         <div className="flex justify-between items-center px-6 md:px-12 max-w-7xl mx-auto">
-          <Link to="/" className="text-2xl font-bold tracking-tighter text-primary font-serif">
+          <Link to="/" className="text-2xl font-extrabold tracking-tighter text-primary font-headline">
             SwapNest
           </Link>
           
-          <div className="hidden md:flex items-center gap-8 font-semibold text-sm tracking-tight">
+          <div className="hidden md:flex items-center gap-8 font-headline font-bold text-sm tracking-tight">
             <Link to="/dashboard" className="text-primary/80 hover:text-primary transition-colors">Dashboard</Link>
             <Link to="/marketplace" className="text-primary/80 hover:text-primary transition-colors">Marketplace</Link>
             <Link to="/messages" className="text-primary/80 hover:text-primary transition-colors">Messages</Link>
           </div>
           
           <div className="flex items-center gap-4">
-            <button className="hidden md:flex bg-secondary text-white px-5 py-2 rounded-full font-bold text-xs hover:scale-105 active:scale-95 transition-transform shadow-md items-center gap-1">
+            <button className="hidden md:flex bg-secondary text-on-secondary px-5 py-2 rounded-full font-headline font-bold text-xs hover:scale-105 active:scale-95 transition-transform shadow-md items-center gap-1">
               <span className="material-symbols-outlined text-[16px]">add</span> List Item
             </button>
             
@@ -209,11 +209,11 @@ const Profile = () => {
 
               {isProfileMenuOpen && (
                 <div className="absolute right-0 mt-3 w-48 bg-white rounded-2xl shadow-xl border border-outline-variant/20 py-2 animate-fade-in z-50">
-                  <Link to="/profile" className="flex items-center gap-2 px-4 py-3 text-sm font-bold text-primary bg-surface-container-high transition-colors">
+                  <Link to="/profile" className="flex items-center gap-2 px-4 py-3 text-sm font-headline font-bold text-primary bg-surface-container-high transition-colors">
                     <span className="material-symbols-outlined text-[20px]">manage_accounts</span> Account Settings
                   </Link>
                   <div className="h-px bg-outline-variant/20 my-1"></div>
-                  <button onClick={handleLogout} className="w-full flex items-center gap-2 px-4 py-3 text-sm font-bold text-error hover:text-error hover:bg-error-container/30 transition-colors text-left">
+                  <button onClick={handleLogout} className="w-full flex items-center gap-2 px-4 py-3 text-sm font-headline font-bold text-error hover:text-error hover:bg-error-container/30 transition-colors text-left">
                     <span className="material-symbols-outlined text-[20px]">logout</span> Log Out
                   </button>
                 </div>
@@ -231,7 +231,7 @@ const Profile = () => {
                   <Link to="/dashboard" className="text-primary font-headline font-bold text-lg">Dashboard</Link>
                   <Link to="/marketplace" className="text-primary font-headline font-bold text-lg">Marketplace</Link>
                   <Link to="/messages" className="text-primary font-headline font-bold text-lg">Messages</Link>
-                  <button className="w-full bg-secondary text-white px-4 py-3 rounded-xl font-bold text-sm mt-2 flex items-center justify-center gap-2">
+                  <button className="w-full bg-secondary text-on-secondary px-4 py-3 rounded-xl font-headline font-bold text-sm mt-2 flex items-center justify-center gap-2">
                     <span className="material-symbols-outlined text-[18px]">add</span> List Item
                   </button>
                 </div>
@@ -284,13 +284,13 @@ const Profile = () => {
               <div className="w-full space-y-2">
                 <button 
                   onClick={() => setActiveTab('personal')}
-                  className={`w-full flex items-center gap-3 text-sm font-bold px-4 py-3 rounded-xl transition-colors ${activeTab === 'personal' ? 'bg-surface-container-high text-primary' : 'text-on-surface-variant/70 hover:text-primary hover:bg-surface-container-low'}`}
+                  className={`w-full flex items-center gap-3 text-sm font-headline font-bold px-4 py-3 rounded-xl transition-colors ${activeTab === 'personal' ? 'bg-surface-container-high text-primary' : 'text-on-surface-variant/70 hover:text-primary hover:bg-surface-container-low'}`}
                 >
                   <span className="material-symbols-outlined text-[20px]">person</span> Personal Info
                 </button>
                 <button 
                   onClick={() => setActiveTab('security')}
-                  className={`w-full flex items-center gap-3 text-sm font-bold px-4 py-3 rounded-xl transition-colors ${activeTab === 'security' ? 'bg-surface-container-high text-primary' : 'text-on-surface-variant/70 hover:text-primary hover:bg-surface-container-low'}`}
+                  className={`w-full flex items-center gap-3 text-sm font-headline font-bold px-4 py-3 rounded-xl transition-colors ${activeTab === 'security' ? 'bg-surface-container-high text-primary' : 'text-on-surface-variant/70 hover:text-primary hover:bg-surface-container-low'}`}
                 >
                   <span className="material-symbols-outlined text-[20px]">lock</span> Security
                 </button>
@@ -332,7 +332,7 @@ const Profile = () => {
                   
                   <div className="pt-6 flex justify-end gap-4">
                     <button type="button" className="px-8 py-3.5 rounded-full font-headline font-bold text-primary hover:bg-surface-container-high transition-colors">Cancel</button>
-                    <button type="submit" className="bg-secondary text-white px-10 py-3.5 rounded-full font-headline font-bold hover:bg-[#822800] hover:scale-105 active:scale-95 transition-all shadow-lg shadow-secondary/20">Save Changes</button>
+                    <button type="submit" className="bg-secondary text-on-secondary px-10 py-3.5 rounded-full font-headline font-bold hover:bg-[#822800] hover:scale-105 active:scale-95 transition-all shadow-lg shadow-secondary/20">Save Changes</button>
                   </div>
                 </form>
               </div>
@@ -373,7 +373,7 @@ const Profile = () => {
                     </div>
                     
                     <div className="pt-4 flex justify-start">
-                      <button type="submit" className="bg-primary text-white px-8 py-3.5 rounded-full font-headline font-bold hover:bg-primary-container hover:scale-105 active:scale-95 transition-all shadow-md">
+                      <button type="submit" className="bg-primary text-on-primary px-8 py-3.5 rounded-full font-headline font-bold hover:bg-primary-container hover:scale-105 active:scale-95 transition-all shadow-md">
                         Update Password
                       </button>
                     </div>
@@ -387,7 +387,7 @@ const Profile = () => {
                   <button 
                     type="button" 
                     onClick={handleDeleteAccount}
-                    className="bg-error text-white px-8 py-3.5 rounded-full font-headline font-bold hover:bg-error/80 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-error/20 flex items-center gap-2"
+                    className="bg-error text-on-error px-8 py-3.5 rounded-full font-headline font-bold hover:bg-error/80 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-error/20 flex items-center gap-2"
                   >
                     <span className="material-symbols-outlined text-[20px]">delete_forever</span> Delete Account
                   </button>
