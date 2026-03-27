@@ -18,12 +18,18 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Please add a password']
     },
+    
+    resetPasswordToken: {
+        type: String
+    },
+    resetPasswordExpire: {
+        type: Date
+    },
     role: {
         type: String,
         enum: ['user', 'volunteer', 'admin'], 
         default: 'user'
     },
-    
     bio: {
         type: String,
         default: '' 
