@@ -7,7 +7,6 @@ import { useGoogleLogin } from '@react-oauth/google';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  // --- NEW: State to toggle password visibility ---
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false); 
@@ -19,12 +18,10 @@ const Login = () => {
     onSuccess: async (tokenResponse) => {
       setIsLoading(true);
       try {
-        // Send the Google Access Token to our backend route
         const response = await API.post('/users/google', {
           googleAccessToken: tokenResponse.access_token
         });
         
-        // Save the token and go to Dashboard
         localStorage.setItem('swapnest_token', response.data.token);
         navigate('/dashboard');
       } catch (err) {
@@ -42,13 +39,9 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // Send login request to backend
       const response = await API.post('/users/login', { email, password });
       
-      // Save token to localStorage
       localStorage.setItem('swapnest_token', response.data.token);
-      
-      // Redirect to Dashboard
       navigate('/dashboard');
       
     } catch (err) {
@@ -70,7 +63,7 @@ const Login = () => {
           </Link>
           
           <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center space-x-8 font-headline font-bold text-sm tracking-tight">
-            <Link to="/" className="text-secondary font-bold border-b-2 border-secondary pb-1">Discover</Link>
+            <Link to="/" className="text-secondary border-b-2 border-secondary pb-1">Discover</Link>
             <a className="text-primary/80 hover:text-primary transition-colors" href="#">How it Works</a>
             <a className="text-primary/80 hover:text-primary transition-colors" href="#">Our Story</a>
           </div>
@@ -142,11 +135,11 @@ const Login = () => {
                 />
               </div>
               
-              {/* --- CHANGED: PASSWORD FIELD WITH EYE ICON --- */}
               <div className="space-y-2">
+                {/* --- FORGOT PASSWORD LINK ADDED HERE --- */}
                 <div className="flex justify-between items-center px-1">
                   <label className="font-label text-xs font-bold uppercase tracking-widest text-primary/70">Password</label>
-                  <a className="text-[11px] font-bold text-secondary uppercase tracking-wider hover:underline transition-all" href="#">Forgot?</a>
+                  <Link to="/forgot-password" className="text-[11px] font-headline font-bold text-secondary uppercase tracking-wider hover:underline transition-all">Forgot?</Link>
                 </div>
                 <div className="relative">
                   <input 
@@ -206,7 +199,7 @@ const Login = () => {
 
             <p className="text-center text-sm font-medium text-on-surface-variant pt-4">
               New to the community? 
-              <Link to="/register" className="text-secondary font-bold hover:underline ml-1"> Sign Up</Link>
+              <Link to="/register" className="text-secondary font-headline font-bold hover:underline ml-1"> Sign Up</Link>
             </p>
           </div>
 
@@ -220,8 +213,8 @@ const Login = () => {
 
       {/* Mobile Sticky Badge */}
       <div className="fixed top-20 right-4 z-40 md:hidden">
-        <Link to="/" className="flex items-center gap-2 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-full border border-gray-200 shadow-md">
-          <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-white">
+        <Link to="/" className="flex items-center gap-2 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-full border border-outline-variant/20 shadow-md">
+          <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-on-secondary">
             <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>eco</span>
           </div>
           <span className="font-headline font-black text-sm tracking-tighter text-primary">SwapNest</span>
