@@ -12,29 +12,29 @@ export default function VolunteerDashboardLayout() {
       <aside className="w-72 bg-[#012d1d] text-white flex flex-col">
         <div className="p-6 pb-4 flex items-center gap-2">
           <div className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center">
-            🔄
+            🏠
           </div>
           <div className="text-xl font-serif font-bold tracking-tight">SwapNest</div>
         </div>
 
         <nav className="flex-1 px-4 pb-4 space-y-2">
           <NavLink to="/dashboard" end className={linkClassName}>
-            Overview
+            📊 Overview
           </NavLink>
           <NavLink to="/dashboard/volunteer" className={linkClassName}>
-            Volunteer
+            👥 Volunteer
           </NavLink>
           <NavLink to="/dashboard/center" className={linkClassName}>
-            Volunteer Center
+            🏢 Volunteer Center
           </NavLink>
           <NavLink to="/dashboard/distribution-plan" className={linkClassName}>
-            Distribution Plan
+            📦 Distribution Plan
           </NavLink>
         </nav>
 
         <div className="px-4 pb-6 mt-auto">
           <NavLink to="/volunteer-hero" end className={linkClassName}>
-            Volunteer Page
+            🌟 Volunteer Page
           </NavLink>
         </div>
       </aside>
