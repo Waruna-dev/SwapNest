@@ -3,7 +3,11 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import morgan from 'morgan';
 import path from 'path';
+import { fileURLToPath } from 'url';
 // import helmet from 'helmet';  //
+// recreate __filename and __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -25,6 +29,8 @@ app.use(morgan('dev'));
 app.use('/api/swaps', swapRoutes); 
 app.use("/api/items", itemRoutes);
 app.use('/api/users', userRoutes);
+// In server.js - This serves files from the uploads folder
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 //404
 app.use((req,res)=>{

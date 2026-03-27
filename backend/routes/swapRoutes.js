@@ -10,7 +10,8 @@ import {
   cancelSwapRequest,
   getPendingRequests,
   getAllSwaps,
-  deleteSwap
+  deleteSwap,
+  getSwapsByItem
 } from '../controllers/swapController.js';
 
 
@@ -30,8 +31,8 @@ router.get('/pending/:ownerId', getPendingRequests);
 
 //get-view data a specific swaps-bothh
 router.get('/:id', getSwapById);
+router.get('/by-item', getSwapsByItem);
 
-//put accept or reject req-item owner
 router.put('/:id/status', validateStatusUpdate, updateSwapStatus);
 
 //cancel req-requester

@@ -10,18 +10,24 @@ export const createSwap = async (data, photos = null) => {
     
     if (photos && photos.length > 0) {
       const formData = new FormData();
+      
+      // Add all data to formData
       Object.keys(data).forEach(key => {
         if (key === 'offeredItem') {
           formData.append('offeredItem[name]', data.offeredItem.name);
           formData.append('offeredItem[condition]', data.offeredItem.condition);
-          formData.append('offeredItem[description]', data.offeredItem.description || '');
-        } else if (key === 'cashDetails') {
+          if (data.offeredItem.description) {
+            formData.append('offeredItem[description]', data.offeredItem.description);
+          }
+        } else if (key === 'cashDetails' && data.cashDetails) {
           formData.append('cashDetails[amount]', data.cashDetails.amount);
           formData.append('cashDetails[whoPays]', data.cashDetails.whoPays);
         } else {
           formData.append(key, data[key]);
         }
       });
+      
+      // Add photos
       photos.forEach(photo => formData.append('photos', photo));
       
       response = await axios.post(API_URL, formData, {
@@ -33,16 +39,20 @@ export const createSwap = async (data, photos = null) => {
     
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    console.error('Create swap error:', error);
+    throw error.response?.data || { message: error.message };
   }
 };
 
 // Get user swaps
 export const getUserSwaps = async (userId) => {
   try {
+    console.log("getUserSwaps called with userId:", userId);
     const response = await axios.get(`${API_URL}/user/${userId}`);
+    console.log("getUserSwaps response:", response.data);
     return response.data;
   } catch (error) {
+    console.error('Error fetching user swaps:', error);
     throw error.response?.data || error.message;
   }
 };
@@ -87,7 +97,7 @@ export const cancelSwap = async (swapId) => {
   }
 };
 
-// get all swaps (admin only)
+// Get all swaps (admin only)
 export const getAllSwaps = async (filters = {}) => {
   try {
     const params = new URLSearchParams();
@@ -102,11 +112,31 @@ export const getAllSwaps = async (filters = {}) => {
   }
 };
 
+// Delete swap (admin only)
 export const deleteSwap = async (swapId) => {
   try {
     const response = await axios.delete(`${API_URL}/${swapId}`);
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;
+  }
+};
+
+// Mark swap as complete
+export const markSwapComplete = async (swapId, userId) => {
+  try {
+    const response = await axios.put(
+      `${API_URL}/${swapId}/status`,
+      { status: 'completed', notes: 'Swap completed successfully' },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('swapnest_token')}`
+        }
+      }
+    );
+    return response;
+  } catch (error) {
+    console.error('Error marking swap complete:', error);
+    throw error;
   }
 };

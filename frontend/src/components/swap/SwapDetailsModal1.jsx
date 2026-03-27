@@ -1,14 +1,76 @@
-// src/components/swap/SwapDetailsModal.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import StatusBadge from '../common/StatusBadge';
 
 const SwapDetailsModal1 = ({ swap, onClose }) => {
+  const [imageErrors, setImageErrors] = useState({});
+  
   if (!swap) return null;
+
+  // get image URL
+  const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    if (url.startsWith('/uploads')) return `http://localhost:5000${url}`;
+    return `http://localhost:5000/uploads/swaps/${url}`;
+  };
+
+  const getRequesterName = () => {
+   
+    if (swap.requesterName && swap.requesterName !== 'null' && swap.requesterName !== 'undefined') {
+      console.log('Using stored requesterName:', swap.requesterName);
+      return swap.requesterName;
+    }
+    
+   
+    if (swap.requesterId && typeof swap.requesterId === 'object') {
+      const username = swap.requesterId.username;
+      if (username) {
+        console.log('Using populated requesterId.username:', username);
+        return username;
+      }
+    }
+    
+    console.log('No requester name found, returning Unknown');
+    return 'Unknown User';
+  };
+
+ 
+  const getRequesterId = () => {
+    if (swap.requesterId && typeof swap.requesterId === 'object') {
+      return swap.requesterId._id || JSON.stringify(swap.requesterId);
+    }
+    return swap.requesterId || 'No ID';
+  };
+
+  // Get owner name
+  const getOwnerName = () => {
+    if (swap.requestedItem?.ownerName) return swap.requestedItem.ownerName;
+    if (swap.requestedItem?.ownerId && typeof swap.requestedItem.ownerId === 'object') {
+      return swap.requestedItem.ownerId.username || 'Unknown';
+    }
+    return 'Unknown Owner';
+  };
+
+  // Get owner ID
+  const getOwnerId = () => {
+    if (swap.requestedItem?.ownerId && typeof swap.requestedItem.ownerId === 'object') {
+      return swap.requestedItem.ownerId._id || JSON.stringify(swap.requestedItem.ownerId);
+    }
+    return swap.requestedItem?.ownerId || 'No ID';
+  };
+
+  const handleImageError = (photoIndex) => {
+    setImageErrors(prev => ({ ...prev, [photoIndex]: true }));
+  };
+
+  const offeredPhotos = swap.swapType === 'item-for-item' && swap.offeredItem?.photos 
+    ? swap.offeredItem.photos 
+    : [];
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        {/* Header */}
+     
         <div className="sticky top-0 bg-white border-b border-outline-variant px-6 py-5 flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-headline font-bold text-primary">Swap Details</h2>
@@ -18,7 +80,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
         </div>
         
         <div className="p-6 space-y-6">
-          {/* Request ID Card */}
+        
           <div className="bg-gradient-to-r from-primary-fixed/10 to-transparent p-4 rounded-xl">
             <div className="flex justify-between items-start">
               <div>
@@ -29,9 +91,9 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
             </div>
           </div>
 
-          {/* Main Info Grid */}
+         
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Requested Item */}
+           
             <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
               <div className="flex items-center gap-2 mb-3">
                 <div className="p-2 bg-primary-fixed/20 rounded-lg">
@@ -41,14 +103,13 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
                 </div>
                 <h3 className="font-semibold text-on-surface">Requested Item</h3>
               </div>
-              <p className="font-medium text-on-surface">{swap.requestedItem.name}</p>
-              <p className="text-sm text-on-surface-variant mt-1">Condition: {swap.requestedItem.condition}</p>
-              {swap.requestedItem.description && (
+              <p className="font-medium text-on-surface">{swap.requestedItem?.name || 'N/A'}</p>
+              <p className="text-sm text-on-surface-variant mt-1">Condition: {swap.requestedItem?.condition || 'N/A'}</p>
+              {swap.requestedItem?.description && (
                 <p className="text-sm text-on-surface-variant mt-1">{swap.requestedItem.description}</p>
               )}
             </div>
 
-            {/* Offered Item / Cash Details */}
             <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
               <div className="flex items-center gap-2 mb-3">
                 <div className="p-2 bg-secondary-fixed/20 rounded-lg">
@@ -67,26 +128,43 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
                   {swap.offeredItem.description && (
                     <p className="text-sm text-on-surface-variant mt-1">{swap.offeredItem.description}</p>
                   )}
-                  {/* Offered Item Photos */}
-                  {swap.offeredItem.photos?.length > 0 && (
+                  {offeredPhotos.length > 0 && (
                     <div className="mt-3">
-                      <p className="text-xs text-on-surface-variant mb-2">Photos ({swap.offeredItem.photos.length})</p>
+                      <p className="text-xs text-on-surface-variant mb-2">Photos ({offeredPhotos.length})</p>
                       <div className="grid grid-cols-3 gap-2">
-                        {swap.offeredItem.photos.map((photo, i) => (
-                          <img 
-                            key={i} 
-                            src={`http://localhost:5000${photo.url}`} 
-                            alt={`Offered item ${i + 1}`} 
-                            className="w-full h-24 object-cover rounded-lg border border-outline-variant"
-                          />
-                        ))}
+                        {offeredPhotos.map((photo, i) => {
+                          const imageUrl = getImageUrl(photo.url);
+                          const hasError = imageErrors[`photo-${i}`];
+                          
+                          return (
+                            <div key={i} className="relative group">
+                              {!hasError ? (
+                                <img 
+                                  src={imageUrl} 
+                                  alt={`Offered item ${i + 1}`} 
+                                  className="w-full h-24 object-cover rounded-lg border border-outline-variant"
+                                  onError={() => handleImageError(`photo-${i}`)}
+                                />
+                              ) : (
+                                <div className="w-full h-24 bg-surface-container-high rounded-lg border border-outline-variant flex flex-col items-center justify-center">
+                                  <span className="text-2xl mb-1">📷</span>
+                                  <span className="text-xs text-on-surface-variant">No image</span>
+                                </div>
+                              )}
+                              <span className="absolute bottom-1 right-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded-full">
+                                {i + 1}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
                 </>
               ) : swap.cashDetails ? (
                 <>
-                  <p className="font-medium text-primary text-xl">LKR {swap.cashDetails.amount}</p>
+                  <p className="font-medium text-primary">LKR {swap.cashDetails.amount} </p>
+                  <p className="font-medium text-primary text-xl">- {swap.offeredItem.name}</p>
                   <p className="text-sm text-on-surface-variant mt-1">
                     {swap.cashDetails.whoPays === 'i-pay-owner' 
                       ? '💰 Requester pays owner' 
@@ -98,7 +176,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
               )}
             </div>
 
-            {/* Requester Info */}
+           
             <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
               <div className="flex items-center gap-2 mb-3">
                 <div className="p-2 bg-tertiary-fixed/20 rounded-lg">
@@ -108,11 +186,10 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
                 </div>
                 <h3 className="font-semibold text-on-surface">Requester</h3>
               </div>
-              <p className="font-medium text-on-surface">{swap.requesterName}</p>
-              <p className="text-sm font-mono text-on-surface-variant mt-1">{swap.requesterId}</p>
+              <p className="font-medium text-on-surface">{getRequesterName()}</p>
+              <p className="text-sm font-mono text-on-surface-variant mt-1 break-all">{getRequesterId()}</p>
             </div>
 
-            {/* Owner Info */}
             <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
               <div className="flex items-center gap-2 mb-3">
                 <div className="p-2 bg-primary-fixed/20 rounded-lg">
@@ -122,12 +199,11 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
                 </div>
                 <h3 className="font-semibold text-on-surface">Owner</h3>
               </div>
-              <p className="font-medium text-on-surface">{swap.requestedItem.ownerName}</p>
-              <p className="text-sm font-mono text-on-surface-variant mt-1">{swap.requestedItem.ownerId}</p>
+              <p className="font-medium text-on-surface">{getOwnerName()}</p>
+              <p className="text-sm font-mono text-on-surface-variant mt-1 break-all">{getOwnerId()}</p>
             </div>
           </div>
 
-          {/* Message to Owner */}
           {swap.messageToOwner && (
             <div className="bg-primary-fixed/10 p-4 rounded-xl">
               <div className="flex items-center gap-2 mb-2">
@@ -140,7 +216,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
             </div>
           )}
 
-          {/* Timestamps */}
+        
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-surface-container-low p-3 rounded-lg">
               <p className="text-xs uppercase tracking-wider text-on-surface-variant">Created At</p>
@@ -152,7 +228,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
             </div>
           </div>
 
-          {/* Completion Details */}
+        
           {swap.status === 'completed' && swap.completedAt && (
             <div className="bg-tertiary-fixed/20 p-4 rounded-xl">
               <div className="flex items-center gap-2 mb-2">
@@ -169,7 +245,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
           )}
         </div>
 
-        {/* Footer */}
+        
         <div className="sticky bottom-0 bg-white border-t border-outline-variant px-6 py-4 flex justify-end">
           <button onClick={onClose} className="bg-primary hover:bg-primary-container text-on-primary px-6 py-2.5 rounded-xl transition-all">
             Close

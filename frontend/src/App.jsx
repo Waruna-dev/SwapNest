@@ -1,44 +1,48 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register'; 
-import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
-import ProtectedRoute from './components/ProtectedRoute';
-import AdminSwapDashboard from './components/swap/AdminSwapDashboard';
-import Swapform from './components/swap/SwapForm';
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminSwapDashboard from "./components/swap/AdminSwapDashboard";
+import Swapform from "./components/swap/SwapForm";
 
+import TestApi from "./pages/item-listing/testApi"; // Import the test API component
+import ItemAddNewItems from "./pages/item-listing/ItemAddNewItem";
+import ItemGalleryPage2 from "./pages/item-gallery/ItemGalleryPage";
+import ItemDashboard1 from "./pages/item-listing/ItemDashboard";
 
-import SwapList from './components/swap/SwapList';
-import Privacy from './pages/PrivacyPolicy';
-import Term from './pages/TermsConditions';
+import SwapList from "./components/swap/SwapList";
+import Privacy from "./pages/PrivacyPolicy";
+import Term from "./pages/TermsConditions";
 function App() {
   return (
     <Router>
       <div className="app-container">
         <Routes>
-        
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} /> 
-          
+          <Route path="/register" element={<Register />} />
+
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             {/* When you build the My List page, add it here too! */}
             {/* <Route path="/my-list" element={<MyList />} /> */}
           </Route>
-      
+
           <Route path="/swapadmin" element={<AdminSwapDashboard />} />
           <Route path="/swapform" element={<Swapform />} />
-         
+
           <Route path="/swaplist" element={<SwapList />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Term />} />
-    
-
-          
+          <Route path="/item/test-api" element={<TestApi />} />
+          <Route path="/item/form" element={<ItemAddNewItems />} />
+          <Route path="/item/gallery" element={<ItemGalleryPage2 />} />
+          <Route path="/item/dashboard" element={<ItemDashboard1 />} />
         </Routes>
       </div>
     </Router>
