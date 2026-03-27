@@ -29,6 +29,24 @@ const inputCls = (hasError) =>
     hasError ? "border-red-500" : "border-border"
   }`;
 
+// ── Phone number validation ─────────────────────────────────────────────
+const validatePhoneNumber = (phone) => {
+  if (!phone || !phone.trim()) return false;
+  
+  // Remove all non-digit characters
+  const cleaned = phone.replace(/\D/g, '');
+  
+  // Sri Lankan phone number patterns
+  const patterns = [
+    /^0[1-9]\d{8}$/,           // 0XX XXXXXXX (10 digits starting with 0)
+    /^\+94[1-9]\d{8}$/,        // +94 XX XXXXXXX (12 digits starting with +94)
+    /^94[1-9]\d{8}$/,          // 94 XX XXXXXXX (11 digits starting with 94)
+    /^[1-9]\d{8}$/             // XX XXXXXXX (9 digits, without prefix)
+  ];
+  
+  return patterns.some(pattern => pattern.test(cleaned));
+};
+
 // ── Field Wrapper ──────────────────────────────────────────────────────────
 function F({ label, children, req, name, errors }) {
   return (
@@ -142,6 +160,7 @@ export default function Center() {
       if (!email.trim())         e.email         = "Email is required";
       else if (!/^\S+@\S+\.\S+$/.test(email)) e.email = "Invalid email address";
       if (!contactNumber.trim()) e.contactNumber = "Contact number is required";
+      else if (!validatePhoneNumber(contactNumber)) e.contactNumber = "Please enter a valid Sri Lankan phone number (e.g., +94 11 234 5678)";
     }
     if (step === 2) {
       if (!capacity)                                     e.capacity      = "Capacity is required";
@@ -151,6 +170,7 @@ export default function Center() {
     if (step === 4) {
       if (!managerName.trim())    e.managerName    = "Manager name is required";
       if (!managerContact.trim()) e.managerContact = "Manager contact is required";
+      else if (!validatePhoneNumber(managerContact)) e.managerContact = "Please enter a valid Sri Lankan phone number (e.g., +94 77 456 7890)";
     }
     setErrors(e);
     return Object.keys(e).length === 0;

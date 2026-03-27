@@ -156,6 +156,57 @@ export default function VolunteerDashboardVolunteersTable() {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
+  const assignVolunteer = async (volunteerId) => {
+    try {
+      setActionBusyId(volunteerId);
+
+      // Find the volunteer to get their center information
+      const volunteer = volunteers.find(v => v._id === volunteerId);
+      if (!volunteer || !volunteer.center) {
+        setError('Volunteer has no center assigned. Please assign a center first.');
+        return;
+      }
+
+      // Find the center by name to get its ID
+      const centers = await fetchCenters();
+      const assignedCenter = centers.find(c =>
+        c.centerName.toLowerCase().trim() === volunteer.center.toLowerCase().trim()
+      );
+
+      if (!assignedCenter) {
+        setError(`Center "${volunteer.center}" not found. Please create the center first.`);
+        return;
+      }
+
+      const res = await API.post(`/api/volunteers/${volunteerId}/assign`, {
+        centerId: assignedCenter._id,
+        assignedAt: new Date().toISOString()
+      });
+
+      if (!res.data?.success && !res.data?._id) {
+        throw new Error(res.data?.message || 'Assignment failed');
+      }
+
+      await reload();
+      setError(`Volunteer assigned to ${assignedCenter.centerName} successfully`);
+    } catch (e) {
+      setError(`Failed to assign volunteer: ${String(e?.message || e)}`);
+    } finally {
+      setActionBusyId(null);
+    }
+  };
+
+  const fetchCenters = async () => {
+    try {
+      const res = await API.get('/api/centers');
+      return Array.isArray(res.data?.data) ? res.data.data : 
+             Array.isArray(res.data) ? res.data : [];
+    } catch (e) {
+      console.error('Failed to fetch centers:', e);
+      return [];
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="max-w-6xl mx-auto">
@@ -235,12 +286,13 @@ export default function VolunteerDashboardVolunteersTable() {
                     <th className="px-4 py-3 min-w-[160px]">WhatsApp</th>
                     <th className="px-4 py-3 min-w-[190px]">Accept / Reject</th>
                     <th className="px-4 py-3 min-w-[140px]">Actions</th>
+                    <th className="px-4 py-3 min-w-[100px]">Assign</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredVolunteers.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="px-4 py-8 text-zinc-500 font-bold">
+                      <td colSpan={10} className="px-4 py-8 text-zinc-500 font-bold">
                         No volunteers match your search.
                       </td>
                     </tr>
@@ -335,11 +387,21 @@ export default function VolunteerDashboardVolunteersTable() {
                                 </button>
                               </div>
                             </td>
+                            <td className="px-4 py-3">
+                              <button
+                                type="button"
+                                disabled={actionBusyId === id}
+                                onClick={() => assignVolunteer(id)}
+                                className="bg-blue-600 text-white px-3 py-2 rounded-xl font-bold text-xs hover:bg-blue-700 disabled:opacity-60 transition-colors"
+                              >
+                                Assign to Center
+                              </button>
+                            </td>
                           </tr>
 
                           {expanded ? (
                             <tr className="bg-[#F5F0E8]">
-                              <td colSpan={9} className="px-4 py-4">
+                              <td colSpan={10} className="px-4 py-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div className="bg-white border border-zinc-200 rounded-2xl p-4">
                                     <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3">

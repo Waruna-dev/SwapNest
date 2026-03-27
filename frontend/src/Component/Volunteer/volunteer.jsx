@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import API from "../../services/api";
 
 const Volunteer = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -23,6 +24,8 @@ const Volunteer = () => {
     days: [], hoursPerWeek: "",
     agreeTerms: false, agreePrivacy: false,
   });
+  const [centers, setCenters] = useState([]);
+  const [centersLoading, setCentersLoading] = useState(false);
 
   useEffect(() => {
     if (!selectedCenter) return;
@@ -30,6 +33,49 @@ const Volunteer = () => {
     if (!centerValue) return;
     setFormData((prev) => ({ ...prev, center: centerValue }));
   }, [selectedCenter]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCenters() {
+      setCentersLoading(true);
+      try {
+        const res = await API.get("/api/centers");
+        let centersData = [];
+        
+        if (Array.isArray(res.data?.data)) {
+          centersData = res.data.data;
+        } else if (Array.isArray(res.data)) {
+          centersData = res.data;
+        }
+
+        if (!cancelled) {
+          setCenters(centersData);
+          setCentersLoading(false);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Error loading centers:", err);
+          
+          // Fallback to fetch if API fails
+          try {
+            const response = await fetch("http://localhost:5000/api/centers");
+            const data = await response.json();
+            const centersData = Array.isArray(data?.data) ? data.data : [];
+            setCenters(centersData);
+          } catch (fallbackErr) {
+            console.error("Failed to load centers:", fallbackErr);
+          }
+          setCentersLoading(false);
+        }
+      }
+    }
+
+    loadCenters();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -304,10 +350,18 @@ const Volunteer = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  <SelectField label="District" required id="district" value={formData.district} onChange={handleInputChange} options={["Colombo", "Kandy", "Galle", "Jaffna"]} />
+                  <SelectField label="District" required id="district" value={formData.district} onChange={handleInputChange} options={["Colombo", "Kandy", "Galle", "Jaffna", "Gampaha", "Kalutara", "Trincomalee", "Kurunegala", "Ratnapura", "Badulla", "Matara"]} />
                   <InputField label="City / Town" required placeholder="Colombo 07" id="city" value={formData.city} onChange={handleInputChange} />
                   <div className="md:col-span-2">
-                    <SelectField label="Preferred Center" required id="center" value={formData.center} onChange={handleInputChange} options={["SwapNest Colombo Central", "SwapNest Kandy Hub", "SwapNest Galle Center"]} />
+                    <SelectField 
+                      label="Preferred Center" 
+                      required 
+                      id="center" 
+                      value={formData.center} 
+                      onChange={handleInputChange} 
+                      options={centersLoading ? ["Loading centers..."] : centers.length > 0 ? centers.map(c => c.centerName) : ["No centers available"]}
+                      disabled={centersLoading || centers.length === 0}
+                    />
                   </div>
                 </div>
 

@@ -14,6 +14,7 @@ const VolunteerSchema = new mongoose.Schema(
 		district: { type: String, trim: true },
 		city: { type: String, trim: true },
 		center: { type: String, trim: true },
+		centerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Center' },
 		centerReason: { type: String, trim: true },
 		hasVehicle: { type: Boolean, default: false },
 		hasLicense: { type: Boolean, default: false },

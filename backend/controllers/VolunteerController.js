@@ -23,6 +23,28 @@ export async function getVolunteers(req, res) {
     }
 }
 
+/** Get volunteers by center */
+export async function getVolunteersByCenter(req, res) {
+    try {
+        const { centerId } = req.query;
+        
+        console.log("Getting volunteers by centerId:", centerId);
+        
+        if (!centerId) {
+            console.log("No centerId provided");
+            return res.status(400).json({ message: "Center ID is required" });
+        }
+        
+        const volunteers = await Volunteer.find({ centerId }).sort({ createdAt: -1 });
+        console.log("Found volunteers:", volunteers.length);
+        
+        res.json(volunteers);
+    } catch (err) {
+        console.error("Error in getVolunteersByCenter:", err);
+        res.status(500).json({ message: err.message });
+    }
+}
+
 /** Get one volunteer by ID */
 export async function getVolunteerById(req, res) {
     try {
@@ -92,6 +114,41 @@ export async function deleteVolunteer(req, res) {
         res.status(204).send();
     } catch (err) {
         if (err.name === "CastError") return res.status(400).json({ message: "Invalid volunteer ID" });
+        res.status(500).json({ message: err.message });
+    }
+}
+
+/** Assign volunteer to center */
+export async function assignVolunteer(req, res) {
+    try {
+        const { centerId, assignedAt } = req.body;
+        
+        if (!centerId) {
+            return res.status(400).json({ message: "Center ID is required" });
+        }
+        
+        const volunteer = await Volunteer.findByIdAndUpdate(
+            req.params.id,
+            { 
+                centerId, 
+                assignedAt: assignedAt || new Date().toISOString(),
+                applicationStatus: "Assigned"
+            },
+            { new: true, runValidators: false }
+        );
+        
+        if (!volunteer) return res.status(404).json({ message: "Volunteer not found" });
+        
+        res.json({ 
+            success: true, 
+            message: "Volunteer assigned to center successfully",
+            data: volunteer 
+        });
+    } catch (err) {
+        if (err.name === "CastError") return res.status(400).json({ message: "Invalid volunteer ID" });
+        if (err.name === "ValidationError") {
+            return res.status(400).json({ message: err.message, errors: err.errors });
+        }
         res.status(500).json({ message: err.message });
     }
 }
