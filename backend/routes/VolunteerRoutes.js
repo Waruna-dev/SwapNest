@@ -1,10 +1,12 @@
 import express from "express"; 
 import {
     getVolunteers,
+    getVolunteersByCenter,
     getVolunteerById,
     addVolunteer,
     updateVolunteer,
     deleteVolunteer,
+    assignVolunteer,
 } from "../controllers/VolunteerController.js";
 
 const router = express.Router();
@@ -17,6 +19,8 @@ router.use((req, res, next) => {
 
 // Volunteer routes (according to controller + model)
 router.get("/", getVolunteers);
+router.get("/center", getVolunteersByCenter);
+router.post("/:id/assign", assignVolunteer);
 router.get("/:id", getVolunteerById);
 router.post("/", addVolunteer);
 router.put("/:id", updateVolunteer);

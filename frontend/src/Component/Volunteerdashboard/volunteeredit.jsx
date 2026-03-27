@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import API from "../../services/api";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -16,6 +17,7 @@ export default function VolunteerEdit() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [centers, setCenters] = useState([]);
 
   const [form, setForm] = useState({
     firstName: "",
@@ -54,6 +56,21 @@ export default function VolunteerEdit() {
     return name ? `Edit Volunteer — ${name}` : "Edit Volunteer";
   }, [form.firstName, form.lastName]);
 
+  const inputCls = "w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500";
+  const textareaCls = "w-full px-3 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500";
+
+  const fetchCenters = async () => {
+    try {
+      const res = await API.get('/api/centers');
+      console.log('Centers API response:', res);
+      return Array.isArray(res.data?.data) ? res.data.data : 
+             Array.isArray(res.data) ? res.data : [];
+    } catch (e) {
+      console.error('Failed to fetch centers:', e);
+      return [];
+    }
+  };
+
   useEffect(() => {
     let cancelled = false;
 
@@ -61,13 +78,18 @@ export default function VolunteerEdit() {
       setLoading(true);
       setError("");
       try {
-        const res = await fetch(`${API_BASE}/api/volunteers/${id}`);
-        const json = await res.json().catch(() => null);
-        if (!res.ok) {
-          throw new Error(json?.message || `Request failed with status ${res.status}`);
+        // Load volunteer data
+        const res = await API.get(`/api/volunteers/${id}`);
+        const v = res.data || {};
+        console.log('Volunteer API response:', res);
+        console.log('Loaded volunteer data:', v);
+        
+        // Load centers
+        const centersData = await fetchCenters();
+        console.log('Loaded centers:', centersData);
+        if (!cancelled) {
+          setCenters(centersData);
         }
-
-        const v = json || {};
         const dateToInput = (d) => {
           if (!d) return "";
           const dt = new Date(d);
@@ -77,7 +99,7 @@ export default function VolunteerEdit() {
         };
 
         if (!cancelled) {
-          setForm({
+          const formData = {
             firstName: v.firstName || "",
             lastName: v.lastName || "",
             email: v.email || "",
@@ -89,7 +111,7 @@ export default function VolunteerEdit() {
             address: v.address || "",
             district: v.district || "",
             city: v.city || "",
-            center: v.center || "",
+            center: findMatchingCenter(v.center),
             centerReason: v.centerReason || "",
             hasVehicle: !!v.hasVehicle,
             hasLicense: !!v.hasLicense,
@@ -107,7 +129,11 @@ export default function VolunteerEdit() {
             agreePrivacy: !!v.agreePrivacy,
             agreeNotif: !!v.agreeNotif,
             applicationStatus: v.applicationStatus || "Pending",
-          });
+          };
+          console.log('Setting form data:', formData);
+          console.log('Volunteer center:', v.center, 'Matched to:', formData.center);
+          setForm(formData);
+          setLoading(false);
         }
       } catch (e) {
         if (!cancelled) setError(String(e?.message || e));
@@ -122,9 +148,52 @@ export default function VolunteerEdit() {
     };
   }, [id]);
 
+  // Debug: Log centers and form state
+  useEffect(() => {
+    console.log('Centers state:', centers);
+    console.log('Form center value:', form.center);
+  }, [centers, form.center]);
+
   const onChange = (e) => {
     const { name, value, type, checked } = e.target;
+    console.log('Field changed:', name, value);
     setForm((p) => ({ ...p, [name]: type === "checkbox" ? checked : value }));
+  };
+
+  const findMatchingCenter = (volunteerCenter) => {
+    if (!volunteerCenter || !centers.length) return '';
+    
+    console.log('Finding match for:', volunteerCenter);
+    console.log('Available centers:', centers.map(c => c.centerName));
+    
+    // Try exact match first
+    const exactMatch = centers.find(c => c.centerName === volunteerCenter);
+    if (exactMatch) {
+      console.log('Exact match found:', exactMatch.centerName);
+      return exactMatch.centerName;
+    }
+    
+    // Try case-insensitive match
+    const caseMatch = centers.find(c => 
+      c.centerName.toLowerCase().trim() === volunteerCenter.toLowerCase().trim()
+    );
+    if (caseMatch) {
+      console.log('Case match found:', caseMatch.centerName);
+      return caseMatch.centerName;
+    }
+    
+    // Try partial match (contains)
+    const partialMatch = centers.find(c => 
+      c.centerName.toLowerCase().includes(volunteerCenter.toLowerCase()) ||
+      volunteerCenter.toLowerCase().includes(c.centerName.toLowerCase())
+    );
+    if (partialMatch) {
+      console.log('Partial match found:', partialMatch.centerName);
+      return partialMatch.centerName;
+    }
+    
+    console.log('No match found, returning original');
+    return volunteerCenter;
   };
 
   const onSave = async (e) => {
@@ -164,19 +233,19 @@ export default function VolunteerEdit() {
         applicationStatus: form.applicationStatus,
       };
 
-      const res = await fetch(`${API_BASE}/api/volunteers/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const json = await res.json().catch(() => null);
-      if (!res.ok) {
-        throw new Error(json?.message || `Request failed with status ${res.status}`);
+      const res = await API.put(`/api/volunteers/${id}`, payload);
+      console.log('Save API response:', res);
+      console.log('Payload being sent:', payload);
+      if (!res.data) {
+        throw new Error('Failed to update volunteer');
       }
 
       navigate("/dashboard/volunteer");
     } catch (e2) {
-      setError(String(e2?.message || e2));
+      console.error('Save error details:', e2);
+      console.error('Error response:', e2.response?.data);
+      const errorMessage = e2.response?.data?.message || e2.response?.data?.error || e2?.message || e2;
+      setError(String(errorMessage));
     } finally {
       setSaving(false);
     }
@@ -248,7 +317,29 @@ export default function VolunteerEdit() {
             </div>
 
             <Field label="Center">
-              <input name="center" value={form.center} onChange={onChange} className={inputCls} />
+              <select name="center" value={form.center} onChange={onChange} className={inputCls}>
+                <option value="">Select a center...</option>
+                {centers.map(center => (
+                  <option key={center._id} value={center.centerName}>
+                    {center.centerName} - {center.city}, {center.district}
+                  </option>
+                ))}
+              </select>
+              <div className="text-xs text-zinc-500 mt-1">
+                Available centers: {centers.length} | Current: {form.center || 'None'}
+              </div>
+              {centers.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    console.log('Test: Setting center to first available:', centers[0].centerName);
+                    setForm(p => ({ ...p, center: centers[0].centerName }));
+                  }}
+                  className="mt-2 text-xs bg-blue-500 text-white px-2 py-1 rounded"
+                >
+                  Test: Set First Center
+                </button>
+              )}
             </Field>
             <Field label="Application Status">
               <select name="applicationStatus" value={form.applicationStatus} onChange={onChange} className={inputCls}>

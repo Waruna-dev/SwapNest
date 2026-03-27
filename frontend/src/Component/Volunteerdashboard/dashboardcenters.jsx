@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import API from "../../services/api";
 import { useNavigate } from "react-router-dom";
+import VolunteerViewModal from "./VolunteerViewModal";
 
 function safeGetCentersArrayFromJson(json) {
   if (Array.isArray(json?.data)) return json.data;
@@ -39,6 +40,8 @@ export default function DashboardCenters() {
   const [filterDistrict, setFilterDistrict] = useState("");
   const [filterCapacity, setFilterCapacity] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [selectedCenterId, setSelectedCenterId] = useState(null);
+  const [showVolunteerModal, setShowVolunteerModal] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -126,6 +129,11 @@ export default function DashboardCenters() {
         alert("Failed to delete center. Please try again.");
       }
     }
+  };
+
+  const handleViewAssignedVolunteers = (centerId) => {
+    setSelectedCenterId(centerId);
+    setShowVolunteerModal(true);
   };
 
   if (loading) {
@@ -352,6 +360,9 @@ export default function DashboardCenters() {
                     <th className="px-5 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
                       Actions
                     </th>
+                    <th className="px-5 py-3 text-left text-xs font-medium text-zinc-500 uppercase tracking-wider">
+                      Volunteers
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-200">
@@ -433,6 +444,14 @@ export default function DashboardCenters() {
                           </button>
                         </div>
                       </td>
+                      <td className="px-5 py-4">
+                        <button
+                          onClick={() => handleViewAssignedVolunteers(center._id)}
+                          className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+                        >
+                          👥 View Volunteers
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -471,7 +490,7 @@ export default function DashboardCenters() {
             </div>
           </div>
           <div className="bg-white rounded-2xl border border-zinc-200 p-5">
-            <div className="text-2xl mb-2">📍</div>
+            <div className="text-2xl mb-2">�</div>
             <div className="text-3xl font-black text-zinc-900">
               {formatNumber(new Set(centers.map(c => c.district).filter(Boolean)).size)}
             </div>
@@ -481,6 +500,17 @@ export default function DashboardCenters() {
           </div>
         </div>
       </div>
+      
+      {/* Volunteer View Modal */}
+      {showVolunteerModal && (
+        <VolunteerViewModal 
+          centerId={selectedCenterId}
+          onClose={() => {
+            setShowVolunteerModal(false);
+            setSelectedCenterId(null);
+          }}
+        />
+      )}
     </div>
   );
 }

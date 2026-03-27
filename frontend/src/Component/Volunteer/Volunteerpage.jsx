@@ -1,52 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import API from "../../services/api";
 
 // ── Asset Imports ──────────────────────────────────────────────────────────
 import voidVideo from "../../pictures/void.mp4";
 import teamImg from "../../pictures/93c13d67b36bda544bdff473c7ded9a7.jpg";
 
-// ── Hardcoded Centers ──────────────────────────────────────────────────────
-const CENTERS = [
-  {
-    id: 1,
-    name: "SwapNest Colombo Central",
-    code: "SCC-1042",
-    district: "Colombo",
-    city: "Borella",
-    address: "No. 45, Baseline Road, Colombo 09",
-    email: "colombo@swapnest.lk",
-    contact: "+94 11 234 5678",
-    status: "Active",
-    capacity: 80,
-    volunteersActive: 62,
-    itemsSwapped: 1840,
-    rating: 4.9,
-    emoji: "🏙️",
-    tagline: "Heart of the capital network",
-    facilities: ["Storage", "Sorting Area", "CCTV"],
-  },
-  {
-    id: 2,
-    name: "SwapNest Kandy Hub",
-    code: "SKH-2018",
-    district: "Kandy",
-    city: "Peradeniya",
-    address: "12/B, Peradeniya Road, Kandy",
-    email: "kandy@swapnest.lk",
-    contact: "+94 81 456 7890",
-    status: "Active",
-    capacity: 50,
-    volunteersActive: 38,
-    itemsSwapped: 1120,
-    rating: 4.7,
-    emoji: "🌿",
-    tagline: "Hill country's swap haven",
-    facilities: ["Storage", "Parking"],
-  },
-];
-
 // ── Helper Components ──────────────────────────────────────────────────────
+
 function useCountUp(end, duration = 1400) {
   const [count, setCount] = useState(0);
   const rafRef = useRef();
@@ -83,7 +45,25 @@ function StatCard({ icon, value, label }) {
 function CenterCard({ center, onVolunteer }) {
   const [expanded, setExpanded] = useState(false);
   const isActive = center.status === "Active";
-  const fillPct = Math.min((center.volunteersActive / center.capacity) * 100, 100);
+  const fillPct = Math.min(((center.volunteerCount || 0) / center.capacity) * 100, 100);
+
+  // Generate emoji based on district for visual variety
+  const getDistrictEmoji = (district) => {
+    const emojiMap = {
+      "Colombo": "🏙️",
+      "Kandy": "🌿",
+      "Galle": "🏖️",
+      "Jaffna": "🏛️",
+      "Trincomalee": "⚓",
+      "Kurunegala": "🐘",
+      "Ratnapura": "💎",
+      "Badulla": "🏔️",
+      "Gampaha": "🌾",
+      "Kalutara": "🌊",
+      "Matara": "🏄"
+    };
+    return emojiMap[district] || "🏢";
+  };
 
   return (
     <motion.div
@@ -95,11 +75,11 @@ function CenterCard({ center, onVolunteer }) {
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-[#F4F0E8] flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-              {center.emoji}
+              {getDistrictEmoji(center.district)}
             </div>
             <div>
-              <h3 className="text-[15px] font-bold leading-tight">{center.name}</h3>
-              <span className="text-[10px] font-mono text-zinc-400">{center.code}</span>
+              <h3 className="text-[15px] font-bold leading-tight">{center.centerName}</h3>
+              <span className="text-[10px] font-mono text-zinc-400">{center.centerCode}</span>
             </div>
           </div>
           <div className="px-3 py-1 rounded-full text-[10px] font-bold border bg-emerald-50 text-emerald-700 border-emerald-200 uppercase">
@@ -107,23 +87,23 @@ function CenterCard({ center, onVolunteer }) {
           </div>
         </div>
 
-        <p className="text-[12px] text-zinc-400 italic mb-4">{center.tagline}</p>
+        <p className="text-[12px] text-zinc-400 italic mb-4">{center.description || 'Local SwapNest hub serving the community'}</p>
         <div className="flex items-center gap-2 text-[12px] text-zinc-600 mb-5">
           <span>📍</span> <strong>{center.city}</strong> <span className="text-zinc-300">•</span> {center.district}
         </div>
 
         <div className="grid grid-cols-3 gap-2 mb-5">
           <div className="bg-[#F9F6F0] rounded-xl py-3 text-center">
-            <span className="block text-[14px] font-bold">{center.volunteersActive}</span>
+            <span className="block text-[14px] font-bold">{center.volunteerCount || 0}</span>
             <span className="text-[9px] uppercase text-zinc-400 font-bold">Volunteers</span>
           </div>
           <div className="bg-[#F9F6F0] rounded-xl py-3 text-center">
-            <span className="block text-[14px] font-bold">{center.rating}</span>
-            <span className="text-[9px] uppercase text-zinc-400 font-bold">Rating</span>
+            <span className="block text-[14px] font-bold">{center.capacity}</span>
+            <span className="text-[9px] uppercase text-zinc-400 font-bold">Capacity</span>
           </div>
           <div className="bg-[#F9F6F0] rounded-xl py-3 text-center">
-            <span className="block text-[14px] font-bold">{center.itemsSwapped}</span>
-            <span className="text-[9px] uppercase text-zinc-400 font-bold">Swaps</span>
+            <span className="block text-[14px] font-bold">{center.facilities?.length || 0}</span>
+            <span className="text-[9px] uppercase text-zinc-400 font-bold">Facilities</span>
           </div>
         </div>
 
@@ -157,7 +137,25 @@ function CenterCard({ center, onVolunteer }) {
               className="overflow-hidden border-t border-zinc-100 pt-4 space-y-4 text-[12px] text-zinc-600"
             >
               <p className="font-bold text-zinc-400 text-[10px] uppercase">Contact Details</p>
-              <p>{center.address}<br />{center.contact} | {center.email}</p>
+              <p>{center.address}<br />{center.contactNumber} | {center.email}</p>
+              {center.facilities && center.facilities.length > 0 && (
+                <>
+                  <p className="font-bold text-zinc-400 text-[10px] uppercase">Facilities</p>
+                  <div className="flex flex-wrap gap-1">
+                    {center.facilities.map((facility, idx) => (
+                      <span key={idx} className="px-2 py-1 bg-zinc-100 rounded text-[10px]">
+                        {facility}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
+              {center.operatingHours && (
+                <>
+                  <p className="font-bold text-zinc-400 text-[10px] uppercase">Operating Hours</p>
+                  <p>{center.operatingHours.open} - {center.operatingHours.close}</p>
+                </>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -177,6 +175,54 @@ function CenterCard({ center, onVolunteer }) {
 // ── Main Page ──────────────────────────────────────────────────────────────
 export default function VolunteerPage() {
   const navigate = useNavigate();
+  const [centers, setCenters] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCenters() {
+      setLoading(true);
+      setError("");
+
+      try {
+        const res = await API.get("/api/centers");
+        let centersData = [];
+        
+        if (Array.isArray(res.data?.data)) {
+          centersData = res.data.data;
+        } else if (Array.isArray(res.data)) {
+          centersData = res.data;
+        }
+
+        if (!cancelled) {
+          setCenters(centersData);
+          setLoading(false);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          console.error("Error loading centers:", err);
+          
+          // Fallback to fetch if API fails
+          try {
+            const response = await fetch("http://localhost:5000/api/centers");
+            const data = await response.json();
+            const centersData = Array.isArray(data?.data) ? data.data : [];
+            setCenters(centersData);
+          } catch (fallbackErr) {
+            setError("Failed to load centers. Please try again later.");
+          }
+          setLoading(false);
+        }
+      }
+    }
+
+    loadCenters();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-white text-[#1A1A1A] font-sans overflow-x-hidden">
@@ -207,18 +253,18 @@ export default function VolunteerPage() {
                 BROWSE CENTERS
               </button>
               <button
-  onClick={() => navigate("/volunteer")}
-  className="bg-[#2D4A35] text-white px-8 py-4 rounded-xl font-black text-sm hover:bg-black transition-all shadow-md uppercase tracking-tight"
->
-  BECOME VOLUNTEER
-</button>
+                onClick={() => navigate("/volunteer")}
+                className="bg-[#2D4A35] text-white px-8 py-4 rounded-xl font-black text-sm hover:bg-black transition-all shadow-md uppercase tracking-tight"
+              >
+                BECOME VOLUNTEER
+              </button>
             </div>
 
             {/* Stats area */}
             <div className="grid grid-cols-3 gap-4 max-w-md mb-12">
-              <StatCard icon="🏢" value={5} label="Hubs" />
-              <StatCard icon="👥" value={180} label="Members" />
-              <StatCard icon="🔄" value={4500} label="Swaps" />
+              <StatCard icon="🏢" value={centers.length} label="Hubs" />
+              <StatCard icon="👥" value={centers.reduce((sum, c) => sum + (c.volunteerCount || 0), 0)} label="Members" />
+              <StatCard icon="🔄" value={centers.reduce((sum, c) => sum + (c.capacity || 0), 0)} label="Capacity" />
             </div>
 
             {/* Paragraph horizontally aligned */}
@@ -273,13 +319,63 @@ export default function VolunteerPage() {
         </div>
 
         <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {CENTERS.map((center) => (
-            <CenterCard
-              key={center.id}
-              center={center}
-              onVolunteer={(c) => navigate("/dashboard/volunteer/apply", { state: { center: c } })}
-            />
-          ))}
+          {loading ? (
+            // Loading skeleton
+            Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="bg-white rounded-[24px] border border-zinc-200 shadow-sm overflow-hidden">
+                <div className="h-[6px] bg-gradient-to-r from-[#2D4A35] to-[#BF5E3D]" />
+                <div className="p-6">
+                  <div className="animate-pulse">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-zinc-200" />
+                        <div>
+                          <div className="h-4 bg-zinc-200 rounded w-32 mb-2" />
+                          <div className="h-3 bg-zinc-200 rounded w-20" />
+                        </div>
+                      </div>
+                      <div className="h-6 bg-zinc-200 rounded-full w-16" />
+                    </div>
+                    <div className="h-3 bg-zinc-200 rounded w-full mb-2" />
+                    <div className="h-3 bg-zinc-200 rounded w-24 mb-4" />
+                    <div className="grid grid-cols-3 gap-2 mb-5">
+                      <div className="h-12 bg-zinc-100 rounded-xl" />
+                      <div className="h-12 bg-zinc-100 rounded-xl" />
+                      <div className="h-12 bg-zinc-100 rounded-xl" />
+                    </div>
+                    <div className="h-8 bg-zinc-100 rounded-lg mb-4" />
+                    <div className="h-12 bg-zinc-100 rounded-xl" />
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : error ? (
+            <div className="col-span-full text-center py-12">
+              <div className="text-6xl mb-4">⚠️</div>
+              <h3 className="text-xl font-bold text-zinc-900 mb-2">Unable to Load Centers</h3>
+              <p className="text-zinc-600 mb-4">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-[#2D4A35] text-white px-6 py-2 rounded-lg font-medium hover:bg-black transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : centers.length === 0 ? (
+            <div className="col-span-full text-center py-12">
+              <div className="text-6xl mb-4">🏢</div>
+              <h3 className="text-xl font-bold text-zinc-900 mb-2">No Centers Available</h3>
+              <p className="text-zinc-600">There are currently no active SwapNest centers. Please check back later.</p>
+            </div>
+          ) : (
+            centers.map((center) => (
+              <CenterCard
+                key={center._id}
+                center={center}
+                onVolunteer={(c) => navigate("/dashboard/volunteer/apply", { state: { center: c } })}
+              />
+            ))
+          )}
         </motion.div>
       </section>
     </div>
