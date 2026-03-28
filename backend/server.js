@@ -16,6 +16,7 @@ import connectDB from './config/db.js';
 import swapRoutes from './routes/swapRoutes.js';
 import itemRoutes from './routes/itemRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 
 const app=express();
 
@@ -29,6 +30,7 @@ app.use(morgan('dev'));
 app.use('/api/swaps', swapRoutes); 
 app.use("/api/items", itemRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/notifications', notificationRoutes);
 // In server.js - This serves files from the uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { getUserSwaps, getPendingRequests, updateSwapStatus, cancelSwap } from '../../services/swapService';
+import { getUserSwaps, getPendingRequests, updateSwapStatus, cancelSwap, requestCompletion, getCompletionStatus } from '../../services/swapService';
 import SwapDetailsModal from './SwapDetailsModal1';
+import SwapUpdateForm from './SwapUpdateForm';
 
 const SwapList = ({ userId }) => {
   const [swaps, setSwaps] = useState([]);
@@ -9,6 +10,9 @@ const SwapList = ({ userId }) => {
   const [error, setError] = useState('');
   const [selectedSwap, setSelectedSwap] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showUpdateForm, setShowUpdateForm] = useState(false);
+  const [swapToUpdate, setSwapToUpdate] = useState(null);
+  const [completionStatuses, setCompletionStatuses] = useState({});
 
   useEffect(() => {
     fetchSwaps();
@@ -22,11 +26,24 @@ const SwapList = ({ userId }) => {
       if (activeTab === 'all') {
         response = await getUserSwaps(userId);
         setSwaps(response.data || []);
+        
+        // Fetch completion status for accepted swaps
+        const acceptedSwaps = response.data.filter(swap => swap.status === 'accepted');
+        for (const swap of acceptedSwaps) {
+          try {
+            const statusRes = await getCompletionStatus(swap._id);
+            setCompletionStatuses(prev => ({
+              ...prev,
+              [swap._id]: statusRes.data
+            }));
+          } catch (err) {
+            console.error('Error fetching completion status:', err);
+          }
+        }
       } else if (activeTab === 'pending') {
         response = await getPendingRequests(userId);
         setSwaps(response.data || []);
       } else if (activeTab === 'my-requests') {
-        // Get all swaps and filter where requesterId matches userId
         const allSwaps = await getUserSwaps(userId);
         const myRequests = allSwaps.data.filter(swap => {
           if (typeof swap.requesterId === 'string') {
@@ -72,15 +89,19 @@ const SwapList = ({ userId }) => {
     }
   };
 
-  const handleComplete = async (swapId) => {
-    if (window.confirm('Mark this swap as completed?')) {
-      try {
-        await updateSwapStatus(swapId, 'completed');
-        fetchSwaps();
-        alert('🎉 Swap marked as completed!');
-      } catch (err) {
-        alert('Failed to mark as completed');
+  const handleComplete = async (swapId, userRole) => {
+    try {
+      const result = await requestCompletion(swapId, userId, userRole);
+      
+      if (result.bothConfirmed) {
+        alert('🎉 Swap completed successfully! Both parties have confirmed.');
+      } else {
+        alert(result.message);
       }
+      
+      fetchSwaps(); // Refresh the list
+    } catch (err) {
+      alert('Failed to complete swap: ' + err.message);
     }
   };
 
@@ -94,6 +115,18 @@ const SwapList = ({ userId }) => {
         alert('Failed to cancel swap: ' + err.message);
       }
     }
+  };
+
+  const handleUpdate = async (swap) => {
+    setSwapToUpdate(swap);
+    setShowUpdateForm(true);
+  };
+
+  const handleUpdateSuccess = () => {
+    setShowUpdateForm(false);
+    setSwapToUpdate(null);
+    fetchSwaps();
+    alert('✅ Swap request updated successfully!');
   };
 
   const handleViewDetails = (swap) => {
@@ -149,6 +182,38 @@ const SwapList = ({ userId }) => {
     return false;
   };
 
+  const getCompletionButtonText = (swap) => {
+    const status = completionStatuses[swap._id];
+    if (!status) return '✓ Complete';
+    
+    const isRequester = isUserRequester(swap);
+    const isOwner = isUserOwner(swap);
+    
+    if (isRequester && status.requesterConfirmed && !status.ownerConfirmed) {
+      return '⏳ Waiting for Owner';
+    }
+    if (isOwner && status.ownerConfirmed && !status.requesterConfirmed) {
+      return '⏳ Waiting for Requester';
+    }
+    if (status.bothConfirmed) {
+      return '✅ Completed';
+    }
+    return '✓ Complete';
+  };
+
+  const isCompleteButtonDisabled = (swap) => {
+    const status = completionStatuses[swap._id];
+    if (!status) return false;
+    
+    const isRequester = isUserRequester(swap);
+    const isOwner = isUserOwner(swap);
+    
+    if (status.bothConfirmed) return true;
+    if (isRequester && status.requesterConfirmed) return true;
+    if (isOwner && status.ownerConfirmed) return true;
+    return false;
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -159,7 +224,7 @@ const SwapList = ({ userId }) => {
 
   return (
     <div>
-     
+      {/* Tabs */}
       <div className="flex gap-2 mb-6 border-b border-outline-variant">
         <button
           className={`px-4 py-2 font-headline font-medium transition-colors ${
@@ -234,6 +299,11 @@ const SwapList = ({ userId }) => {
                 const isRejected = swap.status === 'rejected';
                 const isCancelled = swap.status === 'cancelled';
                 
+                const completionStatus = completionStatuses[swap._id];
+                const showWaitingMessage = isAccepted && completionStatus && 
+                  ((isRequester && completionStatus.requesterConfirmed && !completionStatus.ownerConfirmed) ||
+                   (isOwner && completionStatus.ownerConfirmed && !completionStatus.requesterConfirmed));
+                
                 return (
                   <tr key={swap._id} className="hover:bg-surface-container-low transition-colors">
                     <td className="px-4 py-3 text-sm font-mono text-on-surface-variant">{swap.requestId}</td>
@@ -266,13 +336,18 @@ const SwapList = ({ userId }) => {
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(swap.status)}`}>
                         {swap.status}
                       </span>
+                      {showWaitingMessage && (
+                        <div className="text-xs text-orange-600 mt-1">
+                          ⏳ Waiting for {isRequester ? 'owner' : 'requester'} to confirm
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-sm text-on-surface-variant">
                       {new Date(swap.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2 flex-wrap">
-                        
+                        {/* View Details Button */}
                         <button
                           onClick={() => handleViewDetails(swap)}
                           className="bg-primary-fixed hover:bg-primary-fixed-dim text-on-primary-fixed px-3 py-1 rounded-lg text-sm transition-colors"
@@ -281,7 +356,18 @@ const SwapList = ({ userId }) => {
                           📋 View
                         </button>
                         
-                       
+                        {/* Update Button - Only for requester when pending */}
+                        {isRequester && isPending && (
+                          <button 
+                            onClick={() => handleUpdate(swap)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm transition-colors"
+                            title="Update Request"
+                          >
+                            ✏️ Update
+                          </button>
+                        )}
+                        
+                        {/* Accept Button - Only for owner when pending */}
                         {isOwner && isPending && (
                           <button 
                             onClick={() => handleAccept(swap._id)}
@@ -292,7 +378,7 @@ const SwapList = ({ userId }) => {
                           </button>
                         )}
                         
-                        
+                        {/* Reject Button - Only for owner when pending */}
                         {isOwner && isPending && (
                           <button 
                             onClick={() => handleReject(swap._id)}
@@ -303,18 +389,25 @@ const SwapList = ({ userId }) => {
                           </button>
                         )}
                         
-                    
-                        {isOwner && isAccepted && (
+                        {/* Complete Button - For both requester and owner when accepted */}
+                        {isAccepted && !isCompleted && (
                           <button 
-                            onClick={() => handleComplete(swap._id)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm transition-colors"
-                            title="Mark as Completed"
+                            onClick={() => handleComplete(swap._id, isRequester ? 'requester' : 'owner')}
+                            disabled={isCompleteButtonDisabled(swap)}
+                            className={`px-3 py-1 rounded-lg text-sm transition-colors ${
+                              isCompleteButtonDisabled(swap)
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                : completionStatuses[swap._id]?.requesterConfirmed || completionStatuses[swap._id]?.ownerConfirmed
+                                  ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                            }`}
+                            title={getCompletionButtonText(swap)}
                           >
-                            ✓ Complete
+                            {getCompletionButtonText(swap)}
                           </button>
                         )}
                         
-                       
+                        {/* Cancel Button - Only for requester when pending */}
                         {isRequester && isPending && (
                           <button 
                             onClick={() => handleCancel(swap._id)}
@@ -325,7 +418,7 @@ const SwapList = ({ userId }) => {
                           </button>
                         )}
                         
-                      
+                        {/* Status Messages */}
                         {isRejected && isRequester && (
                           <span className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded-lg">
                             Rejected
@@ -353,10 +446,22 @@ const SwapList = ({ userId }) => {
         </div>
       )}
 
+      {/* View Details Modal */}
       {showModal && selectedSwap && (
         <SwapDetailsModal 
           swap={selectedSwap} 
           onClose={() => setShowModal(false)} 
+        />
+      )}
+
+      {/* Update Form Modal */}
+      {showUpdateForm && swapToUpdate && (
+        <SwapUpdateForm
+          swapId={swapToUpdate._id}
+          requesterId={userId}
+          requesterName={getRequesterName(swapToUpdate)}
+          onClose={() => setShowUpdateForm(false)}
+          onSuccess={handleUpdateSuccess}
         />
       )}
     </div>

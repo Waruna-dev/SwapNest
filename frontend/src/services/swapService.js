@@ -11,7 +11,6 @@ export const createSwap = async (data, photos = null) => {
     if (photos && photos.length > 0) {
       const formData = new FormData();
       
-      // Add all data to formData
       Object.keys(data).forEach(key => {
         if (key === 'offeredItem') {
           formData.append('offeredItem[name]', data.offeredItem.name);
@@ -27,7 +26,6 @@ export const createSwap = async (data, photos = null) => {
         }
       });
       
-      // Add photos
       photos.forEach(photo => formData.append('photos', photo));
       
       response = await axios.post(API_URL, formData, {
@@ -40,6 +38,42 @@ export const createSwap = async (data, photos = null) => {
     return response.data;
   } catch (error) {
     console.error('Create swap error:', error);
+    throw error.response?.data || { message: error.message };
+  }
+};
+
+// UPDATE SWAP REQUEST (without photos)
+export const updateSwap = async (swapId, data) => {
+  try {
+    const response = await axios.put(`${API_URL}/${swapId}`, data);
+    return response.data;
+  } catch (error) {
+    console.error('Update swap error:', error);
+    throw error.response?.data || { message: error.message };
+  }
+};
+
+// UPDATE SWAP PHOTOS
+export const updateSwapPhotos = async (swapId, requesterId, newPhotos, removePhotoIndices = []) => {
+  try {
+    const formData = new FormData();
+    formData.append('requesterId', requesterId);
+    
+    if (removePhotoIndices.length > 0) {
+      formData.append('removePhotoIndices', JSON.stringify(removePhotoIndices));
+    }
+    
+    if (newPhotos && newPhotos.length > 0) {
+      newPhotos.forEach(photo => formData.append('photos', photo));
+    }
+    
+    const response = await axios.put(`${API_URL}/${swapId}/photos`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Update swap photos error:', error);
     throw error.response?.data || { message: error.message };
   }
 };
@@ -138,5 +172,27 @@ export const markSwapComplete = async (swapId, userId) => {
   } catch (error) {
     console.error('Error marking swap complete:', error);
     throw error;
+  }
+};
+
+export const requestCompletion = async (swapId, userId, userRole) => {
+  try {
+    const response = await axios.post(`${API_URL}/${swapId}/complete`, {
+      userId,
+      userRole
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+// Get completion status
+export const getCompletionStatus = async (swapId) => {
+  try {
+    const response = await axios.get(`${API_URL}/${swapId}/completion-status`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
   }
 };

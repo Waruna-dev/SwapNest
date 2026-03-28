@@ -129,6 +129,27 @@ const swapSchema = new mongoose.Schema({
     default:Date.now,
   },
 
+  
+completionConfirmedBy: {
+    requester: {
+      type: Boolean,
+      default: false
+    },
+    owner: {
+      type: Boolean,
+      default: false
+    }
+  },
+  completionRequestedAt: {
+    type: Date,
+    default: null
+  },
+  bothConfirmedAt: {
+    type: Date,
+    default: null
+  },
+  
+
   // details
   completedAt:Date,
   completionNotes:String,
@@ -138,6 +159,8 @@ const swapSchema = new mongoose.Schema({
   swapSchema.pre("save", function(next){
     this.updateAt=Date.now();
   });
+
+  
 
   //gen reqid before validation
   swapSchema.pre("validate",function(next){

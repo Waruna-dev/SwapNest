@@ -4,6 +4,8 @@ import { uploadSwapPhotos } from '../middlewares/upload.js';
 import { validateSwapRequest, validateStatusUpdate } from '../middlewares/validation.js';
 import {
   createSwapRequest,
+  updateSwapRequest,
+  updateSwapPhotos,
   getUserSwaps,
   getSwapById,
   updateSwapStatus,
@@ -11,7 +13,9 @@ import {
   getPendingRequests,
   getAllSwaps,
   deleteSwap,
-  getSwapsByItem
+  getSwapsByItem,
+  getCompletionStatus,
+  requestCompletion,
 } from '../controllers/swapController.js';
 
 
@@ -20,6 +24,9 @@ import {
 
 router.post('/', uploadSwapPhotos, validateSwapRequest, createSwapRequest);
 
+router.put('/:id', updateSwapRequest);
+
+router.put('/:id/photos', uploadSwapPhotos, updateSwapPhotos);
 //get all swap req-admin
 router.get('/all', getAllSwaps);
 
@@ -39,5 +46,7 @@ router.put('/:id/status', validateStatusUpdate, updateSwapStatus);
 router.put('/:id/cancel', cancelSwapRequest);
 
 router.delete('/:id', deleteSwap);
+router.post('/:id/complete', requestCompletion);
+router.get('/:id/completion-status', getCompletionStatus);
 
 export default router;

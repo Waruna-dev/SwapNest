@@ -3,6 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import API from '../services/api';
 import SwapList from '../components/swap/SwapList';
 import SwapForm from '../components/swap/SwapForm';
+import NotificationBell from '../components/NotificationBell';
+import SwapDetailsModal from '../components/swap/SwapDetailsModal1';
+import AcceptedSwapsCard from '../components/AcceptedSwapsCard'; 
+import { getSwapById } from '../services/swapService';
 
 const Dashboard = () => {
   const [activeNav, setActiveNav] = useState('dashboard');
@@ -18,9 +22,25 @@ const Dashboard = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [user, setUser] = useState(null);
   
+  // State for Notification Modal
+  const [selectedSwap, setSelectedSwap] = useState(null);
+  const [showSwapModal, setShowSwapModal] = useState(false);
+  
   const navigate = useNavigate();
   const profileMenuRef = useRef(null);
   const mobileMenuRef = useRef(null);
+
+  // Handle notification click - fetch swap details and open modal
+  const handleNotificationClick = async (swapId) => {
+    try {
+      const response = await getSwapById(swapId);
+      setSelectedSwap(response.data);
+      setShowSwapModal(true);
+    } catch (error) {
+      console.error('Error fetching swap details:', error);
+      alert('Failed to load swap details');
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('swapnest_token');
@@ -46,7 +66,6 @@ const Dashboard = () => {
         if (userData.profilePic) {
           setProfilePic(userData.profilePic);
         }
-        // Store user in localStorage for other components
         localStorage.setItem('user', JSON.stringify(userData));
       } catch (error) {
         console.error("Authentication failed:", error);
@@ -116,21 +135,18 @@ const Dashboard = () => {
           {/* LEFT COLUMN */}
           <div className="lg:col-span-2 space-y-8">
             
-            {/* My Swaps Section */}
+            {/* Accepted Swaps Section - NEW CARD */}
             {userId && (
               <section className="bg-white rounded-[2.5rem] p-6 md:p-8 border border-outline-variant/20 shadow-sm">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-headline font-bold text-primary">Swap Activity</h2>
-                  <button 
-                    onClick={() => setActiveNav('my-swaps')}
-                    className="text-sm font-bold text-secondary hover:underline"
-                  >
-                    View All
-                  </button>
+                <div className="flex items-center gap-2 mb-6">
+                  <span className="text-2xl">✅</span>
+                  <h2 className="text-2xl font-headline font-bold text-primary">Accepted Swaps</h2>
                 </div>
-                <SwapList userId={userId} />
+                <AcceptedSwapsCard userId={userId} />
               </section>
             )}
+
+           
           </div>
 
           {/* RIGHT COLUMN */}
@@ -192,14 +208,21 @@ const Dashboard = () => {
               My Swaps
             </button>
             <Link to="/item/gallery" className="text-primary/80 hover:text-primary transition-colors">Marketplace</Link>
-            <Link to="/messages" className="text-primary/80 hover:text-primary transition-colors">Messages</Link>
+            <Link to="/item/form" className="text-primary/80 hover:text-primary transition-colors">Messages</Link>
           </div>
           
           <div className="flex items-center gap-4">
-            <Link to="/create-item" className="hidden md:flex bg-secondary text-white px-5 py-2 rounded-full font-bold text-xs hover:scale-105 transition-transform shadow-md items-center gap-1">
+            <Link to="/item/form" className="hidden md:flex bg-secondary text-white px-5 py-2 rounded-full font-bold text-xs hover:scale-105 transition-transform shadow-md items-center gap-1">
               <span className="material-symbols-outlined text-[16px]">add</span> List Item
             </Link>
             
+       
+            <NotificationBell 
+              userId={userId} 
+              onNotificationClick={handleNotificationClick}
+            />
+            
+            {/* Profile Menu */}
             <div className="relative" ref={profileMenuRef}>
               <div onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="w-10 h-10 rounded-full border-2 border-primary/10 overflow-hidden cursor-pointer hover:ring-2 hover:ring-secondary transition-all">
                 <img src={profilePic} alt="Profile" className="w-full h-full object-cover" />
@@ -228,7 +251,7 @@ const Dashboard = () => {
                   <button onClick={() => { setActiveNav('my-swaps'); setIsMobileMenuOpen(false); }} className="text-primary font-headline font-bold text-lg text-left">My Swaps</button>
                   <Link to="/item/gallery" className="text-primary font-headline font-bold text-lg">Marketplace</Link>
                   <Link to="/messages" className="text-primary font-headline font-bold text-lg">Messages</Link>
-                  <Link to="/create-item" className="w-full bg-secondary text-white px-4 py-3 rounded-xl font-bold text-sm mt-2 flex items-center justify-center gap-2">
+                  <Link to="/item/form" className="w-full bg-secondary text-white px-4 py-3 rounded-xl font-bold text-sm mt-2 flex items-center justify-center gap-2">
                     <span className="material-symbols-outlined text-[18px]">add</span> List Item
                   </Link>
                 </div>
@@ -252,6 +275,14 @@ const Dashboard = () => {
           requesterName={userName}
           onClose={() => setShowSwapForm(false)}
           onSuccess={handleSwapCreated}
+        />
+      )}
+
+      {/* Swap Details Modal */}
+      {showSwapModal && selectedSwap && (
+        <SwapDetailsModal 
+          swap={selectedSwap} 
+          onClose={() => setShowSwapModal(false)} 
         />
       )}
     </div>
