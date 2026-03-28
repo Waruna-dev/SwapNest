@@ -15,6 +15,22 @@ import ItemTable from "../../components/item-dashboard/ItemTable";
 import ItemModal from "../../components/item-dashboard/ItemModal";
 import DashboardFooter from "../../components/item-dashboard/DashboardFooter";
 
+const decodeTokenOwnerId = () => {
+  try {
+    const token = localStorage.getItem("swapnest_token");
+    if (!token) return "";
+
+    const payload = token.split(".")[1];
+    if (!payload) return "";
+
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const decoded = JSON.parse(window.atob(normalized));
+    return decoded?.id || "";
+  } catch {
+    return "";
+  }
+};
+
 const categoryOptions = [
   "Furniture",
   "Electronics",
@@ -85,7 +101,7 @@ const statusTone = (type) => {
   return "border-[#0b3b30]/10 bg-white text-[#36524b]";
 };
 
-function ItemDashboard() {
+function ItemDashboard({ ownerOnly = false }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -98,6 +114,7 @@ function ItemDashboard() {
   const [formData, setFormData] = useState(emptyForm);
   const [editImages, setEditImages] = useState([]);
   const editImagesRef = useRef([]);
+  const ownerId = ownerOnly ? decodeTokenOwnerId() : "";
 
   useEffect(() => {
     editImagesRef.current = editImages;
@@ -110,7 +127,10 @@ function ItemDashboard() {
     try {
       const response = await getItems({ limit: 100, includeHidden: true });
       const payload = response.data;
-      const nextItems = Array.isArray(payload) ? payload : payload.items || [];
+      const allItems = Array.isArray(payload) ? payload : payload.items || [];
+      const nextItems = ownerOnly
+        ? allItems.filter((item) => String(item?.ownerId || "") === ownerId)
+        : allItems;
       setItems(nextItems);
 
       if (!nextItems.length) {
@@ -150,7 +170,7 @@ function ItemDashboard() {
 
   useEffect(() => {
     loadItems();
-  }, []);
+  }, [ownerId, ownerOnly]);
 
   const filteredItems = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -413,10 +433,10 @@ function ItemDashboard() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
               <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#b1461a]">
-                Item management
+                {ownerOnly ? "My listings" : "Item management"}
               </p>
               <h1 className="mt-2 text-3xl font-black tracking-tight text-[#082d24]">
-                Item dashboard
+                {ownerOnly ? "My items" : "Item dashboard"}
               </h1>
             </div>
 

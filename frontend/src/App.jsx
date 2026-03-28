@@ -4,6 +4,8 @@
 import ItemAddNewItems from "./pages/item-listing/ItemAddNewItem";
 import ItemGalleryPage from "./pages/item-gallery/ItemGalleryPage";
 import ItemDashboard1 from "./pages/item-listing/ItemDashboard";
+import MyItems from "./pages/item-listing/MyItems";
+import ItemLocation from "./pages/item-ocation/itemLocation";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 // Import Pages
@@ -35,14 +37,14 @@ function App() {
           <Route path="/item/new" element={<ItemAddNewItems />} />
           <Route path="/item/gallery" element={<ItemGalleryPage />} />
           <Route path="/item/dashboard" element={<ItemDashboard1 />} />
+          <Route path="/item/location" element={<ItemLocation />} />
 
           {/* --- PROTECTED ROUTES --- */}
           {/* You MUST have a token to visit anything inside this wrapper */}
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
-            {/* When you build the My List page, add it here too! */}
-            {/* <Route path="/my-list" element={<MyList />} /> */}
+            <Route path="/my-list" element={<MyItems />} />
           </Route>
           
         </Routes>
