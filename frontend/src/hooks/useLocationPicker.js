@@ -2,6 +2,14 @@ import { useEffect, useRef, useState } from "react";
 
 const defaultMapCenter = { lat: 6.9271, lng: 79.8612 };
 
+const createCustomMarkerIcon = (L, markerHtml) =>
+  L.divIcon({
+    html: markerHtml,
+    className: "swapnest-location-marker",
+    iconSize: [62, 86],
+    iconAnchor: [31, 80],
+  });
+
 const loadLeafletAssets = () => {
   if (typeof window === "undefined") {
     return Promise.reject(new Error("Leaflet can only load in the browser."));
@@ -49,7 +57,12 @@ const loadLeafletAssets = () => {
   });
 };
 
-export const useLocationPicker = (setFormData, initialLocation = {}) => {
+export const useLocationPicker = (
+  setFormData,
+  initialLocation = {},
+  options = {},
+) => {
+  const { markerHtml = "" } = options;
   const [locationSearch, setLocationSearch] = useState("");
   const [selectedAddress, setSelectedAddress] = useState("");
   const [locationState, setLocationState] = useState({
@@ -95,7 +108,11 @@ export const useLocationPicker = (setFormData, initialLocation = {}) => {
           attribution: "&copy; OpenStreetMap contributors",
         }).addTo(map);
 
-        const marker = L.marker([startLat, startLng]).addTo(map);
+        const marker = markerHtml
+          ? L.marker([startLat, startLng], {
+              icon: createCustomMarkerIcon(L, markerHtml),
+            }).addTo(map)
+          : L.marker([startLat, startLng]).addTo(map);
 
         mapInstanceRef.current = map;
         markerRef.current = marker;
@@ -161,7 +178,7 @@ export const useLocationPicker = (setFormData, initialLocation = {}) => {
     return () => {
       isMounted = false;
     };
-  }, [initialLocation?.lat, initialLocation?.lng, setFormData]);
+  }, [initialLocation?.lat, initialLocation?.lng, markerHtml, setFormData]);
 
   useEffect(() => {
     const lat = Number(initialLocation?.lat);
@@ -179,6 +196,14 @@ export const useLocationPicker = (setFormData, initialLocation = {}) => {
       hasAppliedInitialLocationRef.current = true;
     }
   }, [initialLocation?.lat, initialLocation?.lng]);
+
+  useEffect(() => {
+    if (!markerHtml || !markerRef.current || !window.L) {
+      return;
+    }
+
+    markerRef.current.setIcon(createCustomMarkerIcon(window.L, markerHtml));
+  }, [markerHtml]);
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -313,6 +338,7 @@ export const useLocationPicker = (setFormData, initialLocation = {}) => {
 
   return {
     mapRef,
+    mapInstanceRef,
     locationSearch,
     setLocationSearch,
     selectedAddress,
