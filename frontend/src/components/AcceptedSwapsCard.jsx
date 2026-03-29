@@ -155,7 +155,7 @@ const AcceptedSwapsCard = ({ userId }) => {
   if (acceptedSwaps.length === 0) {
     return (
       <div className="text-center py-8">
-        <div className="text-4xl mb-3">🤝</div>
+        <div className="text-4xl mb-3"></div>
         <p className="text-on-surface-variant">No accepted swaps yet</p>
         <p className="text-sm text-on-surface-variant mt-1">
           When someone accepts your swap request, it will appear here
@@ -184,13 +184,13 @@ const AcceptedSwapsCard = ({ userId }) => {
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-2xl">✅</span>
+                  <span className="text-2xl">✓</span>
                   <div>
                     <h3 className="font-bold text-green-800">Swap Accepted!</h3>
                     <p className="text-xs text-green-600">{getUserRoleText(swap)}</p>
                   </div>
                 </div>
-                <span className="text-xs text-green-600 font-mono">{swap.requestId}</span>
+                <span className="text-xs text-on-primary-fixed-variant font-mono">{swap.requestId}</span>
               </div>
 
               <div className="grid grid-cols-2 gap-4 mb-3">

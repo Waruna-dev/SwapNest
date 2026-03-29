@@ -5,6 +5,7 @@ import SwapUpdateForm from './SwapUpdateForm';
 
 const SwapList = ({ userId }) => {
   const [swaps, setSwaps] = useState([]);
+  const [filteredSwaps, setFilteredSwaps] = useState([]);
   const [activeTab, setActiveTab] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -13,10 +14,23 @@ const SwapList = ({ userId }) => {
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [swapToUpdate, setSwapToUpdate] = useState(null);
   const [completionStatuses, setCompletionStatuses] = useState({});
+  
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [swapTypeFilter, setSwapTypeFilter] = useState('all');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     fetchSwaps();
   }, [userId, activeTab]);
+
+  // Apply filters whenever swaps, filters, or activeTab changes
+  useEffect(() => {
+    applyFilters();
+  }, [swaps, searchTerm, statusFilter, swapTypeFilter, roleFilter, dateFilter, activeTab]);
 
   const fetchSwaps = async () => {
     setLoading(true);
@@ -65,6 +79,69 @@ const SwapList = ({ userId }) => {
     }
   };
 
+  const applyFilters = () => {
+    let filtered = [...swaps];
+    
+    // Search filter
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(swap => 
+        swap.requestId?.toLowerCase().includes(term) ||
+        swap.requestedItem?.name?.toLowerCase().includes(term) ||
+        swap.offeredItem?.name?.toLowerCase().includes(term) ||
+        swap.requesterName?.toLowerCase().includes(term) ||
+        swap.requestedItem?.ownerName?.toLowerCase().includes(term)
+      );
+    }
+    
+    // Status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(swap => swap.status === statusFilter);
+    }
+    
+    // Swap type filter
+    if (swapTypeFilter !== 'all') {
+      filtered = filtered.filter(swap => swap.swapType === swapTypeFilter);
+    }
+    
+    // Role filter
+    if (roleFilter !== 'all') {
+      if (roleFilter === 'requester') {
+        filtered = filtered.filter(swap => isUserRequester(swap));
+      } else if (roleFilter === 'owner') {
+        filtered = filtered.filter(swap => isUserOwner(swap));
+      }
+    }
+    
+    // Date filter
+    if (dateFilter !== 'all') {
+      const now = new Date();
+      filtered = filtered.filter(swap => {
+        const createdDate = new Date(swap.createdAt);
+        if (dateFilter === 'today') {
+          return createdDate.toDateString() === now.toDateString();
+        } else if (dateFilter === 'week') {
+          const weekAgo = new Date(now.setDate(now.getDate() - 7));
+          return createdDate >= weekAgo;
+        } else if (dateFilter === 'month') {
+          const monthAgo = new Date(now.setMonth(now.getMonth() - 1));
+          return createdDate >= monthAgo;
+        }
+        return true;
+      });
+    }
+    
+    setFilteredSwaps(filtered);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    setSwapTypeFilter('all');
+    setRoleFilter('all');
+    setDateFilter('all');
+  };
+
   const handleAccept = async (swapId) => {
     if (window.confirm('Accept this swap request?')) {
       try {
@@ -99,7 +176,7 @@ const SwapList = ({ userId }) => {
         alert(result.message);
       }
       
-      fetchSwaps(); // Refresh the list
+      fetchSwaps();
     } catch (err) {
       alert('Failed to complete swap: ' + err.message);
     }
@@ -190,15 +267,15 @@ const SwapList = ({ userId }) => {
     const isOwner = isUserOwner(swap);
     
     if (isRequester && status.requesterConfirmed && !status.ownerConfirmed) {
-      return '⏳ Waiting for Owner';
+      return '⏳';
     }
     if (isOwner && status.ownerConfirmed && !status.requesterConfirmed) {
-      return '⏳ Waiting for Requester';
+      return '⏳';
     }
     if (status.bothConfirmed) {
       return '✅ Completed';
     }
-    return '✓ Complete';
+    return 'Complete';
   };
 
   const isCompleteButtonDisabled = (swap) => {
@@ -214,6 +291,19 @@ const SwapList = ({ userId }) => {
     return false;
   };
 
+  // Get filter statistics
+  const getFilterStats = () => {
+    return {
+      total: swaps.length,
+      filtered: filteredSwaps.length,
+      pending: swaps.filter(s => s.status === 'pending').length,
+      accepted: swaps.filter(s => s.status === 'accepted').length,
+      completed: swaps.filter(s => s.status === 'completed').length
+    };
+  };
+
+  const stats = getFilterStats();
+
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -224,6 +314,8 @@ const SwapList = ({ userId }) => {
 
   return (
     <div>
+      <div className="absolute -top-10 -left-10 w-96 h-96 bg-secondary-container/10 rounded-full blur-3xl pointer-events-none animate-float" style={{ animationDelay: '2s' }}></div>
+      <div className="fixed -bottom-10 -right-10 w-96 h-96 bg-secondary-container/10 rounded-full blur-3xl pointer-events-none animate-float " style={{ animationDelay: '2s' }}></div>
       {/* Tabs */}
       <div className="flex gap-2 mb-6 border-b border-outline-variant">
         <button
@@ -234,7 +326,7 @@ const SwapList = ({ userId }) => {
           }`}
           onClick={() => setActiveTab('all')}
         >
-          All Swaps
+          All Swaps ({stats.total})
         </button>
         <button
           className={`px-4 py-2 font-headline font-medium transition-colors ${
@@ -257,6 +349,119 @@ const SwapList = ({ userId }) => {
           My Requests
         </button>
       </div>
+
+      {/* Search and Filter Bar */}
+      <div className="mb-6 bg-white rounded-xl shadow-sm border border-outline-variant p-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Search Input */}
+          <div className="flex-1">
+            <div className="relative">
+              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-on-surface-variant">
+                🔍
+              </span>
+              <input
+                type="text"
+                placeholder=" :Search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-outline-variant rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
+            </div>
+          </div>
+          
+          {/* Filter Toggle Button */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center gap-2 px-4 py-2 border border-outline-variant rounded-lg hover:bg-surface-container-low transition-colors"
+          >
+            <span>⚙️</span>
+            <span>Filters</span>
+            
+          </button>
+          
+          {/* Clear Filters Button */}
+          {(searchTerm || statusFilter !== 'all' || swapTypeFilter !== 'all' || roleFilter !== 'all' || dateFilter !== 'all') && (
+            <button
+              onClick={clearFilters}
+              className="px-4 py-2 text-error hover:bg-error-container rounded-lg transition-colors"
+            >
+              Clear All
+            </button>
+          )}
+        </div>
+
+        {/* Expandable Filters */}
+        {showFilters && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-outline-variant">
+            {/* Status Filter */}
+            <div>
+              <label className="block text-xs font-medium text-on-surface-variant mb-1">Status</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full border border-outline-variant rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="accepted">Accepted</option>
+                <option value="rejected">Rejected</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+
+            {/* Swap Type Filter */}
+            <div>
+              <label className="block text-xs font-medium text-on-surface-variant mb-1">Swap Type</label>
+              <select
+                value={swapTypeFilter}
+                onChange={(e) => setSwapTypeFilter(e.target.value)}
+                className="w-full border border-outline-variant rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="all">All Types</option>
+                <option value="item-for-item">Item for Item</option>
+                <option value="swap-with-cash">Swap with Cash</option>
+              </select>
+            </div>
+
+            {/* Role Filter */}
+            <div>
+              <label className="block text-xs font-medium text-on-surface-variant mb-1">My Role</label>
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="w-full border border-outline-variant rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="all">All Roles</option>
+                <option value="requester">I'm Requester</option>
+                <option value="owner">I'm Owner</option>
+              </select>
+            </div>
+
+            {/* Date Filter */}
+            <div>
+              <label className="block text-xs font-medium text-on-surface-variant mb-1">Date</label>
+              <select
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="w-full border border-outline-variant rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="week">Last 7 Days</option>
+                <option value="month">Last 30 Days</option>
+              </select>
+            </div>
+          </div>
+        )}
+
+        {/* Filter Results Summary */}
+        {(searchTerm || statusFilter !== 'all' || swapTypeFilter !== 'all' || roleFilter !== 'all' || dateFilter !== 'all') && (
+          <div className="mt-3 text-sm text-on-surface-variant">
+            Found {stats.filtered} result{stats.filtered !== 1 ? 's' : ''} 
+          </div>
+        )}
+      </div>
       
       {error && (
         <div className="bg-error-container border border-error text-on-error-container px-4 py-2 rounded-lg mb-4">
@@ -264,33 +469,35 @@ const SwapList = ({ userId }) => {
         </div>
       )}
       
-      {swaps.length === 0 ? (
+      {filteredSwaps.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg shadow border border-outline-variant">
           <p className="text-on-surface-variant">
-            {activeTab === 'my-requests' 
-              ? "You haven't made any swap requests yet" 
-              : activeTab === 'pending'
-              ? 'No pending swap requests'
-              : 'No swaps found'}
+            {searchTerm || statusFilter !== 'all' || swapTypeFilter !== 'all' || roleFilter !== 'all' || dateFilter !== 'all'
+              ? 'No swaps match your filters'
+              : activeTab === 'my-requests' 
+                ? "You haven't made any swap requests yet" 
+                : activeTab === 'pending'
+                ? 'No pending swap requests'
+                : 'No swaps found'}
           </p>
         </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full bg-white rounded-lg shadow border border-outline-variant">
-            <thead className="bg-surface-container-low border-b border-outline-variant">
+            <thead className="bg-on-surface-variant border-b border-outline-variant">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-on-surface">Request ID</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-on-surface">Item</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-on-surface">Offered</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-on-surface">Requester</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-on-surface">Owner</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-on-surface">Status</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-on-surface">Created</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-on-surface">Actions</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-white">Request ID</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-white">Item</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-white">Offered</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-white">Requester</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-white">Owner</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-white">Status</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-white">Created</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-white">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant">
-              {swaps.map(swap => {
+              {filteredSwaps.map(swap => {
                 const isOwner = isUserOwner(swap);
                 const isRequester = isUserRequester(swap);
                 const isPending = swap.status === 'pending';
@@ -321,7 +528,7 @@ const SwapList = ({ userId }) => {
                         </div>
                       ) : swap.cashDetails ? (
                         <div>
-                          <p className="font-medium text-primary">LKR {swap.cashDetails.amount}</p>
+                          <p className="font-medium text-secondary-container">LKR {swap.cashDetails.amount}</p>
                           {swap.offeredItem?.name && (
                             <p className="text-xs text-on-surface-variant">+ {swap.offeredItem.name}</p>
                           )}
@@ -338,7 +545,7 @@ const SwapList = ({ userId }) => {
                       </span>
                       {showWaitingMessage && (
                         <div className="text-xs text-orange-600 mt-1">
-                          ⏳ Waiting for {isRequester ? 'owner' : 'requester'} to confirm
+                          Waiting for {isRequester ? 'owner' : 'requester'} to confirm
                         </div>
                       )}
                     </td>
@@ -353,7 +560,7 @@ const SwapList = ({ userId }) => {
                           className="bg-primary-fixed hover:bg-primary-fixed-dim text-on-primary-fixed px-3 py-1 rounded-lg text-sm transition-colors"
                           title="View Full Details"
                         >
-                          📋 View
+                          View
                         </button>
                         
                         {/* Update Button - Only for requester when pending */}
@@ -363,7 +570,7 @@ const SwapList = ({ userId }) => {
                             className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm transition-colors"
                             title="Update Request"
                           >
-                            ✏️ Update
+                            ✏️
                           </button>
                         )}
                         
@@ -374,7 +581,7 @@ const SwapList = ({ userId }) => {
                             className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg text-sm transition-colors"
                             title="Accept Request"
                           >
-                            ✓ Accept
+                            ✓
                           </button>
                         )}
                         
@@ -385,7 +592,7 @@ const SwapList = ({ userId }) => {
                             className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg text-sm transition-colors"
                             title="Reject Request"
                           >
-                            ✗ Reject
+                            ✗
                           </button>
                         )}
                         
@@ -404,6 +611,7 @@ const SwapList = ({ userId }) => {
                             title={getCompletionButtonText(swap)}
                           >
                             {getCompletionButtonText(swap)}
+
                           </button>
                         )}
                         
@@ -414,7 +622,7 @@ const SwapList = ({ userId }) => {
                             className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded-lg text-sm transition-colors"
                             title="Cancel Request"
                           >
-                            ✕ Cancel
+                            ✕ 
                           </button>
                         )}
                         
@@ -443,6 +651,7 @@ const SwapList = ({ userId }) => {
               })}
             </tbody>
           </table>
+          
         </div>
       )}
 

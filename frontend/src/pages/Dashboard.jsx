@@ -108,7 +108,7 @@ const Dashboard = () => {
     // My Swaps View
     if (activeNav === 'my-swaps') {
       return (
-        <div className="bg-white rounded-[2.5rem] p-6 md:p-8 border border-outline-variant/20 shadow-sm">
+        <div className="bg-white rounded-[2.5rem] p-6 md:p- border border-outline-variant/20 shadow-sm">
           <h2 className="text-2xl font-headline font-bold text-primary mb-6">My Swaps</h2>
           <SwapList userId={userId} />
         </div>
@@ -139,7 +139,7 @@ const Dashboard = () => {
             {userId && (
               <section className="bg-white rounded-[2.5rem] p-6 md:p-8 border border-outline-variant/20 shadow-sm">
                 <div className="flex items-center gap-2 mb-6">
-                  <span className="text-2xl">✅</span>
+                  <span className="text-2xl"></span>
                   <h2 className="text-2xl font-headline font-bold text-primary">Accepted Swaps</h2>
                 </div>
                 <AcceptedSwapsCard userId={userId} />

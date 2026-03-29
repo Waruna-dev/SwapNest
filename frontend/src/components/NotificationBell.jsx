@@ -200,7 +200,7 @@ const NotificationBell = ({ userId, onNotificationClick }) => {
                         {formatTimeAgo(notification.createdAt)}
                       </p>
                       <p className="text-xs text-primary mt-1 flex items-center gap-1">
-                        <span>🔗</span> Click to view details
+                        <span>🔗</span>view details
                       </p>
                     </div>
                     {!notification.read && (

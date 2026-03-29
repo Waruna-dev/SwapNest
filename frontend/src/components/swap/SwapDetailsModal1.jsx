@@ -7,7 +7,19 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
   
   if (!swap) return null;
 
-  
+  // Helper function to format date safely
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Not available';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid date';
+      return date.toLocaleString();
+    } catch (error) {
+      return 'Invalid date';
+    }
+  };
+
+  // get image URL
   const getImageUrl = (url) => {
     if (!url) return null;
     if (url.startsWith('http')) return url;
@@ -52,7 +64,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
     setImageErrors(prev => ({ ...prev, [photoIndex]: true }));
   };
 
-  // Get all photos for both item-for-item and swap-with-cash)
+  // Get all photos
   const getAllPhotos = () => {
     if (swap.offeredItem?.photos && swap.offeredItem.photos.length > 0) {
       return swap.offeredItem.photos;
@@ -84,7 +96,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
           </div>
           
           <div className="p-6 space-y-6">
-           
+            {/* Request ID & Status */}
             <div className="bg-gradient-to-r from-primary-fixed/10 to-transparent p-4 rounded-xl">
               <div className="flex justify-between items-start">
                 <div>
@@ -95,9 +107,9 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
               </div>
             </div>
 
-           
+            {/* Main Info Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
+              {/* Requested Item */}
               <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-primary-fixed/20 rounded-lg">
@@ -114,7 +126,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
                 )}
               </div>
 
-             
+              {/* Offered Item / Cash Details WITH PHOTOS */}
               <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-secondary-fixed/20 rounded-lg">
@@ -127,7 +139,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
                   </h3>
                 </div>
                 
-               
+                {/* Item details */}
                 {swap.offeredItem && (
                   <>
                     <p className="font-medium text-on-surface">{swap.offeredItem.name}</p>
@@ -138,7 +150,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
                   </>
                 )}
                 
-                
+                {/* Cash details for swap-with-cash */}
                 {swap.swapType === 'swap-with-cash' && swap.cashDetails && (
                   <div className="mt-2 pt-2 border-t border-outline-variant">
                     <p className="font-medium text-primary text-xl">+ Rs. {swap.cashDetails.amount}</p>
@@ -150,7 +162,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
                   </div>
                 )}
                 
-              
+                {/* Photos Section */}
                 {photos.length > 0 && (
                   <div className="mt-3">
                     <p className="text-xs text-on-surface-variant mb-2">
@@ -194,7 +206,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
                 )}
               </div>
 
-            
+              {/* Requester Info */}
               <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-tertiary-fixed/20 rounded-lg">
@@ -208,6 +220,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
                 <p className="text-sm font-mono text-on-surface-variant mt-1 break-all">{getRequesterId()}</p>
               </div>
 
+              {/* Owner Info */}
               <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-primary-fixed/20 rounded-lg">
@@ -222,7 +235,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
               </div>
             </div>
 
-         
+            {/* Message to Owner */}
             {swap.messageToOwner && (
               <div className="bg-primary-fixed/10 p-4 rounded-xl">
                 <div className="flex items-center gap-2 mb-2">
@@ -235,19 +248,19 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
               </div>
             )}
 
-           
+            {/* Timestamps - FIXED with safe date formatting */}
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-surface-container-low p-3 rounded-lg">
                 <p className="text-xs uppercase tracking-wider text-on-surface-variant">Created At</p>
-                <p className="text-sm mt-1 text-on-surface">{new Date(swap.createdAt).toLocaleString()}</p>
+                <p className="text-sm mt-1 text-on-surface">{formatDate(swap.createdAt)}</p>
               </div>
               <div className="bg-surface-container-low p-3 rounded-lg">
                 <p className="text-xs uppercase tracking-wider text-on-surface-variant">Last Updated</p>
-                <p className="text-sm mt-1 text-on-surface">{new Date(swap.updatedAt).toLocaleString()}</p>
+                <p className="text-sm mt-1 text-on-surface">{formatDate(swap.updatedAt || swap.updateAt)}</p>
               </div>
             </div>
 
-           
+            {/* Completion Details */}
             {swap.status === 'completed' && swap.completedAt && (
               <div className="bg-tertiary-fixed/20 p-4 rounded-xl">
                 <div className="flex items-center gap-2 mb-2">
@@ -256,7 +269,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
                   </svg>
                   <h3 className="font-semibold text-tertiary">Completion Details</h3>
                 </div>
-                <p className="text-on-surface">Completed on: {new Date(swap.completedAt).toLocaleString()}</p>
+                <p className="text-on-surface">Completed on: {formatDate(swap.completedAt)}</p>
                 {swap.completionNotes && (
                   <p className="text-on-surface-variant mt-1">Notes: {swap.completionNotes}</p>
                 )}
@@ -264,6 +277,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
             )}
           </div>
 
+          {/* Footer */}
           <div className="sticky bottom-0 bg-white border-t border-outline-variant px-6 py-4 flex justify-end">
             <button onClick={onClose} className="bg-primary hover:bg-primary-container text-on-primary px-6 py-2.5 rounded-xl transition-all">
               Close
@@ -272,6 +286,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
         </div>
       </div>
 
+      {/* Photo Viewer Modal */}
       {selectedPhoto && (
         <div 
           className="fixed inset-0 bg-black/90 backdrop-blur-lg flex items-center justify-center z-[100] p-4"

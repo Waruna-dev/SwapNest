@@ -395,7 +395,7 @@ const updateSwapStatus = async (req, res) => {
         await createNotification(
           swap.requesterId,
           "swap_completed",
-          "Swap Completed Successfully! 🎉",
+          "Swap Completed Successfully! ",
           `Your swap with ${swap.requestedItem.ownerName} for "${swap.requestedItem.name}" has been completed. Thank you for using SwapNest!`,
           swap._id,
           item._id,
@@ -406,7 +406,7 @@ const updateSwapStatus = async (req, res) => {
         await createNotification(
           swap.requestedItem.ownerId,
           "swap_completed",
-          "Swap Completed Successfully! 🎉",
+          "Swap Completed Successfully! ",
           `Your swap with ${swap.requesterName} for "${swap.requestedItem.name}" has been completed. Thank you for using SwapNest!`,
           swap._id,
           item._id,
@@ -606,7 +606,7 @@ const requestCompletion = async (req, res) => {
       await createNotification(
         swap.requesterId,
         "swap_completed",
-        "Swap Completed Successfully! 🎉",
+        "Swap Completed Successfully! ",
         `Both you and ${swap.requestedItem.ownerName} have confirmed the swap for "${swap.requestedItem.name}" is complete. Thank you for using SwapNest!`,
         swap._id,
         swap.requestedItem.itemId,
@@ -616,7 +616,7 @@ const requestCompletion = async (req, res) => {
       await createNotification(
         swap.requestedItem.ownerId,
         "swap_completed",
-        "Swap Completed Successfully! 🎉",
+        "Swap Completed Successfully! ",
         `Both you and ${swap.requesterName} have confirmed the swap for "${swap.requestedItem.name}" is complete. Thank you for using SwapNest!`,
         swap._id,
         swap.requestedItem.itemId,

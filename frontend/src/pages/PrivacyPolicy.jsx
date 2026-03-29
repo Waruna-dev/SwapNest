@@ -16,7 +16,7 @@ const PrivacyPolicy = () => {
       <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-secondary-container/5 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-1/4 left-1/4 w-80 h-80 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
   
-      <div className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-secondary-container via-primary to-secondary-container bg-[length:200%_100%] animate-gradient-x z-50"></div>
+      <div className=""></div>
       
       <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-16 relative z-10">
    
