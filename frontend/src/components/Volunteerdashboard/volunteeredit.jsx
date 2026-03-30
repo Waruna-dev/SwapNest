@@ -273,7 +273,7 @@ export default function VolunteerEdit() {
         throw new Error('Failed to update volunteer');
       }
 
-      navigate("/dashboard/volunteer");
+      navigate("/volunteer-dashboard/volunteer");
     } catch (e2) {
       console.error('Save error details:', e2);
       console.error('Error response:', e2.response?.data);

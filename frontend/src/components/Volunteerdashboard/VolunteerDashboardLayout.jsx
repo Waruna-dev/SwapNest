@@ -18,16 +18,16 @@ export default function VolunteerDashboardLayout() {
         </div>
 
         <nav className="flex-1 px-4 pb-4 space-y-2">
-          <NavLink to="/dashboard" end className={linkClassName}>
+          <NavLink to="/volunteer-dashboard" end className={linkClassName}>
             📊 Overview
           </NavLink>
-          <NavLink to="/dashboard/volunteer" className={linkClassName}>
+          <NavLink to="/volunteer-dashboard/volunteer" className={linkClassName}>
             👥 Volunteer
           </NavLink>
-          <NavLink to="/dashboard/center" className={linkClassName}>
+          <NavLink to="/volunteer-dashboard/center" className={linkClassName}>
             🏢 Volunteer Center
           </NavLink>
-          <NavLink to="/dashboard/distribution-plan" className={linkClassName}>
+          <NavLink to="/volunteer-dashboard/distribution-plan" className={linkClassName}>
             📦 Distribution Plan
           </NavLink>
         </nav>

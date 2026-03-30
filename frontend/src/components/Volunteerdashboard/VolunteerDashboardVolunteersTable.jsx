@@ -649,7 +649,7 @@ export default function VolunteerDashboardVolunteersTable() {
                                 <button
                                   type="button"
                                   disabled={actionBusyId === id}
-                                  onClick={() => navigate(`/dashboard/volunteer/${id}/edit`)}
+                                  onClick={() => navigate(`/volunteer-dashboard/volunteer/${id}/edit`)}
                                   className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-3 py-2 rounded-xl font-bold text-xs hover:shadow-lg transform hover:scale-105 disabled:opacity-60 transition-all duration-200"
                                 >
                                   ✏️ Edit

@@ -73,7 +73,15 @@ export default function CenterEdit() {
   // Load center data
   useEffect(() => {
     async function loadCenter() {
+      if (!id) {
+        console.error("No center ID provided");
+        alert("No center ID provided");
+        navigate('/volunteer-dashboard/center');
+        return;
+      }
+      
       try {
+        console.log("Loading center with ID:", id);
         const res = await API.get(`/api/centers/${id}`);
         let center = res.data;
         
@@ -102,8 +110,9 @@ export default function CenterEdit() {
         setLongitude(center.longitude || "");
       } catch (err) {
         console.error("Error loading center:", err);
-        alert("Failed to load center data. Please try again.");
-        navigate('/dashboard/center');
+        console.error("Error details:", err.response?.data || err.message);
+        alert(`Failed to load center data: ${err.response?.data?.message || err.message}`);
+        navigate('/volunteer-dashboard/centers');
       } finally {
         setLoading(false);
       }
@@ -233,7 +242,7 @@ export default function CenterEdit() {
       if (data.success || data._id) {
         // Show success message then redirect
         alert("Center updated successfully!");
-        navigate('/dashboard/center');
+        navigate('/volunteer-dashboard/center');
       } else {
         alert(data.message || "Update failed. Please try again.");
       }

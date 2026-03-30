@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import API from "../../services/api";
 
+// ── Component Imports ──────────────────────────────────────────────────────────
+import Header from "../Header.jsx";
+import Footer from "../Footer.jsx";
+
 const Volunteer = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 5;
@@ -241,6 +245,9 @@ const Volunteer = () => {
 
   return (
     <div className="min-h-screen bg-[#F5F0E8] font-sans text-[#1A1A1A]">
+      {/* ── HEADER ───────────────────────────────────── */}
+      <Header />
+      
       {/* ── FORM CARD ── */}
       <div className="max-w-4xl mx-auto pt-8 px-4 pb-20">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-[#D0C9BA]">
@@ -429,6 +436,9 @@ const Volunteer = () => {
           </div>
         </div>
       </div>
+      
+      {/* ── FOOTER ───────────────────────────────────── */}
+      <Footer />
     </div>
   );
 };

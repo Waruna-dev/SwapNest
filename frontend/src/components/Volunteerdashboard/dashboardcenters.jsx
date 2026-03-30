@@ -120,6 +120,8 @@ export default function DashboardCenters() {
   });
 
   const handleAddCenter = () => {
+    console.log("Add New Center button clicked");
+    console.log("Navigating to: /dashboard/add-center");
     navigate('/dashboard/add-center');
   };
 
@@ -129,7 +131,9 @@ export default function DashboardCenters() {
   };
 
   const handleEditCenter = (centerId) => {
-    navigate(`/dashboard/center/${centerId}/edit`);
+    console.log("Edit button clicked for center ID:", centerId);
+    console.log("Navigating to absolute path:", `/volunteer-dashboard/center/${centerId}/edit`);
+    navigate(`/volunteer-dashboard/center/${centerId}/edit`);
   };
 
   const handleDeleteCenter = async (centerId) => {
@@ -147,6 +151,10 @@ export default function DashboardCenters() {
   const handleViewAssignedVolunteers = (centerId) => {
     setSelectedCenterId(centerId);
     setShowVolunteerModal(true);
+  };
+
+  const handleVolunteerCenter = () => {
+    navigate('/volunteer-hero');
   };
 
   const generateReport = () => {
@@ -405,10 +413,17 @@ export default function DashboardCenters() {
           </div>
           <div className="flex items-center gap-3">
             <button
+              onClick={handleVolunteerCenter}
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-all duration-200 flex items-center gap-2 transform hover:scale-105"
+            >
+              <span className="text-lg">👥</span>
+              Volunteer Center
+            </button>
+            <button
               onClick={() => setShowReportModal(true)}
               className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition-all duration-200 flex items-center gap-2 transform hover:scale-105"
             >
-              <span className="text-lg">�</span>
+              <span className="text-lg">📄</span>
               Generate Report
             </button>
             <button
