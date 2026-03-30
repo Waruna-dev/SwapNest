@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import API from "../../services/api";
 
+// ── Component Imports ──────────────────────────────────────────────────────────
+import Header from "../Header.jsx";
+import Footer from "../Footer.jsx";
+
 // ── Asset Imports ──────────────────────────────────────────────────────────
 import voidVideo from "../../pictures/void.mp4";
 import teamImg from "../../pictures/93c13d67b36bda544bdff473c7ded9a7.jpg";
@@ -226,6 +230,9 @@ export default function VolunteerPage() {
 
   return (
     <div className="min-h-screen bg-white text-[#1A1A1A] font-sans overflow-x-hidden">
+      {/* ── HEADER ───────────────────────────────────── */}
+      <Header />
+      
       {/* ── HERO SECTION ───────────────────────────────────── */}
       <section className="relative min-h-screen flex items-center px-6 lg:px-20 py-20">
         <div className="max-w-[1400px] mx-auto flex flex-col lg:flex-row items-center gap-12 z-10">
@@ -378,6 +385,9 @@ export default function VolunteerPage() {
           )}
         </motion.div>
       </section>
+      
+      {/* ── FOOTER ───────────────────────────────────── */}
+      <Footer />
     </div>
   );
 }

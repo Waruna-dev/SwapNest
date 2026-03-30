@@ -1,6 +1,6 @@
 const Footer = () => {
   return (
-    <footer className="bg-primary text-on-primary font-body w-full rounded-t-[3rem] mt-10 overflow-hidden reveal-on-scroll opacity-0 translate-y-12 transition-all duration-1000 ease-out">
+    <footer className="bg-primary text-on-primary font-body w-full rounded-t-[3rem] mt-10 overflow-hidden">
       <div className="flex flex-col md:flex-row justify-between items-start w-full px-8 md:px-16 py-20 max-w-7xl mx-auto gap-12">
         
         <div className="mb-8 md:mb-0 max-w-sm">
