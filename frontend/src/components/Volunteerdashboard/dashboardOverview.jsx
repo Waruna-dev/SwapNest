@@ -1,7 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import API from "../../services/api";
-
-const fallbackApiBase = "http://localhost:5000";
+import { fetchVolunteers, fetchCenters, fetchActiveCentersCount } from "../../services/volunteerService";
 
 function safeGetCentersArrayFromJson(json) {
   // fetch: { success: true, count, data }
@@ -13,6 +11,39 @@ function safeGetCentersArrayFromJson(json) {
 function formatNumber(n) {
   if (typeof n !== "number" || Number.isNaN(n)) return "0";
   return n.toLocaleString();
+}
+
+function getCoordinatesForDistrict(districtName) {
+  // Coordinates for major Sri Lankan districts
+  const districtCoordinates = {
+    "Colombo": "79.8612,6.9271",
+    "Gampaha": "80.0098,7.0873", 
+    "Kalutara": "79.9616,6.5687",
+    "Kandy": "80.6337,7.2906",
+    "Matale": "80.6237,7.4665",
+    "Nuwara Eliya": "80.7779,6.9700",
+    "Galle": "80.2170,6.0535",
+    "Matara": "80.5550,5.9549",
+    "Hambantota": "81.1278,6.1244",
+    "Jaffna": "80.0070,9.6615",
+    "Kilinochchi": "80.3968,9.3803",
+    "Mannar": "80.0479,8.9807",
+    "Vavuniya": "80.4975,8.7538",
+    "Mullaitivu": "81.8193,9.2676",
+    "Batticaloa": "81.7025,7.7102",
+    "Ampara": "81.6981,7.2954",
+    "Trincomalee": "81.7896,8.5874",
+    "Kurunegala": "80.3647,7.4818",
+    "Puttalam": "79.8289,7.8203",
+    "Anuradhapura": "80.5984,8.3114",
+    "Polonnaruwa": "81.0833,7.9400",
+    "Badulla": "81.0535,6.9934",
+    "Monaragala": "81.3520,6.8700",
+    "Ratnapura": "80.3844,6.7059",
+    "Kegalle": "80.3456,7.2518"
+  };
+  
+  return districtCoordinates[districtName] || "79.8612,6.9271"; // Default to Colombo
 }
 
 function StatCard({ icon, value, label, tone = "sage" }) {
@@ -56,70 +87,26 @@ export default function DashboardOverview() {
       setLoading(true);
       setError("");
 
-      // Try API (axios). If base URL/env is missing, fall back to localhost:5000.
-      const apiReqs = [
-        API.get("/volunteers"),
-        API.get("/centers"),
-        API.get("/centers", { params: { status: "Active" } }),
-      ];
+      try {
+        // Use shared service functions for consistent data fetching
+        const [volunteersData, centersData, activeCount] = await Promise.all([
+          fetchVolunteers(),
+          fetchCenters(),
+          fetchActiveCentersCount()
+        ]);
 
-      const [volRes, cenRes, activeRes] = await Promise.allSettled(apiReqs);
-
-      const tryExtractVolunteers = () => {
-        if (volRes.status === "fulfilled") {
-          return Array.isArray(volRes.value?.data) ? volRes.value.data : volRes.value?.data?.data ?? [];
+        if (!cancelled) {
+          setVolunteers(volunteersData);
+          setCenters(centersData);
+          setActiveCentersCount(activeCount);
+          setLoading(false);
         }
-        return null;
-      };
-
-      const tryExtractCenters = () => {
-        if (cenRes.status === "fulfilled") {
-          // axios: { success:true, data:[...] }
-          return Array.isArray(cenRes.value?.data?.data) ? cenRes.value.data.data : cenRes.value?.data?.data ?? [];
+      } catch (e) {
+        if (!cancelled) {
+          console.error("Error loading dashboard data:", e);
+          setError("Could not load dashboard report. Is the backend running?");
+          setLoading(false);
         }
-        return null;
-      };
-
-      const tryExtractActiveCount = () => {
-        if (activeRes.status === "fulfilled") {
-          if (typeof activeRes.value?.data?.count === "number") return activeRes.value.data.count;
-          const arr = Array.isArray(activeRes.value?.data?.data) ? activeRes.value.data.data : [];
-          return arr.length;
-        }
-        return null;
-      };
-
-      let nextVolunteers = tryExtractVolunteers();
-      let nextCenters = tryExtractCenters();
-      let nextActiveCount = tryExtractActiveCount();
-
-      if (nextVolunteers == null || nextCenters == null || nextActiveCount == null) {
-        // Fallback using fetch to the backend (works even if axios baseURL is not configured).
-        try {
-          const [vJson, cJson, aJson] = await Promise.all([
-            fetch(`${fallbackApiBase}/api/volunteers`).then((r) => r.json()),
-            fetch(`${fallbackApiBase}/api/centers`).then((r) => r.json()),
-            fetch(`${fallbackApiBase}/api/centers?status=Active`).then((r) => r.json()),
-          ]);
-
-          if (nextVolunteers == null) nextVolunteers = Array.isArray(vJson) ? vJson : [];
-          if (nextCenters == null) nextCenters = safeGetCentersArrayFromJson(cJson);
-          if (nextActiveCount == null) {
-            if (typeof aJson?.count === "number") nextActiveCount = aJson.count;
-            else nextActiveCount = safeGetCentersArrayFromJson(aJson).length;
-          }
-        } catch (e) {
-          if (!cancelled) {
-            setError("Could not load dashboard report. Is the backend running?");
-          }
-        }
-      }
-
-      if (!cancelled) {
-        setVolunteers(nextVolunteers || []);
-        setCenters(nextCenters || []);
-        setActiveCentersCount(typeof nextActiveCount === "number" ? nextActiveCount : 0);
-        setLoading(false);
       }
     }
 
@@ -189,26 +176,45 @@ export default function DashboardOverview() {
           <StatCard icon="🧮" value={totals.totalCapacity} label="Total Capacity" tone="zinc" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-4 mb-6">
           <div className="bg-white rounded-2xl border border-zinc-200 p-5">
             <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3">
-              Top District
+              Our Mission
             </div>
-            <div className="text-2xl font-black text-[#1A1A1A]">
-              {totals.topDistrict ? totals.topDistrict[0] : "—"}
-            </div>
-            <div className="text-zinc-500 mt-1">
-              {totals.topDistrict ? `${totals.topDistrict[1]} centers` : "No center data yet."}
-            </div>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-zinc-200 p-5">
-            <div className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3">
-              Network Snapshot
-            </div>
-            <div className="text-zinc-700 leading-relaxed">
-              Use the sidebar to manage volunteer applications, register centers, and create distribution
-              plans.
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-emerald-600 text-sm">♻️</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-zinc-800 mb-1">Circular Economy</h4>
+                  <p className="text-sm text-zinc-600 leading-relaxed">
+                    Transforming waste into valuable resources through community-driven redistribution
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-blue-600 text-sm">🤝</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-zinc-800 mb-1">Community Impact</h4>
+                  <p className="text-sm text-zinc-600 leading-relaxed">
+                    Empowering local volunteers to create sustainable change in their neighborhoods
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-amber-600 text-sm">🌱</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-zinc-800 mb-1">Environmental Stewardship</h4>
+                  <p className="text-sm text-zinc-600 leading-relaxed">
+                    Reducing landfill waste and promoting sustainable consumption patterns
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -276,6 +282,42 @@ export default function DashboardOverview() {
                       <div className="text-xs text-blue-600">location</div>
                     </div>
                   </div>
+
+                  {/* Location Data Display */}
+                  {(center.latitude || center.longitude) && (
+                    <div className="bg-gradient-to-br from-slate-50 to-gray-100 rounded-xl p-3 border border-gray-200 mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+                          📍 Location
+                        </div>
+                        <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                          <span className="text-xs">🌍</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 mb-2">
+                        <div className="bg-white rounded-lg p-2 border border-gray-200">
+                          <div className="text-xs text-gray-500 mb-0.5">Lat</div>
+                          <div className="text-xs font-mono font-semibold text-gray-800">
+                            {center.latitude ? center.latitude.toFixed(4) : 'N/A'}
+                          </div>
+                        </div>
+                        <div className="bg-white rounded-lg p-2 border border-gray-200">
+                          <div className="text-xs text-gray-500 mb-0.5">Lng</div>
+                          <div className="text-xs font-mono font-semibold text-gray-800">
+                            {center.longitude ? center.longitude.toFixed(4) : 'N/A'}
+                          </div>
+                        </div>
+                      </div>
+                      <a 
+                        href={`https://www.google.com/maps?q=${center.latitude},${center.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs bg-blue-500 text-white px-2 py-1 rounded-full hover:bg-blue-600 transition-colors inline-flex items-center gap-1 w-full justify-center"
+                      >
+                        🗺️ View on Maps
+                      </a>
+                    </div>
+                  )}
 
                   {/* Contact Information */}
                   <div className="space-y-2 mb-4">

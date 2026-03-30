@@ -1,11 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../../services/api";
+import { fetchVolunteers } from "../../services/volunteerService";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-const API_BASE_FALLBACK = "http://localhost:5000";
-const API_BASE = import.meta.env.VITE_API_URL || API_BASE_FALLBACK;
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export default function VolunteerDashboardVolunteersTable() {
   const navigate = useNavigate();
@@ -47,6 +46,8 @@ export default function VolunteerDashboardVolunteersTable() {
     const v = statusLabel(s);
     if (v === "Accepted")
       return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    if (v === "Assigned")
+      return "bg-blue-50 text-blue-700 border-blue-200";
     if (v === "Rejected")
       return "bg-rose-50 text-rose-700 border-rose-200";
     return "bg-zinc-50 text-zinc-700 border-zinc-200";
@@ -83,24 +84,10 @@ export default function VolunteerDashboardVolunteersTable() {
     setLoading(true);
     setError("");
     try {
-      const axiosRes = await API.get("/volunteers");
-      const data = Array.isArray(axiosRes.data)
-        ? axiosRes.data
-        : axiosRes.data?.data ?? [];
+      const data = await fetchVolunteers();
       setVolunteers(data);
-    } catch (e) {
-      // Retry with direct fetch + show error reason.
-      try {
-        const res = await fetch(`${API_BASE_FALLBACK}/api/volunteers`);
-        const json = await res.json().catch(() => null);
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status} ${res.statusText || ""}`.trim());
-        }
-        const data = Array.isArray(json) ? json : json?.data ?? [];
-        setVolunteers(data);
-      } catch (err) {
-        setError(`Could not load volunteers. ${String(err?.message || err)}`);
-      }
+    } catch (err) {
+      setError(`Could not load volunteers. ${String(err?.message || err)}`);
     } finally {
       setLoading(false);
     }
@@ -529,7 +516,7 @@ export default function VolunteerDashboardVolunteersTable() {
           </button>
           <button
             type="button"
-            onClick={() => navigate("/dashboard/volunteer/apply")}
+            onClick={() => navigate("/volunteer/apply")}
             className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-bold text-sm hover:shadow-xl transform hover:scale-105 transition-all duration-300 border border-blue-400"
           >
             ➕ Become a Volunteer

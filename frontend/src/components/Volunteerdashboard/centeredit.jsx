@@ -35,6 +35,10 @@ export default function CenterEdit() {
   const [address, setAddress] = useState("");
   const [email, setEmail] = useState("");
   const [contactNumber, setContactNumber] = useState("");
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+  const [mapError, setMapError] = useState("");
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
 
   // Step 2 - Operations
   const [operatingHours, setOperatingHours] = useState("");
@@ -94,6 +98,8 @@ export default function CenterEdit() {
         setManagerName(center.managerName || "");
         setManagerEmail(center.managerEmail || "");
         setManagerContact(center.managerContact || "");
+        setLatitude(center.latitude || "");
+        setLongitude(center.longitude || "");
       } catch (err) {
         console.error("Error loading center:", err);
         alert("Failed to load center data. Please try again.");
@@ -134,6 +140,70 @@ export default function CenterEdit() {
     if (step > 1) setStep(step - 1);
   };
 
+  // Location functions
+  const getCurrentLocation = () => {
+    setIsLoadingLocation(true);
+    setMapError("");
+
+    if (!navigator.geolocation) {
+      setMapError("Geolocation is not supported by your browser");
+      setIsLoadingLocation(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude.toFixed(6);
+        const lng = position.coords.longitude.toFixed(6);
+        setLatitude(lat);
+        setLongitude(lng);
+        setIsLoadingLocation(false);
+        console.log("Got current location:", { lat, lng });
+      },
+      (error) => {
+        setMapError("Unable to get your location: " + error.message);
+        setIsLoadingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  };
+
+  const geocodeAddress = async () => {
+    if (!address || !city || !district) {
+      setMapError("Please fill in address, city, and district first");
+      return;
+    }
+
+    setIsLoadingLocation(true);
+    setMapError("");
+
+    try {
+      const fullAddress = `${address}, ${city}, ${district}, Sri Lanka`;
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&limit=1`
+      );
+      const data = await response.json();
+
+      if (data && data.length > 0) {
+        const lat = parseFloat(data[0].lat).toFixed(6);
+        const lng = parseFloat(data[0].lon).toFixed(6);
+        setLatitude(lat);
+        setLongitude(lng);
+        console.log("Geocoded address:", { lat, lng, address: fullAddress });
+      } else {
+        setMapError("Address not found. Please try a more specific address or use current location.");
+      }
+    } catch (error) {
+      setMapError("Failed to geocode address: " + error.message);
+    } finally {
+      setIsLoadingLocation(false);
+    }
+  };
+
   const handleSubmit = async () => {
     setIsLoading(true);
     setErrors({});
@@ -153,6 +223,8 @@ export default function CenterEdit() {
       managerName,
       managerEmail,
       managerContact,
+      latitude: latitude ? Number(latitude) : null,
+      longitude: longitude ? Number(longitude) : null,
     };
 
     try {
@@ -345,6 +417,68 @@ export default function CenterEdit() {
                     placeholder="+94 77 123 4567"
                   />
                   {errors.contactNumber && <p className="text-red-500 text-xs mt-1">{errors.contactNumber}</p>}
+                </div>
+
+                {/* Location Section */}
+                <div className="md:col-span-2">
+                  <label className="block text-[13px] font-bold text-[#555] mb-2">📍 LOCATION DATA</label>
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Latitude</label>
+                        <input
+                          type="number"
+                          step="any"
+                          value={latitude}
+                          onChange={(e) => setLatitude(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                          placeholder="e.g., 6.9271"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Longitude</label>
+                        <input
+                          type="number"
+                          step="any"
+                          value={longitude}
+                          onChange={(e) => setLongitude(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                          placeholder="e.g., 79.8612"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <button
+                        type="button"
+                        onClick={getCurrentLocation}
+                        disabled={isLoadingLocation}
+                        className="flex-1 bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {isLoadingLocation ? "📍 Getting Location..." : "📍 Use Current Location"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={geocodeAddress}
+                        disabled={isLoadingLocation}
+                        className="flex-1 bg-green-500 text-white px-4 py-2 rounded text-sm font-medium hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {isLoadingLocation ? "🔍 Geocoding..." : "🔍 Get from Address"}
+                      </button>
+                    </div>
+                    
+                    {mapError && (
+                      <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-600">
+                        ⚠️ {mapError}
+                      </div>
+                    )}
+                    
+                    {(latitude || longitude) && (
+                      <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-600">
+                        ✅ Location set: {latitude ? latitude : 'N/A'}, {longitude ? longitude : 'N/A'}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

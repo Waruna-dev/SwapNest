@@ -111,6 +111,8 @@ export default function Center() {
   const [description, setDescription]     = useState("");
   const [latitude, setLatitude]           = useState("");
   const [longitude, setLongitude]         = useState("");
+  const [mapError, setMapError]           = useState("");
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
 
   // Step 2
   const [openTime, setOpenTime]           = useState("08:00");
@@ -186,6 +188,70 @@ export default function Center() {
   const goBack = () => {
     setStep((s) => Math.max(s - 1, 1));
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Location functions
+  const getCurrentLocation = () => {
+    setIsLoadingLocation(true);
+    setMapError("");
+
+    if (!navigator.geolocation) {
+      setMapError("Geolocation is not supported by your browser");
+      setIsLoadingLocation(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude.toFixed(6);
+        const lng = position.coords.longitude.toFixed(6);
+        setLatitude(lat);
+        setLongitude(lng);
+        setIsLoadingLocation(false);
+        console.log("Got current location:", { lat, lng });
+      },
+      (error) => {
+        setMapError("Unable to get your location: " + error.message);
+        setIsLoadingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  };
+
+  const geocodeAddress = async () => {
+    if (!address || !city || !district) {
+      setMapError("Please fill in address, city, and district first");
+      return;
+    }
+
+    setIsLoadingLocation(true);
+    setMapError("");
+
+    try {
+      const fullAddress = `${address}, ${city}, ${district}, Sri Lanka`;
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&limit=1`
+      );
+      const data = await response.json();
+
+      if (data && data.length > 0) {
+        const lat = parseFloat(data[0].lat).toFixed(6);
+        const lng = parseFloat(data[0].lon).toFixed(6);
+        setLatitude(lat);
+        setLongitude(lng);
+        console.log("Geocoded address:", { lat, lng, address: fullAddress });
+      } else {
+        setMapError("Address not found. Please try a more specific address or use current location.");
+      }
+    } catch (error) {
+      setMapError("Failed to geocode address: " + error.message);
+    } finally {
+      setIsLoadingLocation(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -342,6 +408,113 @@ export default function Center() {
                     value={longitude} onChange={(e) => setLongitude(e.target.value)}
                     className={inputCls(false)} />
                 </F>
+
+                {/* Location Section */}
+                <div className="col-span-2 max-sm:col-span-1">
+                  <label className="block text-[11px] font-semibold text-[#555] uppercase tracking-[0.7px] mb-2">
+                    📍 Location Detection
+                  </label>
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div className="flex flex-col sm:flex-row gap-2 mb-3">
+                      <button
+                        type="button"
+                        onClick={getCurrentLocation}
+                        disabled={isLoadingLocation}
+                        className="flex-1 bg-blue-500 text-white px-4 py-2 rounded text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {isLoadingLocation ? "📍 Getting Location..." : "📍 Use Current Location"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={geocodeAddress}
+                        disabled={isLoadingLocation}
+                        className="flex-1 bg-green-500 text-white px-4 py-2 rounded text-sm font-medium hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {isLoadingLocation ? "🔍 Geocoding..." : "🔍 Get from Address"}
+                      </button>
+                    </div>
+                    
+                    {mapError && (
+                      <div className="p-2 bg-red-50 border border-red-200 rounded text-xs text-red-600">
+                        ⚠️ {mapError}
+                      </div>
+                    )}
+                    
+                    {(latitude || longitude) && (
+                      <div className="mt-3">
+                        <div className="p-2 bg-green-50 border border-green-200 rounded text-xs text-green-600 mb-2">
+                          ✅ Location set: {latitude ? latitude : 'N/A'}, {longitude ? longitude : 'N/A'}
+                        </div>
+                        
+                        {/* Beautiful Location Data Display */}
+                        <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-slate-50 to-gray-100 overflow-hidden">
+                          <div className="bg-gradient-to-r from-blue-500 to-teal-500 p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="text-white">
+                                <div className="text-lg font-bold flex items-center gap-2">
+                                  📍 Location Details
+                                </div>
+                                <div className="text-sm text-blue-100 mt-1">
+                                  {centerName || 'Center Location'}
+                                </div>
+                              </div>
+                              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                <span className="text-2xl">🌍</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="p-4 space-y-3">
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="bg-white rounded-lg p-3 border border-gray-200">
+                                <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Latitude</div>
+                                <div className="text-sm font-mono font-semibold text-gray-800">
+                                  {latitude || 'Not set'}
+                                </div>
+                              </div>
+                              <div className="bg-white rounded-lg p-3 border border-gray-200">
+                                <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Longitude</div>
+                                <div className="text-sm font-mono font-semibold text-gray-800">
+                                  {longitude || 'Not set'}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="bg-white rounded-lg p-3 border border-gray-200">
+                              <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Address</div>
+                              <div className="text-sm text-gray-800">
+                                {address && <div className="mb-1">{address}</div>}
+                                {city && district && (
+                                  <div className="text-gray-600">
+                                    {city}, {district}, Sri Lanka
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                              <div className="flex items-center gap-2 text-xs text-gray-500">
+                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                Location coordinates captured
+                              </div>
+                              <a 
+                                href={`https://www.google.com/maps?q=${latitude},${longitude}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs bg-blue-500 text-white px-3 py-1 rounded-full hover:bg-blue-600 transition-colors inline-flex items-center gap-1"
+                              >
+                                🗺️ View Maps
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1 text-center">
+                          📍 {centerName || 'Center Location'}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
 
                 <div className="col-span-2 max-sm:col-span-1">
                   <label className="block text-[11px] font-semibold text-[#555] uppercase tracking-[0.7px] mb-2">

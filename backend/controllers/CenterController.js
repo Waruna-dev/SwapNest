@@ -114,3 +114,13 @@ export const getCentersByDistrict = async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to fetch centers by district", error: error.message });
   }
 };
+
+// ── GET active centers count ───────────────────────────────────────────────
+export const getActiveCentersCount = async (req, res) => {
+  try {
+    const count = await Center.countDocuments({ status: "Active" });
+    res.status(200).json({ success: true, count });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Failed to fetch active centers count", error: error.message });
+  }
+};

@@ -8,6 +8,7 @@ import {
   deleteCenter,
   updateVolunteerCount,
   getCentersByDistrict,
+  getActiveCentersCount,
 } from "../controllers/CenterController.js";
 
 import {
@@ -26,6 +27,7 @@ router
   .post(validateCenter, handleValidationErrors, createCenter);
 
 router.get("/district/:district", getCentersByDistrict);
+router.get("/active/count", getActiveCentersCount);
 
 router
   .route("/:id")

@@ -376,7 +376,7 @@ export default function VolunteerCentersTable() {
                           <button
                             type="button"
                             onClick={() =>
-                              navigate("/dashboard/volunteer/apply", {
+                              navigate("/volunteer/apply", {
                                 state: { center: c },
                               })
                             }

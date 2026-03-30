@@ -372,7 +372,7 @@ export default function VolunteerPage() {
               <CenterCard
                 key={center._id}
                 center={center}
-                onVolunteer={(c) => navigate("/dashboard/volunteer/apply", { state: { center: c } })}
+                onVolunteer={(c) => navigate("/volunteer/apply", { state: { center: c} })}
               />
             ))
           )}

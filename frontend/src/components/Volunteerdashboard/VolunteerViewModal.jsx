@@ -7,15 +7,22 @@ export default function VolunteerViewModal({ centerId, onClose }) {
   const [volunteers, setVolunteers] = useState([]);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const fetchData = async () => {
+  const fetchData = async () => {
       try {
         setLoading(true);
         setError("");
 
         // Get center details
         const centerRes = await API.get(`/api/centers/${centerId}`);
-        const centerData = centerRes.data;
+        console.log("Center API response:", centerRes.data);
+        
+        // Handle different response structures
+        let centerData = centerRes.data;
+        if (centerRes.data?.data) {
+          centerData = centerRes.data.data;
+        }
+        
+        console.log("Center data set:", centerData);
         setCenter(centerData);
 
         // Get assigned volunteers
@@ -36,15 +43,31 @@ export default function VolunteerViewModal({ centerId, onClose }) {
       }
     };
 
+  useEffect(() => {
     if (centerId) {
       fetchData();
     }
   }, [centerId]);
 
+  // Add refresh function
+  const refreshData = () => {
+    if (centerId) {
+      fetchData();
+    }
+  };
+
   const assignedCount = volunteers.length;
   const capacity = center?.capacity || 0;
   const availableSlots = capacity - assignedCount;
   const capacityPercentage = capacity > 0 ? (assignedCount / capacity) * 100 : 0;
+  
+  console.log("Capacity calculation:", {
+    center,
+    capacity,
+    assignedCount,
+    availableSlots,
+    capacityPercentage
+  });
 
   if (loading) {
     return (
@@ -171,6 +194,7 @@ export default function VolunteerViewModal({ centerId, onClose }) {
                     <div className="flex-shrink-0">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         volunteer.applicationStatus === 'Accepted' ? 'bg-green-100 text-green-800' :
+                        volunteer.applicationStatus === 'Assigned' ? 'bg-blue-100 text-blue-800' :
                         volunteer.applicationStatus === 'Rejected' ? 'bg-red-100 text-red-800' :
                         'bg-yellow-100 text-yellow-800'
                       }`}>
@@ -203,7 +227,14 @@ export default function VolunteerViewModal({ centerId, onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+        <div className="flex justify-between gap-3 mt-6 pt-6 border-t border-gray-200">
+          <button
+            onClick={refreshData}
+            disabled={loading}
+            className="px-6 py-2 text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? "Refreshing..." : "🔄 Refresh Data"}
+          </button>
           <button
             onClick={onClose}
             className="px-6 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"

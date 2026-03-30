@@ -44,7 +44,7 @@ const VolunteerSchema = new mongoose.Schema(
 		// Existing records without this field will behave like "Pending" on the UI.
 		applicationStatus: {
 			type: String,
-			enum: ["Pending", "Accepted", "Rejected"],
+			enum: ["Pending", "Accepted", "Rejected", "Assigned"],
 			default: "Pending",
 		}
 	},

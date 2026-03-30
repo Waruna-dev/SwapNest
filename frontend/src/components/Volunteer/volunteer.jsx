@@ -229,10 +229,10 @@ const Volunteer = () => {
             application and contact you within 3–5 business days.
           </p>
           <Link
-            to="/dashboard/volunteer"
+            to="/volunteer-hero"
             className="block w-full py-4 bg-[#2D4A35] text-white rounded-xl font-bold hover:bg-[#1f3325] transition-colors text-center"
           >
-            ← Back to Home
+            ← Back to Volunteer Page
           </Link>
         </div>
       </div>

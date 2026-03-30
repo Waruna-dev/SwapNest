@@ -32,6 +32,7 @@ export default function VolunteerEdit() {
     district: "",
     city: "",
     center: "",
+    originalCenter: "", // Store original center value for reference
     centerReason: "",
     hasVehicle: false,
     hasLicense: false,
@@ -99,7 +100,8 @@ export default function VolunteerEdit() {
         };
 
         if (!cancelled) {
-          const formData = {
+          const matchedCenter = findMatchingCenter(v.center);
+        const formData = {
             firstName: v.firstName || "",
             lastName: v.lastName || "",
             email: v.email || "",
@@ -111,7 +113,8 @@ export default function VolunteerEdit() {
             address: v.address || "",
             district: v.district || "",
             city: v.city || "",
-            center: findMatchingCenter(v.center),
+            center: matchedCenter,
+            originalCenter: v.center || "", // Store original center
             centerReason: v.centerReason || "",
             hasVehicle: !!v.hasVehicle,
             hasLicense: !!v.hasLicense,
@@ -161,10 +164,13 @@ export default function VolunteerEdit() {
   };
 
   const findMatchingCenter = (volunteerCenter) => {
-    if (!volunteerCenter || !centers.length) return '';
+    if (!volunteerCenter || !centers.length) {
+      console.log('No volunteer center or no centers loaded', { volunteerCenter, centersLength: centers.length });
+      return volunteerCenter || ''; // Return original center if no centers loaded
+    }
     
     console.log('Finding match for:', volunteerCenter);
-    console.log('Available centers:', centers.map(c => c.centerName));
+    console.log('Available centers:', centers.map(c => ({ id: c._id, name: c.centerName })));
     
     // Try exact match first
     const exactMatch = centers.find(c => c.centerName === volunteerCenter);
@@ -192,50 +198,77 @@ export default function VolunteerEdit() {
       return partialMatch.centerName;
     }
     
-    console.log('No match found, returning original');
-    return volunteerCenter;
+    console.log('No match found, returning original center');
+    return volunteerCenter; // Return original center so it appears in dropdown
   };
 
   const onSave = async (e) => {
     e.preventDefault();
     setSaving(true);
     setError("");
+    
+    // Validate center selection - allow any center value (original or new)
+    if (!form.center) {
+      setError('Please select a center from the dropdown.');
+      setSaving(false);
+      return;
+    }
+    
     try {
-      const payload = {
-        firstName: form.firstName,
-        lastName: form.lastName,
-        email: form.email,
-        phone: form.phone,
-        nic: form.nic,
-        dob: form.dob ? new Date(form.dob).toISOString() : undefined,
-        gender: form.gender,
-        emergencyContact: form.emergencyContact,
-        address: form.address,
-        district: form.district,
-        city: form.city,
-        center: form.center,
-        centerReason: form.centerReason,
-        hasVehicle: form.hasVehicle,
-        hasLicense: form.hasLicense,
-        canTravel: form.canTravel,
-        skills: parseList(form.skillsText),
-        tasks: parseList(form.tasksText),
-        experience: form.experience,
-        maxTasks: form.maxTasks,
-        bio: form.bio,
-        days: parseList(form.daysText),
-        time: parseList(form.timeText),
-        hoursPerWeek: form.hoursPerWeek,
-        startDate: form.startDate ? new Date(form.startDate).toISOString() : undefined,
-        agreeTerms: form.agreeTerms,
-        agreePrivacy: form.agreePrivacy,
-        agreeNotif: form.agreeNotif,
-        applicationStatus: form.applicationStatus,
-      };
+      // Create a cleaner payload with only defined/valid values
+      const payload = {};
+      
+      // Only include fields that have values
+      if (form.firstName) payload.firstName = form.firstName;
+      if (form.lastName) payload.lastName = form.lastName;
+      if (form.email) payload.email = form.email;
+      if (form.phone) payload.phone = form.phone;
+      if (form.nic) payload.nic = form.nic;
+      if (form.dob) payload.dob = new Date(form.dob).toISOString();
+      if (form.gender) payload.gender = form.gender;
+      if (form.emergencyContact) payload.emergencyContact = form.emergencyContact;
+      if (form.address) payload.address = form.address;
+      if (form.district) payload.district = form.district;
+      if (form.city) payload.city = form.city;
+      if (form.center) payload.center = form.center;
+      if (form.centerReason) payload.centerReason = form.centerReason;
+      if (form.hasVehicle !== undefined) payload.hasVehicle = form.hasVehicle;
+      if (form.hasLicense !== undefined) payload.hasLicense = form.hasLicense;
+      if (form.canTravel !== undefined) payload.canTravel = form.canTravel;
+      
+      const skills = parseList(form.skillsText);
+      if (skills.length > 0) payload.skills = skills;
+      
+      const tasks = parseList(form.tasksText);
+      if (tasks.length > 0) payload.tasks = tasks;
+      
+      if (form.experience) payload.experience = form.experience;
+      if (form.maxTasks) payload.maxTasks = form.maxTasks;
+      if (form.bio) payload.bio = form.bio;
+      
+      const days = parseList(form.daysText);
+      if (days.length > 0) payload.days = days;
+      
+      const time = parseList(form.timeText);
+      if (time.length > 0) payload.time = time;
+      
+      if (form.hoursPerWeek) payload.hoursPerWeek = form.hoursPerWeek;
+      if (form.startDate) payload.startDate = new Date(form.startDate).toISOString();
+      
+      if (form.agreeTerms !== undefined) payload.agreeTerms = form.agreeTerms;
+      if (form.agreePrivacy !== undefined) payload.agreePrivacy = form.agreePrivacy;
+      if (form.agreeNotif !== undefined) payload.agreeNotif = form.agreeNotif;
+      // Only include applicationStatus if it's not "Assigned" (backend might not be updated yet)
+      if (form.applicationStatus && form.applicationStatus !== "Assigned") {
+        payload.applicationStatus = form.applicationStatus;
+      } else if (form.applicationStatus === "Assigned") {
+        // Temporarily use "Accepted" as fallback for "Assigned" until backend is updated
+        payload.applicationStatus = "Accepted";
+      }
 
+      console.log('Payload being sent:', payload);
       const res = await API.put(`/api/volunteers/${id}`, payload);
       console.log('Save API response:', res);
-      console.log('Payload being sent:', payload);
       if (!res.data) {
         throw new Error('Failed to update volunteer');
       }
@@ -244,7 +277,11 @@ export default function VolunteerEdit() {
     } catch (e2) {
       console.error('Save error details:', e2);
       console.error('Error response:', e2.response?.data);
+      console.error('Full error:', e2);
+      console.error('Error status:', e2.response?.status);
+      console.error('Error headers:', e2.response?.headers);
       const errorMessage = e2.response?.data?.message || e2.response?.data?.error || e2?.message || e2;
+      console.error('Extracted error message:', errorMessage);
       setError(String(errorMessage));
     } finally {
       setSaving(false);
@@ -324,20 +361,31 @@ export default function VolunteerEdit() {
                     {center.centerName} - {center.city}, {center.district}
                   </option>
                 ))}
+                {/* Add original center as option if it doesn't match any available centers */}
+                {form.originalCenter && !centers.find(c => c.centerName === form.originalCenter) && (
+                  <option value={form.originalCenter} style={{color: '#dc2626', fontWeight: 'bold'}}>
+                    {form.originalCenter} (Original - Not in Available List)
+                  </option>
+                )}
               </select>
               <div className="text-xs text-zinc-500 mt-1">
                 Available centers: {centers.length} | Current: {form.center || 'None'}
               </div>
+              {form.originalCenter && !form.center && (
+                <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
+                  ⚠️ Original center "{form.originalCenter}" not found in available centers. You can keep the original or select a new one.
+                </div>
+              )}
               {centers.length > 0 && (
                 <button
                   type="button"
                   onClick={() => {
-                    console.log('Test: Setting center to first available:', centers[0].centerName);
+                    console.log('Setting center to first available:', centers[0].centerName);
                     setForm(p => ({ ...p, center: centers[0].centerName }));
                   }}
                   className="mt-2 text-xs bg-blue-500 text-white px-2 py-1 rounded"
                 >
-                  Test: Set First Center
+                  Set First Center
                 </button>
               )}
             </Field>
@@ -346,6 +394,7 @@ export default function VolunteerEdit() {
                 <option value="Pending">Pending</option>
                 <option value="Accepted">Accepted</option>
                 <option value="Rejected">Rejected</option>
+                <option value="Assigned">Assigned</option>
               </select>
             </Field>
 
