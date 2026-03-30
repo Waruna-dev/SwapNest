@@ -20,7 +20,7 @@ const Header = () => {
       if (token) {
         setIsLoggedIn(true);
         try {
-          const response = await API.get('/users/me');
+          const response = await API.get('/api/users/me');
           if (response.data.profilePic) {
             setProfilePic(response.data.profilePic);
           }

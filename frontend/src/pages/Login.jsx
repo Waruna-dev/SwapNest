@@ -18,7 +18,7 @@ const Login = () => {
     onSuccess: async (tokenResponse) => {
       setIsLoading(true);
       try {
-        const response = await API.post('/users/google', {
+        const response = await API.post('/api/users/google', {
           googleAccessToken: tokenResponse.access_token
         });
         
@@ -39,7 +39,7 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const response = await API.post('/users/login', { email, password });
+      const response = await API.post('/api/users/login', { email, password });
       
       localStorage.setItem('swapnest_token', response.data.token);
       navigate('/dashboard');

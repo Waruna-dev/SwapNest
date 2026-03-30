@@ -16,7 +16,7 @@ const ForgotPassword = () => {
 
     try {
       // We will build this backend route later!
-      await API.post('/users/forgot-password', { email });
+      await API.post('/api/users/forgot-password', { email });
       setMessage('If an account exists for that email, we have sent password reset instructions.');
       setEmail(''); // Clear the input
     } catch (err) {

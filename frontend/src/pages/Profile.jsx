@@ -36,7 +36,7 @@ const Profile = () => {
       }
 
       try {
-        const response = await API.get('/users/me');
+        const response = await API.get('/api/users/me');
         const user = response.data;
         
         setUserId(user._id); 
@@ -116,7 +116,7 @@ const Profile = () => {
         formDataToSend.append('profileImage', profileImageFile);
       }
 
-      await API.put('/users/profile', formDataToSend, {
+      await API.put('/api/users/profile', formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -135,7 +135,7 @@ const Profile = () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) return setPasswordError("New passwords do not match.");
 
     try {
-      await API.put('/users/password', {
+      await API.put('/api/users/password', {
         oldPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
       });
@@ -151,7 +151,7 @@ const Profile = () => {
     const confirmDelete = window.confirm("Are you absolutely sure you want to delete your account? This action cannot be undone.");
     if (confirmDelete && userId) {
       try {
-        await API.delete(`/users/${userId}`);
+        await API.delete(`/api/users/${userId}`);
         localStorage.removeItem('swapnest_token');
         navigate('/register');
       } catch (error) {
@@ -163,7 +163,7 @@ const Profile = () => {
   const handleLogout = async () => {
     try {
       // Tell the backend to actively kill the session in MongoDB
-      await API.post('/users/logout');
+      await API.post('/api/users/logout');
     } catch (error) {
       console.error("Logout error:", error);
     } finally {

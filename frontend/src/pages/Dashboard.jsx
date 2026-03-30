@@ -16,7 +16,7 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     try {
-      await API.post('/users/logout');
+      await API.post('/api/users/logout');
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
@@ -34,7 +34,7 @@ const Dashboard = () => {
       }
 
       try {
-        const response = await API.get('/users/me');
+        const response = await API.get('/api/users/me');
         setUserName(response.data.username); 
         
         if (response.data.profilePic) {

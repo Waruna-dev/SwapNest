@@ -40,7 +40,7 @@ const Register = () => {
     onSuccess: async (tokenResponse) => {
       setIsLoading(true);
       try {
-        const response = await API.post('/users/google', {
+        const response = await API.post('/api/users/google', {
           googleAccessToken: tokenResponse.access_token
         });
         
@@ -71,7 +71,7 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      const response = await API.post('/users/register', { 
+      const response = await API.post('/api/users/register', { 
         username: name, 
         email: email, 
         password: password,
