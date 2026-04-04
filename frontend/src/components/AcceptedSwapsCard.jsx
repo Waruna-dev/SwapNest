@@ -158,7 +158,7 @@ const AcceptedSwapsCard = ({ userId }) => {
         <div className="text-4xl mb-3"></div>
         <p className="text-on-surface-variant">No accepted swaps yet</p>
         <p className="text-sm text-on-surface-variant mt-1">
-          When someone accepts your swap request, it will appear here
+
         </p>
       </div>
     );

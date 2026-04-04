@@ -217,7 +217,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
                   <h3 className="font-semibold text-on-surface">Requester</h3>
                 </div>
                 <p className="font-medium text-on-surface">{getRequesterName()}</p>
-                <p className="text-sm font-mono text-on-surface-variant mt-1 break-all">{getRequesterId()}</p>
+                
               </div>
 
               {/* Owner Info */}
@@ -231,7 +231,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
                   <h3 className="font-semibold text-on-surface">Owner</h3>
                 </div>
                 <p className="font-medium text-on-surface">{getOwnerName()}</p>
-                <p className="text-sm font-mono text-on-surface-variant mt-1 break-all">{getOwnerId()}</p>
+                
               </div>
             </div>
 
@@ -277,12 +277,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
             )}
           </div>
 
-          {/* Footer */}
-          <div className="sticky bottom-0 bg-white border-t border-outline-variant px-6 py-4 flex justify-end">
-            <button onClick={onClose} className="bg-primary hover:bg-primary-container text-on-primary px-6 py-2.5 rounded-xl transition-all">
-              Close
-            </button>
-          </div>
+         
         </div>
       </div>
 

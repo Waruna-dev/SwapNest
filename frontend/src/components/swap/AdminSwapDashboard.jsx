@@ -102,6 +102,9 @@ const AdminSwapDashboard = () => {
         <div className="flex items-center gap-1">
           <span>💰</span>
           <span className="font-medium">LKR {swap.cashDetails.amount}</span>
+          {swap.offeredItem?.name && (
+              <p className="text-xs text-on-surface-variant">+ {swap.offeredItem.name}</p>
+          )}
         </div>
       );
     }
