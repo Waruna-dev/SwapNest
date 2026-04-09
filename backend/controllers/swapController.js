@@ -35,7 +35,6 @@ const createSwapRequest = async (req, res) => {
       agreementAccepted,
     } = req.body;
 
-    // Validate required fields
     if (!itemId || !requesterId || !requesterName || !swapType) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }
@@ -49,7 +48,7 @@ const createSwapRequest = async (req, res) => {
       return res.status(400).json({ success: false, message: "Cannot swap your own item" });
     }
 
-    // Mode check - SELL items only allow cash
+   
     if (item.mode === "SELL" && swapType !== "swap-with-cash") {
       return res.status(400).json({ 
         success: false, 
@@ -79,6 +78,8 @@ const createSwapRequest = async (req, res) => {
       ownerId: item.ownerId,
       condition: item.condition || "Good",
       description: item.description || "",
+      photos: item.images || [],  
+  coverImage: item.coverImage
     };
 
     // Build swap data
@@ -217,7 +218,6 @@ const updateSwapRequest = async (req, res) => {
   }
 };
 
-// UPDATE SWAP WITH PHOTOS - For adding/removing photos
 const updateSwapPhotos = async (req, res) => {
   try {
     const swap = await Swap.findById(req.params.id);
@@ -226,12 +226,9 @@ const updateSwapPhotos = async (req, res) => {
       return res.status(404).json({ success: false, message: "Swap not found" });
     }
     
-    // Check if user is the requester
     if (swap.requesterId.toString() !== req.body.requesterId) {
       return res.status(403).json({ success: false, message: "Only the requester can update this swap" });
     }
-    
-    // Check if status is pending
     if (swap.status !== "pending") {
       return res.status(400).json({ 
         success: false, 
@@ -242,19 +239,17 @@ const updateSwapPhotos = async (req, res) => {
     const { removePhotoIndices } = req.body;
     let currentPhotos = swap.offeredItem.photos || [];
     
-    // Remove photos if specified
     if (removePhotoIndices) {
       const indicesToRemove = JSON.parse(removePhotoIndices);
       currentPhotos = currentPhotos.filter((_, index) => !indicesToRemove.includes(index));
     }
-    
-    // Add new photos
+   
     const newPhotos = req.files?.map((file) => ({
       url: `/uploads/swaps/${file.filename}`,
       filename: file.filename,
     })) || [];
     
-    // Combine and limit to 5
+
     const updatedPhotos = [...currentPhotos, ...newPhotos].slice(0, 5);
     
     swap.offeredItem.photos = updatedPhotos;
@@ -274,7 +269,7 @@ const updateSwapPhotos = async (req, res) => {
   }
 };
 
-// Get user swaps - both as requester and as owner
+
 const getUserSwaps = async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -292,7 +287,6 @@ const getUserSwaps = async (req, res) => {
   }
 };
 
-// Get pending requests for item owner
 const getPendingRequests = async (req, res) => {
   try {
     const swaps = await Swap.find({
@@ -306,7 +300,7 @@ const getPendingRequests = async (req, res) => {
   }
 };
 
-// Get swap by id
+
 const getSwapById = async (req, res) => {
   try {
     const swap = await Swap.findById(req.params.id); 
@@ -318,7 +312,7 @@ const getSwapById = async (req, res) => {
   }
 };
 
-// Update swap status (accept, reject, complete) - item owner only
+
 const updateSwapStatus = async (req, res) => {
   try {
     const swap = await Swap.findById(req.params.id);
@@ -328,7 +322,7 @@ const updateSwapStatus = async (req, res) => {
     const oldStatus = swap.status;
     const newStatus = req.body.status;
     
-    // Validate status transition
+
     if (oldStatus === "cancelled") {
       return res.status(400).json({ 
         success: false, 
@@ -425,14 +419,13 @@ const updateSwapStatus = async (req, res) => {
   }
 };
 
-// Cancel swap request - requester only
 const cancelSwapRequest = async (req, res) => {
   try {
     const swap = await Swap.findById(req.params.id);
     if (!swap) 
       return res.status(404).json({ success: false, message: 'Swap not found' });
     
-    // Only allow cancellation if status is pending
+   
     if (swap.status !== 'pending') {
       return res.status(400).json({ 
         success: false, 
@@ -443,7 +436,6 @@ const cancelSwapRequest = async (req, res) => {
     swap.status = 'cancelled';
     await swap.save();
 
-    // Make item available again
     const item = await Item.findById(swap.requestedItem.itemId);
     if (item && !item.isActive) {
       item.isActive = true;
@@ -451,7 +443,7 @@ const cancelSwapRequest = async (req, res) => {
       console.log(`Item ${item._id} is now available`);
     }
     
-    // CREATE NOTIFICATION FOR OWNER (Swap Cancelled)
+  
     await createNotification(
       swap.requestedItem.ownerId,
       "swap_cancelled",
@@ -469,7 +461,7 @@ const cancelSwapRequest = async (req, res) => {
 };
 
 
-// Get all swaps - admin only
+
 const getAllSwaps = async (req, res) => {
   try {
     const { status, swapType, sort } = req.query;
@@ -490,7 +482,7 @@ const getAllSwaps = async (req, res) => {
   }
 };
 
-// Delete swap - admin only
+
 const deleteSwap = async (req, res) => {
   try {
     const swap = await Swap.findById(req.params.id);
@@ -502,7 +494,7 @@ const deleteSwap = async (req, res) => {
       });
     }
     
-    // Make item available again if swap was pending
+    
     if (swap.status === "pending") {
       const item = await Item.findById(swap.requestedItem.itemId);
       if (item) {
@@ -512,7 +504,7 @@ const deleteSwap = async (req, res) => {
       }
     }
 
-    // Permanent delete
+ 
     await Swap.findByIdAndDelete(req.params.id);
 
     res.json({
@@ -528,7 +520,7 @@ const deleteSwap = async (req, res) => {
   }
 };
 
-// Get swaps by item
+
 const getSwapsByItem = async (req, res) => {
   try {
     const { itemId, status } = req.query;
@@ -550,9 +542,9 @@ const requestCompletion = async (req, res) => {
     }
 
     const userId = req.body.userId;
-    const userRole = req.body.userRole; // 'requester' or 'owner'
+    const userRole = req.body.userRole;
 
-    // Check if swap is accepted
+    
     if (swap.status !== 'accepted') {
       return res.status(400).json({ 
         success: false, 
@@ -587,22 +579,21 @@ const requestCompletion = async (req, res) => {
       swap.completionConfirmedBy.owner = true;
     }
 
-    // Set completion requested time if this is the first confirmation
+   
     if (!swap.completionConfirmedBy.requester && !swap.completionConfirmedBy.owner) {
       swap.completionRequestedAt = new Date();
     }
 
-    // Check if both have confirmed
+    
     if (swap.completionConfirmedBy.requester && swap.completionConfirmedBy.owner) {
-      // Both confirmed - swap is complete
+   
       swap.status = 'completed';
       swap.completedAt = new Date();
       swap.bothConfirmedAt = new Date();
       swap.completionNotes = "Swap completed by both parties";
       
       await swap.save();
-      
-      // Create notifications for both parties
+    
       await createNotification(
         swap.requesterId,
         "swap_completed",
@@ -630,10 +621,10 @@ const requestCompletion = async (req, res) => {
         bothConfirmed: true
       });
     } else {
-      // Only one confirmed - waiting for other party
+    
       await swap.save();
       
-      // Notify the other party that completion is pending
+    
       const otherPartyId = userRole === 'requester' ? swap.requestedItem.ownerId : swap.requesterId;
       const otherPartyName = userRole === 'requester' ? swap.requestedItem.ownerName : swap.requesterName;
       const currentUserName = userRole === 'requester' ? swap.requesterName : swap.requestedItem.ownerName;
@@ -661,7 +652,7 @@ const requestCompletion = async (req, res) => {
   }
 };
 
-// Get completion status for a swap
+
 const getCompletionStatus = async (req, res) => {
   try {
     const swap = await Swap.findById(req.params.id);

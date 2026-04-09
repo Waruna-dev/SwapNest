@@ -45,7 +45,7 @@ function ItemCard({ item, isFavorite, onToggleFavorite, onQuickView }) {
   const handleSwapSuccess = (swap) => {
     console.log("Swap created:", swap);
     setShowSwapModal(false);
-    alert("✅ Swap request sent successfully!");
+   
   };
 
   // Handle Buy button click

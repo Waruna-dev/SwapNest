@@ -52,7 +52,7 @@ const AcceptedSwapsCard = ({ userId }) => {
         alert(result.message);
       }
       
-      fetchAcceptedSwaps(); // Refresh the list
+      fetchAcceptedSwaps(); 
     } catch (err) {
       alert('Failed to complete swap: ' + err.message);
     }
@@ -179,7 +179,7 @@ const AcceptedSwapsCard = ({ userId }) => {
           return (
             <div 
               key={swap._id} 
-              className="bg-gradient-to-r from-green-50 to-white rounded-xl border border-green-200 p-5 hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-gradient-to-r from-green-50 to-white rounded border border-green-200 p-5 hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => handleViewDetails(swap)}
             >
               <div className="flex items-start justify-between mb-3">
