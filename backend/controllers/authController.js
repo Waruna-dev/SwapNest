@@ -1,25 +1,16 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-<<<<<<< HEAD
 import axios from 'axios';
 import crypto from 'crypto';
 import asyncHandler from 'express-async-handler';
 import sendEmail from '../utils/sendEmail.js';
 import User from '../models/User.js'; 
-=======
-import asyncHandler from 'express-async-handler';
-import User from '../models/User.js'; // Must include .js extension!
->>>>>>> swap-transaction
 
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
 
 const registerUser = asyncHandler(async (req, res) => {
-<<<<<<< HEAD
-=======
-    // 1. Extract 'role' from the request body
->>>>>>> swap-transaction
     const { username, email, password, role } = req.body;
 
     if (!username || !email || !password) {
@@ -36,19 +27,11 @@ const registerUser = asyncHandler(async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-<<<<<<< HEAD
-=======
-    // 2. Pass the role into the database creation
->>>>>>> swap-transaction
     const user = await User.create({ 
         username, 
         email, 
         password: hashedPassword,
-<<<<<<< HEAD
         role: role || 'user' 
-=======
-        role: role || 'user' // Uses the provided role, or defaults to 'user'
->>>>>>> swap-transaction
     });
 
     if (user) {
@@ -56,11 +39,7 @@ const registerUser = asyncHandler(async (req, res) => {
             _id: user.id,
             username: user.username,
             email: user.email,
-<<<<<<< HEAD
             role: user.role, 
-=======
-            role: user.role, // 3. Send the role back in the response
->>>>>>> swap-transaction
             token: generateToken(user._id),
         });
     } else {
@@ -108,10 +87,6 @@ const updateProfile = asyncHandler(async (req, res) => {
         req.user.id,
         {
             username: req.body.username || user.username,
-<<<<<<< HEAD
-=======
-            // --- WE SWAPPED LOCATION FOR BIO HERE ---
->>>>>>> swap-transaction
             bio: req.body.bio !== undefined ? req.body.bio : user.bio, 
             profilePic: profileImageUrl,
         },
@@ -146,10 +121,6 @@ const updatePassword = asyncHandler(async (req, res) => {
 });
 
 const deleteUser = asyncHandler(async (req, res) => {
-<<<<<<< HEAD
-=======
-    // 1. Find the user by the ID passed in the URL
->>>>>>> swap-transaction
     const user = await User.findById(req.params.id);
 
     if (!user) {
@@ -157,10 +128,6 @@ const deleteUser = asyncHandler(async (req, res) => {
         throw new Error('User not found');
     }
 
-<<<<<<< HEAD
-=======
-    // 2. Delete that specific user from the database
->>>>>>> swap-transaction
     await User.findByIdAndDelete(req.params.id);
 
     res.status(200).json({ 
@@ -169,7 +136,6 @@ const deleteUser = asyncHandler(async (req, res) => {
     });
 });
 
-<<<<<<< HEAD
 const logoutUser = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user.id);
 
@@ -340,7 +306,3 @@ export {
   forgotPassword, 
   resetPassword 
 };
-=======
-// Export all functions securely
-export { registerUser, loginUser, getMe, updateProfile, updatePassword, deleteUser };
->>>>>>> swap-transaction

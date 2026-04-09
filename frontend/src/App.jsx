@@ -35,7 +35,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/my-list" element={<MyItems />} />
+            
           </Route>
 
 
@@ -51,7 +51,7 @@ function App() {
           <Route path="/item/form" element={<ItemAddNewItems />} />
           <Route path="/item/gallery" element={<ItemGalleryPage />} />
           <Route path="/item/dashboard" element={<ItemDashboard1 />} />
-            <Route path="/item/location" element={<ItemLocation />} />
+          
         </Routes>
       </div>
     </Router>
