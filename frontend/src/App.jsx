@@ -9,10 +9,13 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminSwapDashboard from "./components/swap/AdminSwapDashboard";
 import Swapform from "./components/swap/SwapForm";
 
-import TestApi from "./pages/item-listing/testApi"; // Import the test API component
+
 import ItemAddNewItems from "./pages/item-listing/ItemAddNewItem";
-import ItemGalleryPage2 from "./pages/item-gallery/ItemGalleryPage";
+import ItemGalleryPage from "./pages/item-gallery/ItemGalleryPage";
 import ItemDashboard1 from "./pages/item-listing/ItemDashboard";
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+
 
 import SwapList from "./components/swap/SwapList";
 import Privacy from "./pages/PrivacyPolicy";
@@ -25,13 +28,18 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+
 
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
-            {/* When you build the My List page, add it here too! */}
-            {/* <Route path="/my-list" element={<MyList />} /> */}
+            
           </Route>
+
+
+        
 
           <Route path="/swapadmin" element={<AdminSwapDashboard />} />
           <Route path="/swapform" element={<Swapform />} />
@@ -39,10 +47,11 @@ function App() {
           <Route path="/swaplist" element={<SwapList />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Term />} />
-          <Route path="/item/test-api" element={<TestApi />} />
+          
           <Route path="/item/form" element={<ItemAddNewItems />} />
-          <Route path="/item/gallery" element={<ItemGalleryPage2 />} />
+          <Route path="/item/gallery" element={<ItemGalleryPage />} />
           <Route path="/item/dashboard" element={<ItemDashboard1 />} />
+          
         </Routes>
       </div>
     </Router>

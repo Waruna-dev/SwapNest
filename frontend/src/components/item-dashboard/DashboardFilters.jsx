@@ -1,18 +1,22 @@
 function DashboardFilters({
-  search,
-  setSearch,
-  activeCategory,
-  setActiveCategory,
-  categoryOptions,
+  search, // current search text
+  setSearch, // function to update search text
+  activeCategory, // selected category value
+  setActiveCategory, // function to update category
+  categoryOptions, // list of categories
 }) {
   return (
+    // Main container (responsive grid layout)
     <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_260px]">
+      {/* ================= SEARCH FORM ================= */}
       <form
-        onSubmit={(event) => event.preventDefault()}
+        onSubmit={(event) => event.preventDefault()} // prevent page reload
         className="flex flex-col gap-3 sm:flex-row"
       >
+        {/* Search input wrapper */}
         <div className="relative flex-1">
-          <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-[#36524b]">
+          {/* Search icon inside input */}
+          <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-on-surface-variant">
             <svg
               aria-hidden="true"
               viewBox="0 0 24 24"
@@ -23,34 +27,42 @@ function DashboardFilters({
               strokeLinecap="round"
               strokeLinejoin="round"
             >
+              {/* Circle part of search icon */}
               <circle cx="11" cy="11" r="7" />
+              {/* Handle part of search icon */}
               <path d="m20 20-3.5-3.5" />
             </svg>
           </span>
 
+          {/* Search input field */}
           <input
             type="text"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            value={search} // controlled input
+            onChange={(event) => setSearch(event.target.value)} // update state
             placeholder="Search by title or description"
-            className="w-full rounded-2xl border border-[#0b3b30]/10 bg-[#fcfbf8] py-3 pl-12 pr-4 text-sm outline-none transition focus:border-[#0b3b30]/30 focus:bg-white"
+            className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-3 pl-12 text-sm text-on-surface outline-none transition focus:border-primary focus:bg-surface"
           />
         </div>
 
+        {/* Search button */}
         <button
           type="submit"
-          className="rounded-2xl bg-[#0b3b30] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#12483b]"
+          className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-on-primary transition hover:bg-primary-container"
         >
           Search
         </button>
       </form>
 
+      {/* ================= CATEGORY DROPDOWN ================= */}
       <select
-        value={activeCategory}
-        onChange={(event) => setActiveCategory(event.target.value)}
-        className="w-full rounded-2xl border border-[#0b3b30]/10 bg-[#fcfbf8] px-4 py-3 text-sm outline-none"
+        value={activeCategory} // current selected category
+        onChange={(event) => setActiveCategory(event.target.value)} // update category
+        className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-4 py-3 text-sm text-on-surface outline-none focus:border-primary"
       >
+        {/* Default option */}
         <option value="All">All categories</option>
+
+        {/* Dynamic category options */}
         {categoryOptions.map((category) => (
           <option key={category} value={category}>
             {category}

@@ -245,6 +245,7 @@ export const getItems = async (req, res, next) => {
 
     const projection = {
       itemId: 1,
+      ownerId: 1,
       title: 1,
       description: 1,
       price: 1,
