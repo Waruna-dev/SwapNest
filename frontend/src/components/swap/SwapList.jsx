@@ -397,7 +397,7 @@ const SwapList = ({ userId }) => {
       <div className="max-w-[1400px] mx-auto px-4 py-6">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
+          <div className="bg-white rounded border border-gray-200 px-5 py-4 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-500 font-medium">
                 Total Swaps
