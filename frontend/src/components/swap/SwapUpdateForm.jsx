@@ -150,7 +150,7 @@ const SwapUpdateForm = ({
         messageToOwner: formData.messageToOwner
       };
       
-      // Add cash details if swap-with-cash
+  
       if (formData.swapType === 'swap-with-cash') {
         updateData.cashDetails = {
           amount: parseFloat(formData.cashDetails.amount) || 0,
@@ -158,15 +158,12 @@ const SwapUpdateForm = ({
         };
       }
       
-      // Update swap basic info
       await updateSwap(swapId, updateData);
-      
-      // Update photos if any changes
+ 
       if (photosToRemove.length > 0 || newPhotos.length > 0) {
         await updateSwapPhotos(swapId, requesterId, newPhotos, photosToRemove);
       }
       
-      // Clean up preview URLs
       previewImages.forEach(url => URL.revokeObjectURL(url));
       
       onSuccess();
@@ -228,7 +225,7 @@ const SwapUpdateForm = ({
               <button
                 type="button"
                 onClick={() => setFormData(prev => ({ ...prev, swapType: 'item-for-item' }))}
-                className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${
+                className={`flex items-center justify-center gap-2 p-3 rounded border transition-all ${
                   formData.swapType === 'item-for-item'
                     ? 'bg-primary border-primary text-on-primary shadow-md'
                     : 'bg-surface border-outline-variant text-on-surface-variant hover:border-primary hover:bg-primary-fixed/10'
@@ -240,7 +237,7 @@ const SwapUpdateForm = ({
               <button
                 type="button"
                 onClick={() => setFormData(prev => ({ ...prev, swapType: 'swap-with-cash' }))}
-                className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${
+                className={`flex items-center justify-center gap-2 p-3 rounded border transition-all ${
                   formData.swapType === 'swap-with-cash'
                     ? 'bg-primary border-primary text-on-primary shadow-md'
                     : 'bg-surface border-outline-variant text-on-surface-variant hover:border-primary hover:bg-primary-fixed/10'
@@ -260,7 +257,7 @@ const SwapUpdateForm = ({
             </h3>
             
             <div>
-              <label className="block text-sm font-medium text-on-surface mb-1.5">Item Name *</label>
+              <label className="block text-sm font-bold text-on-surface mb-1.5">Item Name *</label>
               <input
                 type="text"
                 name="name"
@@ -268,17 +265,17 @@ const SwapUpdateForm = ({
                 onChange={handleOfferedItemChange}
                 required
                 placeholder="e.g. Wooden Chair"
-                className="w-full border border-outline-variant rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface placeholder:text-on-surface-variant transition-all"
+                className="w-full border border-outline-variant rounded px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface placeholder:text-on-surface-variant transition-all"
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-on-surface mb-1.5">Condition *</label>
+              <label className="block text-sm font-bold text-on-surface mb-1.5">Condition *</label>
               <select
                 name="condition"
                 value={formData.offeredItem.condition}
                 onChange={handleOfferedItemChange}
-                className="w-full border border-outline-variant rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface transition-all appearance-none"
+                className="w-full border border-outline-variant rounded px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface transition-all appearance-none"
               >
                 <option value="Like New">Like New</option>
                 <option value="Good">Good</option>
@@ -288,25 +285,24 @@ const SwapUpdateForm = ({
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-on-surface mb-1.5">Description</label>
+              <label className="block text-sm font-bold text-on-surface mb-1.5">Description</label>
               <textarea
                 name="description"
                 value={formData.offeredItem.description}
                 onChange={handleOfferedItemChange}
                 rows="2"
                 placeholder="Describe your item..."
-                className="w-full border border-outline-variant rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface placeholder:text-on-surface-variant transition-all resize-none"
+                className="w-full border border-outline-variant rounded px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface placeholder:text-on-surface-variant transition-all resize-none"
               />
             </div>
 
-            {/* Photo Management */}
             <div>
               <div className="flex justify-between items-center mb-2">
                 <label className="text-sm font-medium text-on-surface">Photos (Max 5)</label>
                 <span className="text-xs text-primary font-medium">{totalPhotos}/5 uploaded</span>
               </div>
 
-              {/* Existing Photos */}
+       
               {existingPhotos.length > 0 && (
                 <div className="mb-3">
                   <p className="text-xs text-on-surface-variant mb-2">Current Photos:</p>
@@ -317,7 +313,7 @@ const SwapUpdateForm = ({
                           <img 
                             src={photo.url.startsWith('http') ? photo.url : `http://localhost:5000${photo.url}`} 
                             alt={`Existing ${index + 1}`} 
-                            className="w-full h-20 object-cover rounded-lg border border-outline-variant"
+                            className="w-full h-20 object-cover  border border-outline-variant"
                           />
                           <button
                             type="button"
@@ -336,7 +332,7 @@ const SwapUpdateForm = ({
                 </div>
               )}
 
-              {/* New Photos Preview */}
+
               {previewImages.length > 0 && (
                 <div className="mb-3">
                   <p className="text-xs text-on-surface-variant mb-2">New Photos:</p>
@@ -364,9 +360,9 @@ const SwapUpdateForm = ({
                 </div>
               )}
 
-              {/* Upload Button */}
+      
               {totalPhotos < 5 && (
-                <div className="relative border-2 border-dashed border-outline-variant rounded-xl hover:border-primary transition-colors">
+                <div className="relative border-2 border-dashed border-outline-variant rounded hover:border-primary transition-colors">
                   <input
                     type="file"
                     accept="image/*"
@@ -387,8 +383,7 @@ const SwapUpdateForm = ({
               )}
             </div>
           </div>
-          
-          {/* Cash Section */}
+       
           {formData.swapType === 'swap-with-cash' && (
             <div className="space-y-4 bg-surface-container-low rounded-xl p-4">
               <h3 className="font-medium text-on-surface font-headline flex items-center gap-2">
@@ -445,7 +440,7 @@ const SwapUpdateForm = ({
             </div>
           )}
           
-          {/* Message */}
+   
           <div>
             <label className="block text-sm font-medium text-on-surface mb-1.5">Message to Owner</label>
             <textarea
@@ -454,11 +449,10 @@ const SwapUpdateForm = ({
               onChange={handleChange}
               rows="2"
               placeholder="Update your message to the owner..."
-              className="w-full border border-outline-variant rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface placeholder:text-on-surface-variant transition-all resize-none"
+              className="w-full border border-outline-variant rounded px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface placeholder:text-on-surface-variant transition-all resize-none"
             />
           </div>
-          
-          {/* Buttons */}
+
           <div className="flex gap-3 pt-2">
             <button 
               type="button" 

@@ -28,7 +28,7 @@ const offeredItemSchema = new mongoose.Schema({
 });
 
 const swapSchema = new mongoose.Schema({
-  requestId: {                                      //autogenerate
+  requestId: {                                      
     type: String,
     unique: true,
     required: true,
@@ -37,7 +37,7 @@ const swapSchema = new mongoose.Schema({
   requestedItem: {
     itemId: {
       type: String,
-      ref: "Item",                                   //want to change
+      ref: "Item",                                   
       require: true,
     },
     name: {
@@ -59,6 +59,11 @@ const swapSchema = new mongoose.Schema({
       required: true,
     },
     description: String,
+    photos: [itemPhotoSchema],  
+    coverImage: {              
+      type: itemPhotoSchema,
+      default: null
+    }
   },
 
   //the one making req(user B)- id & name
@@ -150,20 +155,15 @@ completionConfirmedBy: {
     default: null
   },
   
-
   // details
   completedAt:Date,
   completionNotes:String,
 });
 
-  //update, updateAt timestamp before saving
   swapSchema.pre("save", function(next){
     this.updateAt=Date.now();
   });
 
-  
-
-  //gen reqid before validation
   swapSchema.pre("validate",function(next){
     if(!this.requestId){
         const date=new Date();

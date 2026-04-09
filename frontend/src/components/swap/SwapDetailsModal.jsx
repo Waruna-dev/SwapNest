@@ -3,14 +3,42 @@ import StatusBadge from '../common/StatusBadge';
 
 const SwapDetailsModal = ({ swap, onClose }) => {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [requestedImageErrors, setRequestedImageErrors] = useState({});
+  const [offeredImageErrors, setOfferedImageErrors] = useState({});
   
   if (!swap) return null;
 
   const getImageUrl = (url) => {
     if (!url) return null;
     if (url.startsWith('http')) return url;
+    if (url.startsWith('/uploads')) return `http://localhost:5000${url}`;
     return `http://localhost:5000${url}`;
   };
+
+  
+  const getRequestedItemPhotos = () => {
+   
+    if (swap.requestedItem?.photos && swap.requestedItem.photos.length > 0) {
+      return swap.requestedItem.photos;
+    }
+    if (swap.requestedItem?.images && swap.requestedItem.images.length > 0) {
+      return swap.requestedItem.images;
+    }
+    if (swap.requestedItem?.coverImage) {
+      return [swap.requestedItem.coverImage];
+    }
+    return [];
+  };
+
+  const getOfferedPhotos = () => {
+    if (swap.offeredItem?.photos && swap.offeredItem.photos.length > 0) {
+      return swap.offeredItem.photos;
+    }
+    return [];
+  };
+
+  const requestedPhotos = getRequestedItemPhotos();
+  const offeredPhotos = getOfferedPhotos();
 
   const getRequesterName = () => {
     if (!swap.requesterName && swap.requesterId) {
@@ -46,29 +74,26 @@ const SwapDetailsModal = ({ swap, onClose }) => {
     return swap.requestedItem?.ownerId || 'N/A';
   };
 
-  // Get all photos for both item-for-item and swap-with-cash)
-  const getAllPhotos = () => {
-    if (swap.offeredItem?.photos && swap.offeredItem.photos.length > 0) {
-      return swap.offeredItem.photos;
-    }
-    return [];
-  };
-
-  const photos = getAllPhotos();
-
   const openPhotoViewer = (photo) => {
     setSelectedPhoto(photo);
   };
 
- 
   const closePhotoViewer = () => {
     setSelectedPhoto(null);
+  };
+
+  const handleRequestedImageError = (index) => {
+    setRequestedImageErrors(prev => ({ ...prev, [index]: true }));
+  };
+
+  const handleOfferedImageError = (index) => {
+    setOfferedImageErrors(prev => ({ ...prev, [index]: true }));
   };
 
   return (
     <>
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-        <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         
           <div className="sticky top-0 bg-white border-b border-outline-variant px-6 py-5 flex justify-between items-center">
             <div>
@@ -87,7 +112,7 @@ const SwapDetailsModal = ({ swap, onClose }) => {
           
           <div className="p-6 space-y-6">
          
-            <div className="bg-gradient-to-r from-primary-fixed/90 to-transparent p-4 rounded-xl">
+            <div className="bg-gradient-to-r from-primary-fixed/90 to-transparent p-4 rounded">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-xs uppercase tracking-wider text-on-surface-variant">Request ID</p>
@@ -100,7 +125,7 @@ const SwapDetailsModal = ({ swap, onClose }) => {
           
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-              <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
+              <div className="bg-surface-container-low p-4 rounded border border-outline-variant">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-primary-fixed/90 rounded-lg">
                     <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,9 +139,54 @@ const SwapDetailsModal = ({ swap, onClose }) => {
                 {swap.requestedItem?.description && (
                   <p className="text-sm text-on-surface-variant mt-1">{swap.requestedItem.description}</p>
                 )}
+                
+           
+                {requestedPhotos.length > 0 ? (
+                  <div className="mt-3">
+                    
+                    <div className="grid grid-cols-3 gap-2">
+                      {requestedPhotos.map((photo, i) => {
+                        const imageUrl = getImageUrl(photo.url);
+                        const hasError = requestedImageErrors[i];
+                        
+                        return (
+                          <div 
+                            key={i} 
+                            className="relative group cursor-pointer"
+                            onClick={() => openPhotoViewer(photo)}
+                          >
+                            {!hasError && imageUrl ? (
+                              <img 
+                                src={imageUrl} 
+                                alt={`Requested item ${i + 1}`} 
+                                className="w-full h-20 object-cover border border-outline-variant hover:opacity-90 transition-opacity"
+                                onError={() => handleRequestedImageError(i)}
+                              />
+                            ) : (
+                              <div className="w-full h-20 bg-gray-100  border border-outline-variant flex flex-col items-center justify-center">
+                            
+                                <span className="text-xs text-gray-500">No image</span>
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <span className="text-white text-xs">Click to enlarge</span>
+                            </div>
+                            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded-full">
+                              {i + 1}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-3 p-3 bg-gray-50 rounded-lg text-center">
+                    <p className="text-xs text-gray-500">No photos available for this item</p>
+                  </div>
+                )}
               </div>
 
-              <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
+              <div className="bg-surface-container-low p-4 rounded border border-outline-variant">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-secondary-fixed/90 rounded-lg">
                     <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,41 +219,55 @@ const SwapDetailsModal = ({ swap, onClose }) => {
                   </div>
                 )}
                 
-                
-                {photos.length > 0 && (
+                {/* Offered Item Photos */}
+                {offeredPhotos.length > 0 ? (
                   <div className="mt-3">
                     <p className="text-xs text-on-surface-variant mb-2">
-                      📸 Photos ({photos.length})
+                 
                     </p>
                     <div className="grid grid-cols-3 gap-2">
-                      {photos.map((photo, i) => (
-                        <div 
-                          key={i} 
-                          className="relative group cursor-pointer"
-                          onClick={() => openPhotoViewer(photo)}
-                        >
-                          <img 
-                            src={getImageUrl(photo.url)} 
-                            alt={`Offered item ${i + 1}`} 
-                            className="w-full h-20 object-cover rounded-lg border border-outline-variant hover:opacity-90 transition-opacity"
-                            onError={(e) => {
-                              e.target.src = 'https://via.placeholder.com/80x80?text=No+Image';
-                            }}
-                          />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                            <span className="text-white text-xs">Click to enlarge</span>
+                      {offeredPhotos.map((photo, i) => {
+                        const imageUrl = getImageUrl(photo.url);
+                        const hasError = offeredImageErrors[i];
+                        
+                        return (
+                          <div 
+                            key={i} 
+                            className="relative group cursor-pointer"
+                            onClick={() => openPhotoViewer(photo)}
+                          >
+                            {!hasError && imageUrl ? (
+                              <img 
+                                src={imageUrl} 
+                                alt={`Offered item ${i + 1}`} 
+                                className="w-full h-20 object-cover  border border-outline-variant hover:opacity-90 transition-opacity"
+                                onError={() => handleOfferedImageError(i)}
+                              />
+                            ) : (
+                              <div className="w-full h-20 bg-gray-100  border border-outline-variant flex flex-col items-center justify-center">
+                                
+                                <span className="text-xs text-gray-500">No image</span>
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                              <span className="text-white text-xs">Click to enlarge</span>
+                            </div>
+                            <span className="absolute bottom-1 right-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded-full">
+                              {i + 1}
+                            </span>
                           </div>
-                          <span className="absolute bottom-1 right-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded-full">
-                            {i + 1}
-                          </span>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
+                  </div>
+                ) : (
+                  <div className="mt-3 p-3 bg-gray-50 rounded-lg text-center">
+                    <p className="text-xs text-gray-500">No photos uploaded</p>
                   </div>
                 )}
               </div>
 
-              <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
+              <div className="bg-surface-container-low p-4 rounded border border-outline-variant">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-tertiary-fixed/90 rounded-lg">
                     <svg className="w-5 h-5 text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,7 +280,7 @@ const SwapDetailsModal = ({ swap, onClose }) => {
                 <p className="text-sm font-mono text-on-surface-variant mt-1 break-all">{getRequesterId()}</p>
               </div>
 
-              <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
+              <div className="bg-surface-container-low p-4 rounded border border-outline-variant">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-primary-fixed/90 rounded-lg">
                     <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -211,7 +295,7 @@ const SwapDetailsModal = ({ swap, onClose }) => {
             </div>
 
             {swap.messageToOwner && (
-              <div className="bg-primary-fixed/10 p-4 rounded-xl">
+              <div className="bg-primary-fixed/30 p-4 rounded">
                 <div className="flex items-center gap-2 mb-2">
                   <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -222,13 +306,13 @@ const SwapDetailsModal = ({ swap, onClose }) => {
               </div>
             )}
 
-            {/* Timestamps */}
+    
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-surface-container-low p-3 rounded-lg">
+              <div className="bg-surface-container-low p-3 rounded">
                 <p className="text-xs uppercase font-bold tracking-wider text-on-surface-variant">Created At</p>
                 <p className="text-sm mt-1 text-on-surface">{new Date(swap.createdAt).toLocaleString()}</p>
               </div>
-              <div className="bg-surface-container-low p-3 rounded-lg">
+              <div className="bg-surface-container-low p-3 rounded">
                 <p className="text-xs uppercase font-bold tracking-wider text-on-surface-variant">Last Updated</p>
                 <p className="text-sm mt-1 text-on-surface">{new Date(swap.updatedAt || swap.updateAt).toLocaleString()}</p>
               </div>
@@ -262,7 +346,7 @@ const SwapDetailsModal = ({ swap, onClose }) => {
         </div>
       </div>
 
-     
+      {/* Photo Viewer Modal */}
       {selectedPhoto && (
         <div 
           className="fixed inset-0 bg-black/90 backdrop-blur-lg flex items-center justify-center z-[100] p-4"

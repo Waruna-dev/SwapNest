@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom'; 
 import API from '../services/api';
 import SwapList from '../components/swap/SwapList';
 import SwapForm from '../components/swap/SwapForm';
@@ -9,6 +9,9 @@ import AcceptedSwapsCard from '../components/AcceptedSwapsCard';
 import { getSwapById } from '../services/swapService';
 
 const Dashboard = () => {
+  const location = useLocation(); 
+  const navigate = useNavigate();
+  
   const [activeNav, setActiveNav] = useState('dashboard');
   const [activeTab, setActiveTab] = useState('requests');
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -16,21 +19,29 @@ const Dashboard = () => {
   const [userName, setUserName] = useState('');
   const [userId, setUserId] = useState('');
   const [profilePic, setProfilePic] = useState('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80');
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   
-  // State for Swap components
+ 
   const [showSwapForm, setShowSwapForm] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [user, setUser] = useState(null);
   
-  // State for Notification Modal
+
   const [selectedSwap, setSelectedSwap] = useState(null);
   const [showSwapModal, setShowSwapModal] = useState(false);
   
-  const navigate = useNavigate();
   const profileMenuRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
-  // Handle notification click - fetch swap details and open modal
+  useEffect(() => {
+    if (location.state?.activeNav) {
+      setActiveNav(location.state.activeNav);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
+
+ 
   const handleNotificationClick = async (swapId) => {
     try {
       const response = await getSwapById(swapId);
@@ -78,7 +89,6 @@ const Dashboard = () => {
     authenticateAndFetchUser();
   }, [navigate]);
 
-  // Click outside handlers
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
@@ -100,25 +110,24 @@ const Dashboard = () => {
   const handleSwapCreated = () => {
     setShowSwapForm(false);
     setSelectedItem(null);
-    alert('✅ Swap request sent successfully!');
+   
   };
 
-  // Render content based on activeNav
   const renderContent = () => {
     // My Swaps View
     if (activeNav === 'my-swaps') {
       return (
-        <div className="bg-white rounded-[2.5rem] p-6 md:p- border border-outline-variant/20 shadow-sm">
+        <div className="bg-white rounded-[2.5rem] p-6 md:p-8 border border-outline-variant/20 shadow-sm">
           <h2 className="text-2xl font-headline font-bold text-primary mb-6">My Swaps</h2>
           <SwapList userId={userId} />
         </div>
       );
     }
 
-    // Dashboard View (Default)
+
     return (
       <>
-        {/* Header */}
+     
         <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-4xl font-headline font-extrabold text-primary tracking-tight">
@@ -132,24 +141,20 @@ const Dashboard = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* LEFT COLUMN */}
           <div className="lg:col-span-2 space-y-8">
-            
-            {/* Accepted Swaps Section - NEW CARD */}
+      
             {userId && (
               <section className="bg-white rounded-[2.5rem] p-6 md:p-8 border border-outline-variant/20 shadow-sm">
                 <div className="flex items-center gap-2 mb-6">
-                  <span className="text-2xl"></span>
+                
                   <h2 className="text-2xl font-headline font-bold text-primary">Accepted Swaps</h2>
                 </div>
                 <AcceptedSwapsCard userId={userId} />
               </section>
             )}
-
-           
           </div>
 
-          {/* RIGHT COLUMN */}
+    
           <div className="lg:col-span-1 space-y-6">
             <Link to="/my-list" className="block relative bg-primary text-white rounded-[2.5rem] p-8 shadow-xl overflow-hidden group hover:-translate-y-1 transition-all duration-300">
               <div className="absolute top-0 right-0 w-40 h-40 bg-secondary rounded-full blur-[50px] -mr-10 -mt-10 opacity-30 group-hover:opacity-50 transition-opacity"></div>
@@ -186,6 +191,18 @@ const Dashboard = () => {
   return (
     <div className="bg-background text-on-surface font-body min-h-screen antialiased">
       
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="fixed top-20 right-4 z-50 animate-slide-in">
+          <div className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            {toastMessage}
+          </div>
+        </div>
+      )}
+
       {/* --- NAVBAR --- */}
       <nav className="sticky top-0 w-full z-50 bg-white/80 backdrop-blur-xl shadow-sm border-b border-outline-variant/10 py-3">
         <div className="flex justify-between items-center px-6 md:px-12 max-w-7xl mx-auto">
@@ -208,7 +225,7 @@ const Dashboard = () => {
               My Swaps
             </button>
             <Link to="/item/gallery" className="text-primary/80 hover:text-primary transition-colors">Marketplace</Link>
-            <Link to="/item/form" className="text-primary/80 hover:text-primary transition-colors">Messages</Link>
+            <Link to="/messages" className="text-primary/80 hover:text-primary transition-colors">Messages</Link>
           </div>
           
           <div className="flex items-center gap-4">
@@ -216,7 +233,6 @@ const Dashboard = () => {
               <span className="material-symbols-outlined text-[16px]">add</span> List Item
             </Link>
             
-       
             <NotificationBell 
               userId={userId} 
               onNotificationClick={handleNotificationClick}

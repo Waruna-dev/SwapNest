@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createSwap } from '../../services/swapService';
 
 const SwapForm = ({ 
@@ -10,6 +11,8 @@ const SwapForm = ({
   onClose, 
   onSuccess 
 }) => {
+  const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     itemId: itemId,
     requesterId: requesterId,
@@ -94,7 +97,6 @@ const SwapForm = ({
     setError('');
 
     try {
-      // Build the data to send
       const dataToSend = { 
         itemId: itemId,
         requesterId: requesterId,
@@ -104,14 +106,12 @@ const SwapForm = ({
         agreementAccepted: formData.agreementAccepted
       };
       
-      // Always include offeredItem 
       dataToSend.offeredItem = {
         name: formData.offeredItem.name,
         condition: formData.offeredItem.condition,
         description: formData.offeredItem.description || ''
       };
       
-      // For swap-with-cash, include cashDetails
       if (formData.swapType === 'swap-with-cash') {
         dataToSend.cashDetails = {
           amount: parseFloat(formData.cashDetails.amount) || 0,
@@ -119,17 +119,19 @@ const SwapForm = ({
         };
       }
       
-      // Photos for BOTH types 
       const photosToSend = photos;
-      
-      console.log('Sending data:', dataToSend);
-      console.log('Photos:', photosToSend.length);
       
       const response = await createSwap(dataToSend, photosToSend);
       
       if (response.success) {
+
         previewImages.forEach(url => URL.revokeObjectURL(url));
-        onSuccess(response.data);
+        onClose();
+      
+        if (onSuccess) {
+          onSuccess(response.data);
+        }
+        navigate('/dashboard', { state: { activeNav: 'my-swaps', showSuccess: true, message: 'Swap request sent successfully!' } });
       }
     } catch (err) {
       console.error('Error:', err);
@@ -158,9 +160,6 @@ const SwapForm = ({
         </div>
         
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-         
-          
-          
           {error && (
             <div className="bg-error-container border-l-4 border-error p-4 rounded-xl">
               <div className="flex items-center gap-2">
@@ -178,25 +177,25 @@ const SwapForm = ({
               <button
                 type="button"
                 onClick={() => setFormData(prev => ({ ...prev, swapType: 'item-for-item' }))}
-                className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${
+                className={`flex items-center justify-center gap-2 p-3 rounded border transition-all ${
                   formData.swapType === 'item-for-item'
                     ? 'bg-primary border-primary text-on-primary shadow-md'
                     : 'bg-surface border-outline-variant text-on-surface-variant hover:border-primary hover:bg-primary-fixed/10'
                 }`}
               >
-                <span></span>
+                <span>🔄</span>
                 <span className="text-sm font-medium">Item for Item</span>
               </button>
               <button
                 type="button"
                 onClick={() => setFormData(prev => ({ ...prev, swapType: 'swap-with-cash' }))}
-                className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${
+                className={`flex items-center justify-center gap-2 p-3 rounded border transition-all ${
                   formData.swapType === 'swap-with-cash'
                     ? 'bg-primary border-primary text-on-primary shadow-md'
                     : 'bg-surface border-outline-variant text-on-surface-variant hover:border-primary hover:bg-primary-fixed/10'
                 }`}
               >
-                <span></span>
+                <span>💰</span>
                 <span className="text-sm font-medium">Item + Cash</span>
               </button>
             </div>
@@ -207,10 +206,9 @@ const SwapForm = ({
             </p>
           </div>
 
-          
           <div className="space-y-4">
             <h3 className="font-medium text-on-surface font-headline flex items-center gap-2">
-              <span className="w-1 h-5 bg-primary rounded-full"></span>
+              <span className="w-1 h-5 bg-primary rounded"></span>
               What are you offering?
             </h3>
             
@@ -223,7 +221,7 @@ const SwapForm = ({
                 onChange={handleOfferedItemChange}
                 required
                 placeholder="e.g. Wooden Chair"
-                className="w-full border border-outline-variant rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface placeholder:text-on-surface-variant transition-all"
+                className="w-full border border-outline-variant rounded px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface placeholder:text-on-surface-variant transition-all"
               />
             </div>
             
@@ -233,7 +231,7 @@ const SwapForm = ({
                 name="condition"
                 value={formData.offeredItem.condition}
                 onChange={handleOfferedItemChange}
-                className="w-full border border-outline-variant rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface transition-all appearance-none"
+                className="w-full border border-outline-variant rounded px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface transition-all appearance-none"
               >
                 <option value="Like New">Like New</option>
                 <option value="Good">Good</option>
@@ -250,11 +248,10 @@ const SwapForm = ({
                 onChange={handleOfferedItemChange}
                 rows="2"
                 placeholder="Describe your item..."
-                className="w-full border border-outline-variant rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface placeholder:text-on-surface-variant transition-all resize-none"
+                className="w-full border border-outline-variant rounded px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface placeholder:text-on-surface-variant transition-all resize-none"
               />
             </div>
 
-           
             <div>
               <div className="flex justify-between items-center mb-2">
                 <label className="text-sm font-medium text-on-surface">Photos (Max 5, 5MB each)</label>
@@ -263,7 +260,6 @@ const SwapForm = ({
                 )}
               </div>
 
-       
               {previewImages.length > 0 && (
                 <div className="grid grid-cols-3 gap-2 mb-3">
                   {previewImages.map((url, index) => (
@@ -271,12 +267,12 @@ const SwapForm = ({
                       <img 
                         src={url} 
                         alt={`Preview ${index + 1}`} 
-                        className="w-full h-20 object-cover rounded-lg border border-outline-variant"
+                        className="w-full h-20 object-cover border border-outline-variant"
                       />
                       <button
                         type="button"
                         onClick={() => removePhoto(index)}
-                        className="absolute -top-2 -right-2 w-5 h-5 bg-error rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
+                        className="absolute -top-2 -right-2 w-5 h-5 bg-error rounded-ful flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
                         title="Remove photo"
                       >
                         <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -288,9 +284,8 @@ const SwapForm = ({
                 </div>
               )}
 
-            
               {photos.length < 5 && (
-                <div className="relative border-2 border-dashed border-outline-variant rounded-xl hover:border-primary transition-colors">
+                <div className="relative border-2 border-dashed border-outline-variant rounded hover:border-primary transition-colors">
                   <input
                     type="file"
                     accept="image/*"
@@ -300,7 +295,7 @@ const SwapForm = ({
                   />
                   <div className="p-4 text-center">
                     <div className="flex flex-col items-center gap-1">
-                      <span className="text-2xl">📸</span>
+               
                       <p className="text-sm text-on-surface-variant">
                         {photos.length === 0 ? 'Click to upload photos' : `Add more photos (${photos.length}/5)`}
                       </p>
@@ -312,9 +307,8 @@ const SwapForm = ({
             </div>
           </div>
           
-         
           {formData.swapType === 'swap-with-cash' && (
-            <div className="space-y-4 bg-surface-container-low rounded-xl p-4">
+            <div className="space-y-4 bg-surface-container-low rounded p-4">
               <h3 className="font-medium text-on-surface font-headline flex items-center gap-2">
                 <span className="w-1 h-5 bg-secondary rounded-full"></span>
                 Cash Offer
@@ -332,7 +326,7 @@ const SwapForm = ({
                     min="0"
                     step="0.01"
                     placeholder="0.00"
-                    className="w-full pl-12 pr-4 py-2.5 border border-outline-variant rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface transition-all"
+                    className="w-full pl-12 pr-4 py-2.5 border border-outline-variant rounded focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface transition-all"
                   />
                 </div>
               </div>
@@ -343,25 +337,25 @@ const SwapForm = ({
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, cashDetails: { ...prev.cashDetails, whoPays: 'i-pay-owner' } }))}
-                    className={`flex items-center justify-center gap-2 p-2 rounded-xl border transition-all ${
+                    className={`flex items-center justify-center gap-2 p-2 rounded border transition-all ${
                       formData.cashDetails.whoPays === 'i-pay-owner'
                         ? 'bg-primary border-primary text-on-primary'
                         : 'bg-surface border-outline-variant text-on-surface-variant hover:border-primary'
                     }`}
                   >
-                    <span></span>
+                    <span>💰</span>
                     <span className="text-sm">I pay owner</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, cashDetails: { ...prev.cashDetails, whoPays: 'owner-pays-me' } }))}
-                    className={`flex items-center justify-center gap-2 p-2 rounded-xl border transition-all ${
+                    className={`flex items-center justify-center gap-2 p-2 rounded border transition-all ${
                       formData.cashDetails.whoPays === 'owner-pays-me'
                         ? 'bg-primary border-primary text-on-primary'
                         : 'bg-surface border-outline-variant text-on-surface-variant hover:border-primary'
                     }`}
                   >
-                    <span></span>
+                    <span>💸</span>
                     <span className="text-sm">Owner pays me</span>
                   </button>
                 </div>
@@ -369,7 +363,6 @@ const SwapForm = ({
             </div>
           )}
           
-        
           <div>
             <label className="block text-sm font-medium text-on-surface mb-1.5">Message to Owner</label>
             <textarea
@@ -378,12 +371,11 @@ const SwapForm = ({
               onChange={handleChange}
               rows="2"
               placeholder={`Write a friendly message to ${ownerName}...`}
-              className="w-full border border-outline-variant rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface placeholder:text-on-surface-variant transition-all resize-none"
+              className="w-full border border-outline-variant rounded px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface placeholder:text-on-surface-variant transition-all resize-none"
             />
           </div>
           
-       
-          <div className="bg-surface-container-low rounded-xl p-4">
+          <div className="bg-surface-container-low rounded p-4">
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -403,7 +395,6 @@ const SwapForm = ({
             </label>
           </div>
           
-       
           <div className="flex gap-3 pt-2">
             <button 
               type="button" 
@@ -422,7 +413,7 @@ const SwapForm = ({
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   <span>Submitting...</span>
                 </div>
-              ) : (
+              ) : ( 
                 'Send Swap Request'
               )}
             </button>
