@@ -97,9 +97,9 @@ export default function DashboardOverview() {
         // Fallback using fetch to the backend (works even if axios baseURL is not configured).
         try {
           const [vJson, cJson, aJson] = await Promise.all([
-            fetch(`${fallbackApiBase}/api/volunteers`).then((r) => r.json()),
-            fetch(`${fallbackApiBase}/api/centers`).then((r) => r.json()),
-            fetch(`${fallbackApiBase}/api/centers?status=Active`).then((r) => r.json()),
+            fetch(`${fallbackApiBase}/volunteers`).then((r) => r.json()),
+            fetch(`${fallbackApiBase}/centers`).then((r) => r.json()),
+            fetch(`${fallbackApiBase}/centers?status=Active`).then((r) => r.json()),
           ]);
 
           if (nextVolunteers == null) nextVolunteers = Array.isArray(vJson) ? vJson : [];

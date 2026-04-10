@@ -91,7 +91,7 @@ export default function VolunteerDashboardVolunteersTable() {
     } catch (e) {
       // Retry with direct fetch + show error reason.
       try {
-        const res = await fetch(`${API_BASE_FALLBACK}/api/volunteers`);
+        const res = await fetch(`${API_BASE_FALLBACK}/volunteers`);
         const json = await res.json().catch(() => null);
         if (!res.ok) {
           throw new Error(`HTTP ${res.status} ${res.statusText || ""}`.trim());
@@ -114,7 +114,7 @@ export default function VolunteerDashboardVolunteersTable() {
     setActionBusyId(id);
     setError("");
     try {
-      const res = await fetch(`${API_BASE}/api/volunteers/${id}`, {
+      const res = await fetch(`${API_BASE}/volunteers/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ applicationStatus: newStatus }),
@@ -141,7 +141,7 @@ export default function VolunteerDashboardVolunteersTable() {
     setActionBusyId(id);
     setError("");
     try {
-      const res = await fetch(`${API_BASE}/api/volunteers/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/volunteers/${id}`, { method: "DELETE" });
       if (!res.ok && res.status !== 204) {
         const json = await res.json().catch(() => null);
         const message = json?.message || `Request failed with status ${res.status}`;
@@ -192,7 +192,7 @@ export default function VolunteerDashboardVolunteersTable() {
         return;
       }
 
-      const res = await API.post(`/api/volunteers/${volunteerId}/assign`, {
+      const res = await API.post(`/volunteers/${volunteerId}/assign`, {
         centerId: assignedCenter._id,
         assignedAt: new Date().toISOString()
       });
@@ -212,7 +212,7 @@ export default function VolunteerDashboardVolunteersTable() {
 
   const fetchCenters = async () => {
     try {
-      const res = await API.get('/api/centers');
+      const res = await API.get('/centers');
       return Array.isArray(res.data?.data) ? res.data.data : 
              Array.isArray(res.data) ? res.data : [];
     } catch (e) {
@@ -529,7 +529,7 @@ export default function VolunteerDashboardVolunteersTable() {
           </button>
           <button
             type="button"
-            onClick={() => navigate("/dashboard/volunteer/apply")}
+            onClick={() => navigate("/volunteer-dashboard/volunteer/apply")}
             className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-bold text-sm hover:shadow-xl transform hover:scale-105 transition-all duration-300 border border-blue-400"
           >
             ➕ Become a Volunteer
@@ -662,7 +662,7 @@ export default function VolunteerDashboardVolunteersTable() {
                                 <button
                                   type="button"
                                   disabled={actionBusyId === id}
-                                  onClick={() => navigate(`/dashboard/volunteer/${id}/edit`)}
+                                  onClick={() => navigate(`/volunteer-dashboard/volunteer/${id}/edit`)}
                                   className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-3 py-2 rounded-xl font-bold text-xs hover:shadow-lg transform hover:scale-105 disabled:opacity-60 transition-all duration-200"
                                 >
                                   ✏️ Edit

@@ -70,7 +70,7 @@ export default function CenterEdit() {
   useEffect(() => {
     async function loadCenter() {
       try {
-        const res = await API.get(`/api/centers/${id}`);
+        const res = await API.get(`/centers/${id}`);
         let center = res.data;
         
         // Handle different response structures
@@ -97,7 +97,7 @@ export default function CenterEdit() {
       } catch (err) {
         console.error("Error loading center:", err);
         alert("Failed to load center data. Please try again.");
-        navigate('/dashboard/center');
+        navigate('/volunteer-dashboard/center');
       } finally {
         setLoading(false);
       }
@@ -156,12 +156,12 @@ export default function CenterEdit() {
     };
 
     try {
-      const res = await API.put(`/api/centers/${id}`, payload);
+      const res = await API.put(`/centers/${id}`, payload);
       const data = res.data;
       if (data.success || data._id) {
         // Show success message then redirect
         alert("Center updated successfully!");
-        navigate('/dashboard/center');
+        navigate('/volunteer-dashboard/center');
       } else {
         alert(data.message || "Update failed. Please try again.");
       }
@@ -484,7 +484,7 @@ export default function CenterEdit() {
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <button
-                  onClick={() => navigate('/dashboard/center')}
+                  onClick={() => navigate('/volunteer-dashboard/center')}
                   className="bg-white text-primary px-7 py-3 rounded-[10px] text-[14px] font-semibold border-[1.5px] border-primary hover:bg-cream hover:-translate-y-px transition-all duration-200"
                 >
                   ✕ Close
@@ -504,7 +504,7 @@ export default function CenterEdit() {
             <div className="flex items-center justify-between gap-3 px-10 pt-6 pb-8 border-t border-[#F0EBE0] max-sm:px-5">
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => navigate('/dashboard/center')}
+                  onClick={() => navigate('/volunteer-dashboard/center')}
                   className="px-7 py-3 rounded-[10px] text-[14px] font-semibold text-[#888] bg-transparent border-[1.5px] border-[#ddd] hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all duration-200"
                 >
                   ✕ Close

@@ -221,7 +221,7 @@ export default function VolunteerCentersTable() {
 
       try {
         // Backend returns: { success: true, count, data: [...] }
-        const res = await fetch(`${API_BASE_FALLBACK}/api/centers?status=Active`);
+        const res = await fetch(`${API_BASE_FALLBACK}/centers?status=Active`);
         const json = await res.json();
         const data = Array.isArray(json?.data) ? json.data : [];
         if (!cancelled) setCenters(data);
@@ -376,7 +376,7 @@ export default function VolunteerCentersTable() {
                           <button
                             type="button"
                             onClick={() =>
-                              navigate("/dashboard/volunteer/apply", {
+                              navigate("/volunteer-dashboard/volunteer/apply", {
                                 state: { center: c },
                               })
                             }

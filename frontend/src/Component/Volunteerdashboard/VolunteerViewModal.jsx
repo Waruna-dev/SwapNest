@@ -14,13 +14,13 @@ export default function VolunteerViewModal({ centerId, onClose }) {
         setError("");
 
         // Get center details
-        const centerRes = await API.get(`/api/centers/${centerId}`);
+        const centerRes = await API.get(`/centers/${centerId}`);
         const centerData = centerRes.data;
         setCenter(centerData);
 
         // Get assigned volunteers
         console.log("Fetching volunteers for centerId:", centerId);
-        const volunteerRes = await API.get(`/api/volunteers/center?centerId=${centerId}`);
+        const volunteerRes = await API.get(`/volunteers/center?centerId=${centerId}`);
         console.log("API response:", volunteerRes);
         
         const volunteerData = Array.isArray(volunteerRes.data?.data) ? volunteerRes.data.data : 

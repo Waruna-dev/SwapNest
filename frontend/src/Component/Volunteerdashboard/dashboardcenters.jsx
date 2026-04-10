@@ -64,7 +64,7 @@ export default function DashboardCenters() {
       setError("");
 
       try {
-        const res = await API.get("/api/centers");
+        const res = await API.get("/centers");
         let centersData = [];
         
         if (Array.isArray(res.data?.data)) {
@@ -83,7 +83,7 @@ export default function DashboardCenters() {
           
           // Fallback to fetch if API fails
           try {
-            const response = await fetch("http://localhost:5000/api/centers");
+            const response = await fetch("http://localhost:5000/centers");
             const data = await response.json();
             const centersData = safeGetCentersArrayFromJson(data);
             setCenters(centersData);
@@ -120,7 +120,7 @@ export default function DashboardCenters() {
   });
 
   const handleAddCenter = () => {
-    navigate('/dashboard/add-center');
+    navigate('/volunteer-dashboard/add-center');
   };
 
   const handleViewCenter = (centerId) => {
@@ -129,13 +129,13 @@ export default function DashboardCenters() {
   };
 
   const handleEditCenter = (centerId) => {
-    navigate(`/dashboard/center/${centerId}/edit`);
+    navigate(`/volunteer-dashboard/center/${centerId}/edit`);
   };
 
   const handleDeleteCenter = async (centerId) => {
     if (window.confirm("Are you sure you want to delete this center?")) {
       try {
-        await API.delete(`/api/centers/${centerId}`);
+        await API.delete(`/centers/${centerId}`);
         setCenters(centers.filter(c => c._id !== centerId));
       } catch (err) {
         console.error("Error deleting center:", err);

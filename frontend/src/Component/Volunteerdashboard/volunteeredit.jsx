@@ -61,7 +61,7 @@ export default function VolunteerEdit() {
 
   const fetchCenters = async () => {
     try {
-      const res = await API.get('/api/centers');
+      const res = await API.get('/centers');
       console.log('Centers API response:', res);
       return Array.isArray(res.data?.data) ? res.data.data : 
              Array.isArray(res.data) ? res.data : [];
@@ -79,7 +79,7 @@ export default function VolunteerEdit() {
       setError("");
       try {
         // Load volunteer data
-        const res = await API.get(`/api/volunteers/${id}`);
+        const res = await API.get(`/volunteers/${id}`);
         const v = res.data || {};
         console.log('Volunteer API response:', res);
         console.log('Loaded volunteer data:', v);
@@ -233,14 +233,14 @@ export default function VolunteerEdit() {
         applicationStatus: form.applicationStatus,
       };
 
-      const res = await API.put(`/api/volunteers/${id}`, payload);
+      const res = await API.put(`/volunteers/${id}`, payload);
       console.log('Save API response:', res);
       console.log('Payload being sent:', payload);
       if (!res.data) {
         throw new Error('Failed to update volunteer');
       }
 
-      navigate("/dashboard/volunteer");
+      navigate("/volunteer-dashboard/volunteer");
     } catch (e2) {
       console.error('Save error details:', e2);
       console.error('Error response:', e2.response?.data);
@@ -270,7 +270,7 @@ export default function VolunteerEdit() {
             <p className="text-zinc-500 mt-1">Update details and save to database.</p>
           </div>
           <Link
-            to="/dashboard/volunteer"
+            to="/volunteer-dashboard/volunteer"
             className="border border-zinc-200 text-zinc-800 px-4 py-2 rounded-xl font-bold text-sm hover:bg-zinc-50 transition-colors"
           >
             ← Back
@@ -381,7 +381,7 @@ export default function VolunteerEdit() {
 
           <div className="mt-6 flex items-center justify-end gap-3">
             <Link
-              to="/dashboard/volunteer"
+              to="/volunteer-dashboard/volunteer"
               className="border border-zinc-200 text-zinc-800 px-5 py-2 rounded-xl font-bold text-sm hover:bg-zinc-50 transition-colors"
             >
               Cancel
