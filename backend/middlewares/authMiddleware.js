@@ -33,4 +33,16 @@ const admin = (req, res, next) => {
     }
 };
 
-export { protect, admin };
+const adminOrOwner = (req, res, next) => {
+  // req.user is set by the 'protect' middleware
+  // req.params.id is the ID of the user they are trying to delete from the URL
+  
+  if (req.user && (req.user.role === 'admin' || req.user._id.toString() === req.params.id)) {
+    next(); // Let them through! They are either an admin or deleting their own account.
+  } else {
+    res.status(403);
+    throw new Error('Access denied: You can only delete your own account');
+  }
+};
+
+export { protect, admin, adminOrOwner };

@@ -1,28 +1,53 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import API from '../services/api';
+// 1. Import the Google Login hook
+import { useGoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false); 
   
   const navigate = useNavigate();
+
+  // 2. Setup the Google Login Hook
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setIsLoading(true);
+      try {
+        const response = await API.post('/users/google', {
+          googleAccessToken: tokenResponse.access_token
+        });
+        
+        localStorage.setItem('swapnest_token', response.data.token);
+        navigate('/dashboard');
+      } catch (err) {
+        setError('Google Authentication failed. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    onError: () => setError('Google Authentication failed.'),
+  });
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
     try {
-      // Send login request to backend
       const response = await API.post('/users/login', { email, password });
       
-      // Save token and redirect to Home
       localStorage.setItem('swapnest_token', response.data.token);
-      navigate('/');
+      navigate('/dashboard');
       
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -31,25 +56,18 @@ const Login = () => {
       
       {/* Top Navigation Bar */}
       <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl shadow-sm border-b border-outline-variant/10">
-        <div className="flex justify-between items-center px-6 md:px-8 py-4 max-w-7xl mx-auto">
-          <Link to="/" className="text-2xl font-extrabold text-primary tracking-tighter font-headline hover:opacity-80 transition-opacity">
+        <div className="relative flex justify-between items-center px-6 md:px-8 py-4 max-w-7xl mx-auto">
+          
+          <Link to="/" className="text-2xl font-extrabold text-primary tracking-tighter font-headline hover:opacity-80 transition-opacity z-10">
             SwapNest
           </Link>
           
-          <div className="hidden md:flex items-center space-x-8 font-headline font-bold text-sm tracking-tight">
-            <Link to="/" className="text-secondary font-bold border-b-2 border-secondary pb-1">Discover</Link>
+          <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center space-x-8 font-headline font-bold text-sm tracking-tight">
+            <Link to="/" className="text-secondary border-b-2 border-secondary pb-1">Discover</Link>
             <a className="text-primary/80 hover:text-primary transition-colors" href="#">How it Works</a>
             <a className="text-primary/80 hover:text-primary transition-colors" href="#">Our Story</a>
           </div>
-          
-          <div className="flex items-center space-x-4">
-            <Link to="/register" className="hidden md:block bg-secondary text-on-secondary px-6 py-2.5 rounded-full font-headline font-bold text-sm hover:scale-105 transition-transform duration-200 shadow-md">
-              Create Account
-            </Link>
-            <Link to="/" className="text-primary cursor-pointer hover:scale-95 duration-200 flex items-center justify-center">
-              <span className="material-symbols-outlined text-3xl">close</span>
-            </Link>
-          </div>
+                    
         </div>
       </nav>
 
@@ -98,7 +116,8 @@ const Login = () => {
 
             {/* Dynamic Error Message */}
             {error && (
-              <div className="bg-error-container text-on-error-container p-4 rounded-2xl text-sm font-bold text-center border border-error/20">
+              <div className="bg-error-container text-on-error-container p-4 rounded-2xl text-sm font-bold text-center border border-error/20 flex items-center justify-center gap-2">
+                <span className="material-symbols-outlined text-[18px]">error</span>
                 {error}
               </div>
             )}
@@ -117,26 +136,39 @@ const Login = () => {
               </div>
               
               <div className="space-y-2">
+                {/* --- FORGOT PASSWORD LINK ADDED HERE --- */}
                 <div className="flex justify-between items-center px-1">
                   <label className="font-label text-xs font-bold uppercase tracking-widest text-primary/70">Password</label>
-                  <a className="text-[11px] font-bold text-secondary uppercase tracking-wider hover:underline transition-all" href="#">Forgot?</a>
+                  <Link to="/forgot-password" className="text-[11px] font-headline font-bold text-secondary uppercase tracking-wider hover:underline transition-all">Forgot?</Link>
                 </div>
-                <input 
-                  className="w-full h-14 px-6 bg-surface-container-highest border-none rounded-2xl focus:ring-2 focus:ring-primary/20 transition-all text-on-surface placeholder:text-on-surface-variant/40 font-medium outline-none" 
-                  placeholder="••••••••" 
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
+                <div className="relative">
+                  <input 
+                    className="w-full h-14 pl-6 pr-12 bg-surface-container-highest border-none rounded-2xl focus:ring-2 focus:ring-primary/20 transition-all text-on-surface placeholder:text-on-surface-variant/40 font-medium outline-none" 
+                    placeholder="••••••••" 
+                    type={showPassword ? "text" : "password"} 
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-on-surface-variant/60 hover:text-primary transition-colors focus:outline-none flex items-center justify-center"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">
+                      {showPassword ? 'visibility' : 'visibility_off'}
+                    </span>
+                  </button>
+                </div>
               </div>
               
               <button 
                 type="submit"
-                className="w-full h-16 bg-secondary text-on-secondary rounded-full font-headline font-bold text-lg hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_20px_40px_-15px_rgba(27,28,26,0.2)] flex items-center justify-center gap-2 mt-8"
+                disabled={isLoading}
+                className="w-full h-16 bg-secondary text-on-secondary rounded-full font-headline font-bold text-lg hover:bg-[#822800] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_20px_40px_-15px_rgba(27,28,26,0.2)] flex items-center justify-center gap-2 mt-8 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                Sign In
-                <span className="material-symbols-outlined text-xl">arrow_right_alt</span>
+                {isLoading ? 'Signing In...' : 'Sign In'}
+                {!isLoading && <span className="material-symbols-outlined text-xl">arrow_right_alt</span>}
               </button>
             </form>
 
@@ -149,8 +181,12 @@ const Login = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <button type="button" className="flex items-center justify-center gap-3 h-14 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl hover:bg-surface-container transition-colors group shadow-sm">
+            <div className="w-full pb-2">
+              <button 
+                type="button" 
+                onClick={() => loginWithGoogle()}
+                className="w-full flex items-center justify-center gap-3 h-14 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl hover:bg-surface-container transition-colors group shadow-sm"
+              >
                 <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
                   <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
@@ -159,17 +195,11 @@ const Login = () => {
                 </svg>
                 <span className="font-headline font-bold text-sm text-primary">Google</span>
               </button>
-              <button type="button" className="flex items-center justify-center gap-3 h-14 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl hover:bg-surface-container transition-colors group shadow-sm">
-                <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
-                  <path className="text-primary" d="M17.05 20.28c-.96 0-2.04-.6-3.22-.6-1.2 0-2.4.61-3.22.61-1.24 0-2.52-.73-3.32-1.92-1.61-2.41-1.61-6.32 0-8.73.81-1.2 2.08-1.92 3.32-1.92.96 0 2.04.6 3.22.6s2.26-.6 3.22-.6c1.24 0 2.52.73 3.32 1.92a9.14 9.14 0 0 1 1.02 2.05c-.03.02-1.84.72-1.84 2.86 0 2.14 1.81 2.84 1.84 2.86-.25.7-.63 1.34-1.02 2.05-.8 1.19-1.88 1.92-3.12 1.92zM13.83 5.32c0-1.22 1.02-2.22 2.22-2.22 0 0 .02.01.02.01a2.23 2.23 0 0 1-2.24 2.21zm4.24-2.81c0-1.12-.9-2.02-2.02-2.02s-2.02.9-2.02 2.02 2.02 2.02 2.02 2.02 2.02-.9 2.02-2.02z" fill="currentColor"></path>
-                </svg>
-                <span className="font-headline font-bold text-sm text-primary">Apple</span>
-              </button>
             </div>
 
             <p className="text-center text-sm font-medium text-on-surface-variant pt-4">
               New to the community? 
-              <Link to="/register" className="text-secondary font-bold hover:underline ml-1"> Sign Up</Link>
+              <Link to="/register" className="text-secondary font-headline font-bold hover:underline ml-1"> Sign Up</Link>
             </p>
           </div>
 
@@ -183,8 +213,8 @@ const Login = () => {
 
       {/* Mobile Sticky Badge */}
       <div className="fixed top-20 right-4 z-40 md:hidden">
-        <Link to="/" className="flex items-center gap-2 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-full border border-gray-200 shadow-md">
-          <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-white">
+        <Link to="/" className="flex items-center gap-2 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-full border border-outline-variant/20 shadow-md">
+          <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-on-secondary">
             <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>eco</span>
           </div>
           <span className="font-headline font-black text-sm tracking-tighter text-primary">SwapNest</span>

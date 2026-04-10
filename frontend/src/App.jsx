@@ -1,10 +1,22 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // Pages
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AboutUs from "./pages/aboutus";
+import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import Privacy from "./pages/PrivacyPolicy";
+import Term from "./pages/TermsConditions";
+
+// Components
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminSwapDashboard from "./components/swap/AdminSwapDashboard";
+import Swapform from "./components/swap/SwapForm";
+import SwapList from "./components/swap/SwapList";
 
 // Volunteer components
 import Pickup from "./Component/Volunteer/pickup";
@@ -21,23 +33,39 @@ import CenterEdit from "./Component/Volunteerdashboard/centeredit.jsx";
 import VolunteerDashboardVolunteersTable from "./Component/Volunteerdashboard/VolunteerDashboardVolunteersTable";
 import VolunteerEdit from "./Component/Volunteerdashboard/volunteeredit";
 
+// Item components
+import ItemAddNewItems from "./pages/item-listing/ItemAddNewItem";
+import ItemGalleryPage from "./pages/item-gallery/ItemGalleryPage";
+import ItemDashboard1 from "./pages/item-listing/ItemDashboard";
+
 function App() {
   return (
     <Router>
       <div className="app-container">
         <Routes>
-          {/* Public pages */}
+          {/* Public routes */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/about" element={<AboutUs />} />
+
           <Route path="/pickup" element={<Pickup />} />
           <Route path="/center" element={<Center />} />
           <Route path="/volunteer" element={<Volunteer />} />
           <Route path="/volunteer-hero" element={<VolunteerPage />} />
 
-          {/* Volunteer dashboard */}
-          <Route path="/dashboard" element={<VolunteerDashboard />}>
+          {/* Auth */}
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+
+          {/* Protected main dashboard */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+          </Route>
+
+          {/* Volunteer Dashboard (separate module) */}
+          <Route path="/volunteer-dashboard" element={<VolunteerDashboard />}>
             <Route index element={<DashboardOverview />} />
             <Route path="volunteer-hero" element={<VolunteerPage />} />
             <Route path="volunteer" element={<VolunteerDashboardVolunteersTable />} />
@@ -48,6 +76,20 @@ function App() {
             <Route path="add-center" element={<Center />} />
             <Route path="distribution-plan" element={<DistributionPlan />} />
           </Route>
+
+          {/* Swap module */}
+          <Route path="/swapadmin" element={<AdminSwapDashboard />} />
+          <Route path="/swapform" element={<Swapform />} />
+          <Route path="/swaplist" element={<SwapList />} />
+
+          {/* Items module */}
+          <Route path="/item/form" element={<ItemAddNewItems />} />
+          <Route path="/item/gallery" element={<ItemGalleryPage />} />
+          <Route path="/item/dashboard" element={<ItemDashboard1 />} />
+
+          {/* Legal */}
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Term />} />
         </Routes>
       </div>
     </Router>

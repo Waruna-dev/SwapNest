@@ -53,6 +53,7 @@ const itemSchema = new mongoose.Schema(
     images: { type: [imageSchema], default: [] },
     coverImage: { type: imageSchema, default: null },
     isActive: { type: Boolean, default: true, index: true },
+    isHidden: { type: Boolean, default: false, index: true },
     views: { type: Number, default: 0 },
     location: { type: pointSchema, default: undefined },
   },
