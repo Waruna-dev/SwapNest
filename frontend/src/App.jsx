@@ -57,7 +57,7 @@ function App() {
 
           <Route path="/pickup" element={<Pickup />} />
           <Route path="/center" element={<Center />} />
-          <Route path="/volunteer" element={<Volunteer />} />
+          <Route path="/volunteer" element={<VolunteerPage />} />
           <Route path="/volunteer-hero" element={<VolunteerPage />} />
 
           {/* Auth */}

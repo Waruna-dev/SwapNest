@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import ManageUsers from './ManageUsers';
 import AdminSwapDashboard from '../../components/swap/AdminSwapDashboard';
-import VolunteerDashboard from '../../Component/Volunteerdashboard/volunteerdashboard';
 import DashboardOverview from '../../Component/Volunteerdashboard/dashboardOverview';
 import VolunteerDashboardVolunteersTable from '../../Component/Volunteerdashboard/VolunteerDashboardVolunteersTable';
 import DashboardCenters from '../../Component/Volunteerdashboard/dashboardcenters';
@@ -134,6 +133,10 @@ const AdminDashboard = () => {
     }
   }, [navigate]);
 
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [activeTab]);
+
   // 2. Logout Handler
   const handleLogout = () => {
     localStorage.removeItem('adminInfo');
@@ -165,9 +168,11 @@ const AdminDashboard = () => {
         />
       )}
 
-      {/* --- SIDEBAR --- */}
+      {/* --- SIDEBAR (fixed on mobile drawer; always visible column on lg+) --- */}
       <aside className={`
-        fixed inset-y-0 left-0 z-50 w-72 bg-gray-900 border-r border-gray-800 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col
+        shrink-0 w-72 bg-gray-900 border-r border-gray-800 flex flex-col
+        fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
+        lg:relative lg:z-auto lg:translate-x-0
         ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
       `}>
         {/* Sidebar Header */}

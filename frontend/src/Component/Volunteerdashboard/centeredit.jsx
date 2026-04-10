@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import API from "../../services/api";
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -24,8 +24,10 @@ function SectionLabel({ children }) {
 }
 
 // ── Main Component ─────────────────────────────────────────────────────────
-export default function CenterEdit({ id, onBack }) {
+export default function CenterEdit({ id: idFromProps, onBack }) {
   const navigate = useNavigate();
+  const { id: idFromRoute } = useParams();
+  const id = idFromProps ?? idFromRoute;
   const [step, setStep] = useState(1);
   const [centerName, setCenterName] = useState("");
   const [centerCode, setCenterCode] = useState("");
@@ -65,20 +67,33 @@ export default function CenterEdit({ id, onBack }) {
     }
   }, [centerName]);
 
-  // Load center data
+  // Load center data (id from Admin embed or /volunteer-dashboard/center/:id/edit route)
   useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      alert("Missing center ID.");
+      if (onBack) onBack();
+      else navigate("/volunteer-dashboard/center");
+      return;
+    }
+
+    let cancelled = false;
+
     async function loadCenter() {
       try {
         const res = await API.get(`/centers/${id}`);
         let center = res.data;
-        
-        // Handle different response structures
+
         if (res.data?.data) {
           center = res.data.data;
         }
-        
-        console.log("Loaded center data:", center);
-        
+
+        if (!center || typeof center !== "object") {
+          throw new Error("Invalid response");
+        }
+
+        if (cancelled) return;
+
         setCenterName(center.centerName || "");
         setCenterCode(center.centerCode || "");
         setDistrict(center.district || "");
@@ -87,23 +102,29 @@ export default function CenterEdit({ id, onBack }) {
         setEmail(center.email || "");
         setContactNumber(center.contactNumber || "");
         setOperatingHours(center.operatingHours || "");
-        setCapacity(center.capacity || "");
+        setCapacity(center.capacity != null ? String(center.capacity) : "");
         setStatus(center.status || "Active");
-        setFacilities(center.facilities || []);
+        setFacilities(Array.isArray(center.facilities) ? center.facilities : []);
         setManagerName(center.managerName || "");
         setManagerEmail(center.managerEmail || "");
         setManagerContact(center.managerContact || "");
       } catch (err) {
         console.error("Error loading center:", err);
-        alert("Failed to load center data. Please try again.");
-        if (onBack) onBack(); else navigate('/volunteer-dashboard/center');
+        if (!cancelled) {
+          alert("Failed to load center data. Please try again.");
+          if (onBack) onBack();
+          else navigate("/volunteer-dashboard/center");
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
 
     loadCenter();
-  }, [id, navigate]);
+    return () => {
+      cancelled = true;
+    };
+  }, [id, navigate, onBack]);
 
   const validateStep = () => {
     const newErrors = {};
@@ -189,22 +210,13 @@ export default function CenterEdit({ id, onBack }) {
     <div className="bg-gradient-to-br from-slate-50 to-gray-100 min-h-screen font-sans text-gray-800">
 
       {/* ── Hero ─────────────────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-r from-gray-800 to-gray-900 px-6 pt-12 pb-16 relative overflow-hidden">
-        <div className="absolute -top-16 -right-16 w-64 h-64 bg-gray-700/15 rounded-full pointer-events-none" />
-        <div className="absolute -bottom-20 -left-10 w-48 h-48 bg-gray-600/10 rounded-full pointer-events-none" />
-
+      <div className="bg-white px-6 pt-12 pb-16 relative overflow-hidden">
         <div className="max-w-[860px] mx-auto relative z-10">
-          {/* Brand */}
-          <div className="flex items-center gap-2.5 mb-7">
-            <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center text-[18px]">🔄</div>
-            <span className="text-[18px] font-bold text-white tracking-[-0.3px]">SwapNest</span>
-          </div>
-
-          <h1 className="text-[clamp(26px,4vw,38px)] font-bold text-white mb-3 leading-tight tracking-[-0.5px]">
-            Edit <span className="text-gray-300">Center</span>
+          <h1 className="text-[clamp(26px,4vw,38px)] font-bold text-gray-800 mb-3 leading-tight tracking-[-0.5px]">
+            Edit <span className="text-gray-600">Center</span>
           </h1>
-          <p className="text-[15px] text-white/80 max-w-[520px] leading-[1.65]">
-            Update the details of this SwapNest collection center.
+          <p className="text-[15px] text-gray-600 max-w-[520px] leading-[1.65]">
+            Update the details of this collection center.
           </p>
 
           {/* Steps bar */}
@@ -216,13 +228,13 @@ export default function CenterEdit({ id, onBack }) {
               return (
                 <React.Fragment key={label}>
                   <div className={`flex items-center gap-2 transition-opacity duration-300 ${isActive || isDone ? "opacity-100" : "opacity-50"}`}>
-                    <div className={`w-[26px] h-[26px] rounded-full flex items-center justify-center text-[12px] font-bold text-gray-800 flex-shrink-0 transition-colors duration-300 ${isActive ? "bg-white border-2 border-gray-400" : isDone ? "bg-gray-200" : "bg-white/50"}`}>
+                    <div className={`w-[26px] h-[26px] rounded-full flex items-center justify-center text-[12px] font-bold text-white flex-shrink-0 transition-colors duration-300 ${isActive ? "bg-gray-800 border-2 border-gray-600" : isDone ? "bg-gray-600" : "bg-gray-300"}`}>
                       {n}
                     </div>
-                    <span className="text-[12px] text-white/90 font-medium whitespace-nowrap">{label}</span>
+                    <span className="text-[12px] text-gray-700 font-medium whitespace-nowrap">{label}</span>
                   </div>
                   {i < STEPS.length - 1 && (
-                    <div className="flex-1 h-px bg-white/20 min-w-[16px] max-w-[40px]" />
+                    <div className="flex-1 h-px bg-gray-300 min-w-[16px] max-w-[40px]" />
                   )}
                 </React.Fragment>
               );

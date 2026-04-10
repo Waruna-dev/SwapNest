@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import Volunteer from "../models/VolunteerModel.js";
 
 /**
@@ -67,7 +68,9 @@ export async function addVolunteer(req, res) {
         });
     }
     try {
-        const newVolunteer = await insertVolunteer(body);
+        const data = { ...body, role: "volunteer" };
+        if (!data.gender) delete data.gender;
+        const newVolunteer = await insertVolunteer(data);
         res.status(201).json(newVolunteer);
     } catch (err) {
         if (err.name === "ValidationError") {
@@ -90,11 +93,21 @@ export async function updateVolunteer(req, res) {
         });
     }
     try {
-        const volunteer = await Volunteer.findByIdAndUpdate(
-            req.params.id,
-            body,
-            { new: true, runValidators: true }
-        );
+        const updates = { ...body, role: "volunteer" };
+        if (updates.password === "" || updates.password === undefined || updates.password === null) {
+            delete updates.password;
+        } else if (typeof updates.password === "string" && updates.password.length > 0) {
+            const salt = await bcrypt.genSalt(12);
+            updates.password = await bcrypt.hash(updates.password, salt);
+        }
+        Object.keys(updates).forEach((key) => {
+            if (updates[key] === undefined) delete updates[key];
+        });
+
+        const volunteer = await Volunteer.findByIdAndUpdate(req.params.id, updates, {
+            new: true,
+            runValidators: true,
+        });
         if (!volunteer) return res.status(404).json({ message: "Volunteer not found" });
         res.json(volunteer);
     } catch (err) {

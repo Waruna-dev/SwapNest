@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+import VolunteerFormModal from "../Volunteer/volunteer.jsx";
+
 const API_BASE_FALLBACK = "http://localhost:5000";
 
 export default function VolunteerCentersTable() {
@@ -10,6 +12,8 @@ export default function VolunteerCentersTable() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isVolunteerFormOpen, setIsVolunteerFormOpen] = useState(false);
+  const [selectedFormCenter, setSelectedFormCenter] = useState(null);
   const [centers, setCenters] = useState([]);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportOptions, setReportOptions] = useState({
@@ -375,11 +379,10 @@ export default function VolunteerCentersTable() {
                         <td className="px-6 py-4">
                           <button
                             type="button"
-                            onClick={() =>
-                              navigate("/volunteer-dashboard/volunteer/apply", {
-                                state: { center: c },
-                              })
-                            }
+                            onClick={() => {
+                              setSelectedFormCenter(c);
+                              setIsVolunteerFormOpen(true);
+                            }}
                             className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:shadow-lg transform hover:scale-105 transition-all duration-300 border border-emerald-400"
                           >
                             ➕ Become a Volunteer
@@ -531,6 +534,12 @@ export default function VolunteerCentersTable() {
           </div>
         )}
       </div>
+
+      <VolunteerFormModal 
+        isOpen={isVolunteerFormOpen} 
+        onClose={() => setIsVolunteerFormOpen(false)} 
+        center={selectedFormCenter} 
+      />
     </div>
   );
 }

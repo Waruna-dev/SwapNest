@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import API from "../../services/api";
+import NotificationBell from "../../components/NotificationBell";
 
 // ── Asset Imports ──────────────────────────────────────────────────────────
 import voidVideo from "../../pictures/void.mp4";
 import teamImg from "../../pictures/93c13d67b36bda544bdff473c7ded9a7.jpg";
+
+import VolunteerFormModal from "./volunteer.jsx";
 
 // ── Helper Components ──────────────────────────────────────────────────────
 
@@ -178,6 +181,65 @@ export default function VolunteerPage() {
   const [centers, setCenters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isVolunteerFormOpen, setIsVolunteerFormOpen] = useState(false);
+  const [selectedFormCenter, setSelectedFormCenter] = useState(null);
+  
+  // Header states
+  const [activeNav, setActiveNav] = useState('volunteer');
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [userId, setUserId] = useState('');
+  const [profilePic, setProfilePic] = useState(null);
+  const [imageError, setImageError] = useState(false);
+  
+  const profileMenuRef = useRef(null);
+  const mobileMenuRef = useRef(null);
+  const userInitial = userName ? userName.charAt(0).toUpperCase() : 'U';
+
+  // Fetch user data for header
+  useEffect(() => {
+    const authenticateAndFetchUser = async () => {
+      const token = localStorage.getItem('swapnest_token');
+      if (!token) {
+        // Don't redirect to login for volunteer page, just continue without user data
+        return;
+      }
+
+      try {
+        const response = await API.get('/users/me');
+        const userData = response.data;
+        setUserName(userData.username);
+        setUserId(userData._id);
+        if (userData.profilePic) {
+          setProfilePic(userData.profilePic);
+        }
+      } catch (error) {
+        console.error("Authentication failed:", error);
+      }
+    };
+
+    authenticateAndFetchUser();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setIsProfileMenuOpen(false);
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('swapnest_token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -225,8 +287,98 @@ export default function VolunteerPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white text-[#1A1A1A] font-sans overflow-x-hidden">
-      {/* ── HERO SECTION ───────────────────────────────────── */}
+    <div className="bg-background text-on-surface font-body min-h-screen antialiased">
+      
+      {/* --- DASHBOARD NAVBAR --- */}
+      <nav className="sticky top-0 w-full z-50 bg-white/80 backdrop-blur-xl shadow-sm border-b border-outline-variant/10 py-3">
+        <div className="flex justify-between items-center px-6 md:px-12 max-w-7xl mx-auto">
+          <Link to="/" className="text-2xl font-bold tracking-tighter text-primary font-serif">
+            SwapNest
+          </Link>
+          
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-8 font-semibold text-sm tracking-tight">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className={`transition-colors ${activeNav === 'dashboard' ? 'text-secondary border-b-2 border-secondary pb-1' : 'text-primary/80 hover:text-primary'}`}
+            >
+              Dashboard
+            </button>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className={`transition-colors ${activeNav === 'my-swaps' ? 'text-secondary border-b-2 border-secondary pb-1' : 'text-primary/80 hover:text-primary'}`}
+            >
+              My Swaps
+            </button>
+            <Link to="/item/gallery" className="text-primary/80 hover:text-primary transition-colors">Marketplace</Link>
+            <Link to="/volunteer" className="text-secondary border-b-2 border-secondary pb-1">Volunteer</Link>
+            <Link to="/messages" className="text-primary/80 hover:text-primary transition-colors">Messages</Link>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <Link to="/item/form" className="hidden md:flex bg-secondary text-white px-5 py-2 rounded-full font-bold text-xs hover:scale-105 transition-transform shadow-md items-center gap-1">
+              <span className="material-symbols-outlined text-[16px]">add</span> List Item
+            </Link>
+            
+            <NotificationBell 
+              userId={userId} 
+            />
+            
+            {/* Profile Menu */}
+            <div className="relative" ref={profileMenuRef}>
+              <div 
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} 
+                className="w-10 h-10 rounded-full border-2 border-primary/10 overflow-hidden cursor-pointer hover:ring-2 hover:ring-secondary transition-all bg-primary flex items-center justify-center text-white font-bold font-headline"
+              >
+                {profilePic && !imageError ? (
+                  <img 
+                    src={profilePic} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover" 
+                    onError={() => setImageError(true)} 
+                  />
+                ) : (
+                  <span>{userInitial}</span>
+                )}
+              </div>
+
+              {isProfileMenuOpen && (
+                <div className="absolute right-0 mt-3 w-48 bg-white rounded-2xl shadow-xl border border-outline-variant/20 py-2 z-50">
+                  <Link to="/profile" className="flex items-center gap-2 px-4 py-3 text-sm font-bold text-primary hover:bg-surface-container-high transition-colors">
+                    <span className="material-symbols-outlined text-[20px]">manage_accounts</span> Account Settings
+                  </Link>
+                  <div className="h-px bg-outline-variant/20 my-1"></div>
+                  <button onClick={handleLogout} className="w-full flex items-center gap-2 px-4 py-3 text-sm font-bold text-error hover:bg-error-container/30 transition-colors text-left">
+                    <span className="material-symbols-outlined text-[20px]">logout</span> Log Out
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Menu Toggle */}
+            <div className="md:hidden relative" ref={mobileMenuRef}>
+              <button className="text-primary p-1 flex items-center" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+                <span className="material-symbols-outlined text-2xl">{isMobileMenuOpen ? 'close' : 'menu'}</span>
+              </button>
+              {isMobileMenuOpen && (
+                <div className="absolute right-0 top-full mt-4 w-64 bg-white border border-outline-variant/20 rounded-2xl shadow-xl py-4 px-4 flex flex-col gap-4 z-50">
+                  <button onClick={() => { navigate('/dashboard'); setIsMobileMenuOpen(false); }} className="text-primary font-headline font-bold text-lg text-left">Dashboard</button>
+                  <button onClick={() => { navigate('/dashboard'); setIsMobileMenuOpen(false); }} className="text-primary font-headline font-bold text-lg text-left">My Swaps</button>
+                  <Link to="/item/gallery" className="text-primary font-headline font-bold text-lg">Marketplace</Link>
+                  <Link to="/volunteer" className="text-secondary font-headline font-bold text-lg">Volunteer</Link>
+                  <Link to="/messages" className="text-primary font-headline font-bold text-lg">Messages</Link>
+                  <Link to="/item/form" className="w-full bg-secondary text-white px-4 py-3 rounded-xl font-bold text-sm mt-2 flex items-center justify-center gap-2">
+                    <span className="material-symbols-outlined text-[18px]">add</span> List Item
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div className="min-h-screen bg-white text-[#1A1A1A] font-sans overflow-x-hidden">
+      {/* <!-- HERO SECTION --> */}
       <section className="relative min-h-screen flex items-center px-6 lg:px-20 py-20">
         <div className="max-w-[1400px] mx-auto flex flex-col lg:flex-row items-center gap-12 z-10">
           
@@ -253,7 +405,10 @@ export default function VolunteerPage() {
                 BROWSE CENTERS
               </button>
               <button
-                onClick={() => navigate("/volunteer")}
+                onClick={() => {
+                  setSelectedFormCenter(null);
+                  setIsVolunteerFormOpen(true);
+                }}
                 className="bg-[#2D4A35] text-white px-8 py-4 rounded-xl font-black text-sm hover:bg-black transition-all shadow-md uppercase tracking-tight"
               >
                 BECOME VOLUNTEER
@@ -372,12 +527,21 @@ export default function VolunteerPage() {
               <CenterCard
                 key={center._id}
                 center={center}
-                onVolunteer={(c) => navigate("/dashboard/volunteer/apply", { state: { center: c } })}
+                onVolunteer={(c) => {
+                  setSelectedFormCenter(c);
+                  setIsVolunteerFormOpen(true);
+                }}
               />
             ))
           )}
         </motion.div>
       </section>
+      </div>
+      <VolunteerFormModal 
+        isOpen={isVolunteerFormOpen} 
+        onClose={() => setIsVolunteerFormOpen(false)} 
+        center={selectedFormCenter} 
+      />
     </div>
   );
 }

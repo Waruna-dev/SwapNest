@@ -207,8 +207,8 @@ export default function DashboardOverview() {
               Network Snapshot
             </div>
             <div className="text-zinc-700 leading-relaxed">
-              Use the sidebar to manage volunteer applications, register centers, and create distribution
-              plans.
+              Use the Volunteer, Centers, and Distribution Plan sections to manage applications, register
+              centers, and create distribution plans.
             </div>
           </div>
         </div>

@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import API from "../../services/api";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const parseList = (value) =>
   String(value || "")
@@ -10,8 +8,10 @@ const parseList = (value) =>
     .map((s) => s.trim())
     .filter(Boolean);
 
-export default function VolunteerEdit({ id, onBack }) {
+export default function VolunteerEdit({ id: idFromProps, onBack }) {
   const navigate = useNavigate();
+  const { id: idFromRoute } = useParams();
+  const id = idFromProps ?? idFromRoute;
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -44,11 +44,31 @@ export default function VolunteerEdit({ id, onBack }) {
     timeText: "",
     hoursPerWeek: "",
     startDate: "",
+    password: "",
+    role: "volunteer",
     agreeTerms: false,
     agreePrivacy: false,
     agreeNotif: false,
     applicationStatus: "Pending",
   });
+
+  const DISTRICT_OPTIONS = [
+    "Colombo",
+    "Gampaha",
+    "Kalutara",
+    "Kandy",
+    "Galle",
+    "Matara",
+    "Jaffna",
+    "Trincomalee",
+    "Kurunegala",
+    "Ratnapura",
+    "Badulla",
+  ];
+
+  const GENDER_OPTIONS = ["", "Male", "Female", "Non-binary", "Prefer not to say"];
+  const EXPERIENCE_OPTIONS = ["", "No experience", "1–2 years", "3–5 years", "Expert"];
+  const HOURS_OPTIONS = ["", "1–3 hours", "4–8 hours", "9–15 hours"];
 
   const title = useMemo(() => {
     const name = `${form.firstName} ${form.lastName}`.trim();
@@ -60,17 +80,24 @@ export default function VolunteerEdit({ id, onBack }) {
 
   const fetchCenters = async () => {
     try {
-      const res = await API.get('/centers');
-      console.log('Centers API response:', res);
-      return Array.isArray(res.data?.data) ? res.data.data : 
-             Array.isArray(res.data) ? res.data : [];
-    } catch (e) {
-      console.error('Failed to fetch centers:', e);
+      const res = await API.get("/centers");
+      return Array.isArray(res.data?.data)
+        ? res.data.data
+        : Array.isArray(res.data)
+          ? res.data
+          : [];
+    } catch {
       return [];
     }
   };
 
   useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      setError("Missing volunteer ID.");
+      return;
+    }
+
     let cancelled = false;
 
     async function load() {
@@ -79,13 +106,10 @@ export default function VolunteerEdit({ id, onBack }) {
       try {
         // Load volunteer data
         const res = await API.get(`/volunteers/${id}`);
-        const v = res.data || {};
-        console.log('Volunteer API response:', res);
-        console.log('Loaded volunteer data:', v);
-        
-        // Load centers
+        const raw = res.data;
+        const v = raw?.data ?? raw ?? {};
+
         const centersData = await fetchCenters();
-        console.log('Loaded centers:', centersData);
         if (!cancelled) {
           setCenters(centersData);
         }
@@ -98,7 +122,7 @@ export default function VolunteerEdit({ id, onBack }) {
         };
 
         if (!cancelled) {
-          const formData = {
+          const next = {
             firstName: v.firstName || "",
             lastName: v.lastName || "",
             email: v.email || "",
@@ -110,7 +134,7 @@ export default function VolunteerEdit({ id, onBack }) {
             address: v.address || "",
             district: v.district || "",
             city: v.city || "",
-            center: findMatchingCenter(v.center),
+            center: findMatchingCenter(v.center, centersData),
             centerReason: v.centerReason || "",
             hasVehicle: !!v.hasVehicle,
             hasLicense: !!v.hasLicense,
@@ -118,21 +142,20 @@ export default function VolunteerEdit({ id, onBack }) {
             skillsText: Array.isArray(v.skills) ? v.skills.join(", ") : "",
             tasksText: Array.isArray(v.tasks) ? v.tasks.join(", ") : "",
             experience: v.experience || "",
-            maxTasks: v.maxTasks || "",
+            maxTasks: v.maxTasks != null ? String(v.maxTasks) : "",
             bio: v.bio || "",
             daysText: Array.isArray(v.days) ? v.days.join(", ") : "",
             timeText: Array.isArray(v.time) ? v.time.join(", ") : "",
             hoursPerWeek: v.hoursPerWeek || "",
             startDate: dateToInput(v.startDate),
+            password: "",
+            role: "volunteer",
             agreeTerms: !!v.agreeTerms,
             agreePrivacy: !!v.agreePrivacy,
             agreeNotif: !!v.agreeNotif,
             applicationStatus: v.applicationStatus || "Pending",
           };
-          console.log('Setting form data:', formData);
-          console.log('Volunteer center:', v.center, 'Matched to:', formData.center);
-          setForm(formData);
-          setLoading(false);
+          setForm((prev) => ({ ...prev, ...next }));
         }
       } catch (e) {
         if (!cancelled) setError(String(e?.message || e));
@@ -147,51 +170,30 @@ export default function VolunteerEdit({ id, onBack }) {
     };
   }, [id]);
 
-  // Debug: Log centers and form state
-  useEffect(() => {
-    console.log('Centers state:', centers);
-    console.log('Form center value:', form.center);
-  }, [centers, form.center]);
-
   const onChange = (e) => {
     const { name, value, type, checked } = e.target;
-    console.log('Field changed:', name, value);
     setForm((p) => ({ ...p, [name]: type === "checkbox" ? checked : value }));
   };
 
-  const findMatchingCenter = (volunteerCenter) => {
-    if (!volunteerCenter || !centers.length) return '';
-    
-    console.log('Finding match for:', volunteerCenter);
-    console.log('Available centers:', centers.map(c => c.centerName));
-    
-    // Try exact match first
-    const exactMatch = centers.find(c => c.centerName === volunteerCenter);
-    if (exactMatch) {
-      console.log('Exact match found:', exactMatch.centerName);
-      return exactMatch.centerName;
-    }
-    
-    // Try case-insensitive match
-    const caseMatch = centers.find(c => 
-      c.centerName.toLowerCase().trim() === volunteerCenter.toLowerCase().trim()
+  const findMatchingCenter = (volunteerCenter, list) => {
+    const centersList = Array.isArray(list) ? list : centers;
+    if (!volunteerCenter || !centersList.length) return volunteerCenter || "";
+
+    const exactMatch = centersList.find((c) => c.centerName === volunteerCenter);
+    if (exactMatch) return exactMatch.centerName;
+
+    const caseMatch = centersList.find(
+      (c) => c.centerName.toLowerCase().trim() === String(volunteerCenter).toLowerCase().trim()
     );
-    if (caseMatch) {
-      console.log('Case match found:', caseMatch.centerName);
-      return caseMatch.centerName;
-    }
-    
-    // Try partial match (contains)
-    const partialMatch = centers.find(c => 
-      c.centerName.toLowerCase().includes(volunteerCenter.toLowerCase()) ||
-      volunteerCenter.toLowerCase().includes(c.centerName.toLowerCase())
+    if (caseMatch) return caseMatch.centerName;
+
+    const partialMatch = centersList.find(
+      (c) =>
+        c.centerName.toLowerCase().includes(String(volunteerCenter).toLowerCase()) ||
+        String(volunteerCenter).toLowerCase().includes(c.centerName.toLowerCase())
     );
-    if (partialMatch) {
-      console.log('Partial match found:', partialMatch.centerName);
-      return partialMatch.centerName;
-    }
-    
-    console.log('No match found, returning original');
+    if (partialMatch) return partialMatch.centerName;
+
     return volunteerCenter;
   };
 
@@ -200,51 +202,79 @@ export default function VolunteerEdit({ id, onBack }) {
     setSaving(true);
     setError("");
     try {
+      const days = parseList(form.daysText);
+      const times = parseList(form.timeText);
+      const skills = parseList(form.skillsText);
+      const tasks = parseList(form.tasksText);
+
       const payload = {
-        firstName: form.firstName,
-        lastName: form.lastName,
-        email: form.email,
-        phone: form.phone,
-        nic: form.nic,
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        nic: form.nic.trim(),
         dob: form.dob ? new Date(form.dob).toISOString() : undefined,
         gender: form.gender,
-        emergencyContact: form.emergencyContact,
-        address: form.address,
-        district: form.district,
-        city: form.city,
-        center: form.center,
-        centerReason: form.centerReason,
-        hasVehicle: form.hasVehicle,
-        hasLicense: form.hasLicense,
-        canTravel: form.canTravel,
-        skills: parseList(form.skillsText),
-        tasks: parseList(form.tasksText),
+        emergencyContact: form.emergencyContact.trim(),
+        address: form.address.trim(),
+        district: form.district.trim(),
+        city: form.city.trim(),
+        center: form.center.trim(),
+        centerReason: form.centerReason.trim(),
+        hasVehicle: !!form.hasVehicle,
+        hasLicense: !!form.hasLicense,
+        canTravel: !!form.canTravel,
+        skills,
+        tasks,
         experience: form.experience,
-        maxTasks: form.maxTasks,
-        bio: form.bio,
-        days: parseList(form.daysText),
-        time: parseList(form.timeText),
+        maxTasks: form.maxTasks.trim(),
+        bio: form.bio.trim(),
+        days,
+        time: times,
         hoursPerWeek: form.hoursPerWeek,
         startDate: form.startDate ? new Date(form.startDate).toISOString() : undefined,
-        agreeTerms: form.agreeTerms,
-        agreePrivacy: form.agreePrivacy,
-        agreeNotif: form.agreeNotif,
+        agreeTerms: !!form.agreeTerms,
+        agreePrivacy: !!form.agreePrivacy,
+        agreeNotif: !!form.agreeNotif,
         applicationStatus: form.applicationStatus,
+        role: "volunteer",
       };
 
-      const res = await API.put(`/volunteers/${id}`, payload);
-      console.log('Save API response:', res);
-      console.log('Payload being sent:', payload);
-      if (!res.data) {
-        throw new Error('Failed to update volunteer');
+      const pwd = form.password.trim();
+      if (pwd.length > 0) {
+        if (pwd.length < 8) {
+          setError("Password must be at least 8 characters.");
+          setSaving(false);
+          return;
+        }
+        if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(pwd)) {
+          setError(
+            "Password must include uppercase, lowercase, a number, and a special character (@$!%*?&)."
+          );
+          setSaving(false);
+          return;
+        }
+        payload.password = pwd;
       }
 
-      if (onBack) onBack(); else navigate("/volunteer-dashboard/volunteer");
+      Object.keys(payload).forEach((k) => {
+        if (payload[k] === undefined) delete payload[k];
+      });
+
+      const res = await API.put(`/volunteers/${id}`, payload);
+      if (!res.data) throw new Error("Failed to update volunteer");
+
+      setForm((p) => ({ ...p, password: "" }));
+      if (onBack) onBack();
+      else navigate("/volunteer-dashboard/volunteer");
     } catch (e2) {
-      console.error('Save error details:', e2);
-      console.error('Error response:', e2.response?.data);
-      const errorMessage = e2.response?.data?.message || e2.response?.data?.error || e2?.message || e2;
-      setError(String(errorMessage));
+      const errBody = e2.response?.data;
+      const msg =
+        errBody?.message ||
+        (Array.isArray(errBody?.errors) ? errBody.errors.map((x) => x.message || x).join(" ") : null) ||
+        e2?.message ||
+        String(e2);
+      setError(String(msg));
     } finally {
       setSaving(false);
     }
@@ -285,26 +315,55 @@ export default function VolunteerEdit({ id, onBack }) {
         <form onSubmit={onSave} className="bg-white rounded-2xl border border-zinc-200 p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field label="First Name">
-              <input name="firstName" value={form.firstName} onChange={onChange} className={inputCls} />
+              <input name="firstName" value={form.firstName} onChange={onChange} className={inputCls} required />
             </Field>
             <Field label="Last Name">
-              <input name="lastName" value={form.lastName} onChange={onChange} className={inputCls} />
+              <input name="lastName" value={form.lastName} onChange={onChange} className={inputCls} required />
             </Field>
             <Field label="Email">
-              <input name="email" value={form.email} onChange={onChange} className={inputCls} />
+              <input
+                id="volunteer-edit-email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                value={form.email}
+                onChange={onChange}
+                className={inputCls}
+                required
+              />
             </Field>
             <Field label="Phone">
               <input name="phone" value={form.phone} onChange={onChange} className={inputCls} />
             </Field>
             <Field label="NIC">
-              <input name="nic" value={form.nic} onChange={onChange} className={inputCls} />
+              <input name="nic" value={form.nic} onChange={onChange} className={inputCls} required />
             </Field>
             <Field label="Date of Birth">
-              <input type="date" name="dob" value={form.dob} onChange={onChange} className={inputCls} />
+              <input type="date" name="dob" value={form.dob} onChange={onChange} className={inputCls} required />
+            </Field>
+
+            <Field label="Gender">
+              <select name="gender" value={form.gender} onChange={onChange} className={inputCls}>
+                {GENDER_OPTIONS.map((g) => (
+                  <option key={g || "unset"} value={g}>
+                    {g === "" ? "— Not specified —" : g}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Emergency Contact">
+              <input name="emergencyContact" value={form.emergencyContact} onChange={onChange} className={inputCls} />
             </Field>
 
             <Field label="District">
-              <input name="district" value={form.district} onChange={onChange} className={inputCls} />
+              <select name="district" value={form.district} onChange={onChange} className={inputCls}>
+                <option value="">— Select —</option>
+                {DISTRICT_OPTIONS.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
             </Field>
             <Field label="City">
               <input name="city" value={form.city} onChange={onChange} className={inputCls} />
@@ -315,47 +374,67 @@ export default function VolunteerEdit({ id, onBack }) {
               </Field>
             </div>
 
-            <Field label="Center">
-              <select name="center" value={form.center} onChange={onChange} className={inputCls}>
-                <option value="">Select a center...</option>
-                {centers.map(center => (
-                  <option key={center._id} value={center.centerName}>
-                    {center.centerName} - {center.city}, {center.district}
+            <div className="md:col-span-2">
+              <Field label="Preferred center">
+                <select name="center" value={form.center} onChange={onChange} className={inputCls}>
+                  <option value="">Select a center...</option>
+                  {centers.map((c) => (
+                    <option key={c._id} value={c.centerName}>
+                      {c.centerName} — {c.city}, {c.district}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+            <div className="md:col-span-2">
+              <Field label="Center reason / notes">
+                <input name="centerReason" value={form.centerReason} onChange={onChange} className={inputCls} />
+              </Field>
+            </div>
+
+            <Field label="Experience">
+              <select name="experience" value={form.experience} onChange={onChange} className={inputCls}>
+                {EXPERIENCE_OPTIONS.map((x) => (
+                  <option key={x || "unset"} value={x}>
+                    {x === "" ? "— Not specified —" : x}
                   </option>
                 ))}
               </select>
-              <div className="text-xs text-zinc-500 mt-1">
-                Available centers: {centers.length} | Current: {form.center || 'None'}
-              </div>
-              {centers.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    console.log('Test: Setting center to first available:', centers[0].centerName);
-                    setForm(p => ({ ...p, center: centers[0].centerName }));
-                  }}
-                  className="mt-2 text-xs bg-blue-500 text-white px-2 py-1 rounded"
-                >
-                  Test: Set First Center
-                </button>
-              )}
             </Field>
-            <Field label="Application Status">
-              <select name="applicationStatus" value={form.applicationStatus} onChange={onChange} className={inputCls}>
-                <option value="Pending">Pending</option>
-                <option value="Accepted">Accepted</option>
-                <option value="Rejected">Rejected</option>
+            <Field label="Hours per week">
+              <select name="hoursPerWeek" value={form.hoursPerWeek} onChange={onChange} className={inputCls}>
+                {HOURS_OPTIONS.map((x) => (
+                  <option key={x || "unset"} value={x}>
+                    {x === "" ? "— Not specified —" : x}
+                  </option>
+                ))}
               </select>
+            </Field>
+            <Field label="Max tasks">
+              <input name="maxTasks" value={form.maxTasks} onChange={onChange} className={inputCls} />
+            </Field>
+            <Field label="Start date">
+              <input type="date" name="startDate" value={form.startDate} onChange={onChange} className={inputCls} />
             </Field>
 
             <div className="md:col-span-2">
-              <Field label="Skills (comma separated)">
+              <Field label="Skills (comma-separated)">
                 <input name="skillsText" value={form.skillsText} onChange={onChange} className={inputCls} />
               </Field>
             </div>
             <div className="md:col-span-2">
-              <Field label="Tasks (comma separated)">
+              <Field label="Tasks (comma-separated)">
                 <input name="tasksText" value={form.tasksText} onChange={onChange} className={inputCls} />
+              </Field>
+            </div>
+            <div className="md:col-span-2">
+              <Field label="Available days (comma-separated, e.g. monday, tuesday)">
+                <input name="daysText" value={form.daysText} onChange={onChange} className={inputCls} />
+              </Field>
+            </div>
+            <div className="md:col-span-2">
+              <Field label="Time slots (comma-separated)">
+                <input name="timeText" value={form.timeText} onChange={onChange} className={inputCls} />
               </Field>
             </div>
             <div className="md:col-span-2">
@@ -364,17 +443,60 @@ export default function VolunteerEdit({ id, onBack }) {
               </Field>
             </div>
 
-            <Field label="Can Travel">
+            <Field label="Can travel">
               <Checkbox name="canTravel" checked={form.canTravel} onChange={onChange} />
             </Field>
-            <Field label="Has Vehicle">
+            <Field label="Has vehicle">
               <Checkbox name="hasVehicle" checked={form.hasVehicle} onChange={onChange} />
             </Field>
-            <Field label="Has License">
+            <Field label="Has license">
               <Checkbox name="hasLicense" checked={form.hasLicense} onChange={onChange} />
             </Field>
-            <Field label="Emergency Contact">
-              <input name="emergencyContact" value={form.emergencyContact} onChange={onChange} className={inputCls} />
+
+            <Field label="Application status">
+              <select name="applicationStatus" value={form.applicationStatus} onChange={onChange} className={inputCls}>
+                <option value="Pending">Pending</option>
+                <option value="Accepted">Accepted</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </Field>
+            <Field label="Role">
+              <input
+                value={form.role}
+                readOnly
+                aria-readonly="true"
+                className={`${inputCls} bg-zinc-100 text-zinc-600 cursor-not-allowed`}
+              />
+            </Field>
+
+            <div className="md:col-span-2">
+              <Field label="Password">
+                <input
+                  id="volunteer-edit-password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  value={form.password}
+                  onChange={onChange}
+                  className={inputCls}
+                  placeholder="Use saved password from your browser, or type a new one"
+                />
+              </Field>
+              <p className="text-xs text-zinc-500 mt-1">
+                The real password cannot be shown (it is stored securely). Leave empty to keep the existing
+                password, or use your password manager to fill a saved password / enter a new one (min 8
+                characters, uppercase, lowercase, number, and one of @$!%*?&amp;).
+              </p>
+            </div>
+
+            <Field label="Agree — terms">
+              <Checkbox name="agreeTerms" checked={form.agreeTerms} onChange={onChange} />
+            </Field>
+            <Field label="Agree — privacy">
+              <Checkbox name="agreePrivacy" checked={form.agreePrivacy} onChange={onChange} />
+            </Field>
+            <Field label="Agree — notifications">
+              <Checkbox name="agreeNotif" checked={form.agreeNotif} onChange={onChange} />
             </Field>
           </div>
 
@@ -416,10 +538,3 @@ function Checkbox({ name, checked, onChange }) {
     </label>
   );
 }
-
-const inputCls =
-  "w-full px-4 py-2 rounded-xl border border-zinc-200 bg-white outline-none focus:ring-2 focus:ring-[#2D4A35]/20";
-
-const textareaCls =
-  "w-full px-4 py-2 rounded-xl border border-zinc-200 bg-white outline-none focus:ring-2 focus:ring-[#2D4A35]/20";
-

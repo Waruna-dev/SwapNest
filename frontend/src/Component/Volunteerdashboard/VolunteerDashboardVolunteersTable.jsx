@@ -4,6 +4,8 @@ import API from "../../services/api";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+import VolunteerFormModal from "../Volunteer/volunteer.jsx";
+
 const API_BASE_FALLBACK = "http://localhost:5000";
 const API_BASE = import.meta.env.VITE_API_URL || API_BASE_FALLBACK;
 
@@ -12,6 +14,7 @@ export default function VolunteerDashboardVolunteersTable({ onEdit }) {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isVolunteerFormOpen, setIsVolunteerFormOpen] = useState(false);
 
   // VolunteerController.js getVolunteers returns: res.json(volunteers) => array
   const [volunteers, setVolunteers] = useState([]);
@@ -529,7 +532,7 @@ export default function VolunteerDashboardVolunteersTable({ onEdit }) {
           </button>
           <button
             type="button"
-            onClick={() => navigate("/volunteer-dashboard/volunteer/apply")}
+            onClick={() => setIsVolunteerFormOpen(true)}
             className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-bold text-sm hover:shadow-xl transform hover:scale-105 transition-all duration-300 border border-blue-400"
           >
             ➕ Become a Volunteer
@@ -1023,6 +1026,12 @@ export default function VolunteerDashboardVolunteersTable({ onEdit }) {
           </div>
         )}
       </div>
+
+      <VolunteerFormModal 
+        isOpen={isVolunteerFormOpen} 
+        onClose={() => setIsVolunteerFormOpen(false)} 
+        center={null} 
+      />
     </div>
   );
 }
