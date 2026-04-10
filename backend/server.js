@@ -1,15 +1,21 @@
-import 'dotenv/config';
-
+import dotenv from 'dotenv';
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import mongoose from "mongoose";
-import { fileURLToPath } from "url";
+import { fileURLToPath } from 'url';
 import path from "path";
 
 // Fix __dirname for ES modules 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Load environment variables
+dotenv.config({ path: path.join(__dirname, '.env') });
+
+console.log('Environment variables loaded:');
+console.log('JWT_SECRET available:', !!process.env.JWT_SECRET);
+console.log('JWT_SECRET value:', process.env.JWT_SECRET);
 
 // Import DB Connection
 import connectDB from "./config/db.js";
