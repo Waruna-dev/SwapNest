@@ -107,7 +107,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
           
           <div className="p-6 space-y-6">
         
-            <div className="bg-gradient-to-r from-primary-fixed/50 to-transparent p-4 rounded">
+            <div className="bg-gradient-to-r from-primary-fixed/50 to-transparent p-4 rounded-xl">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-xs uppercase tracking-wider text-on-surface-variant">Request ID</p>
@@ -118,7 +118,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-surface-container-low p-4 rounded border border-outline-variant">
+              <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-primary-fixed/20 rounded-lg">
                     <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,7 +179,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
                 )}
               </div>
 
-              <div className="bg-surface-container-low p-4 rounded border border-outline-variant">
+              <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-secondary-fixed/20 rounded-lg">
                     <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -252,9 +252,9 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
                 )}
               </div>
 
-              <div className="bg-surface-container-low p-4 rounded border border-outline-variant">
+              <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="p-2 bg-tertiary-fixed/20 rounded-lg">
+                  <div className="p-2 bg-tertiary-fixed/20 rounded">
                     <svg className="w-5 h-5 text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
@@ -264,7 +264,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
                 <p className="font-medium text-on-surface">{getRequesterName()}</p>
               </div>
 
-              <div className="bg-surface-container-low p-4 rounded border border-outline-variant">
+              <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-primary-fixed/20 rounded-lg">
                     <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -278,7 +278,7 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
             </div>
 
             {swap.messageToOwner && (
-              <div className="bg-primary-fixed/30 p-4 rounded">
+              <div className="bg-primary-fixed/30 p-4 rounded-xl">
                 <div className="flex items-center gap-2 mb-2">
                   <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -291,11 +291,11 @@ const SwapDetailsModal1 = ({ swap, onClose }) => {
 
            
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-surface-container-low p-3 rounded">
+              <div className="bg-surface-container-low p-3 rounded-xl">
                 <p className="text-xs uppercase tracking-wider text-on-surface-variant">Created At</p>
                 <p className="text-sm mt-1 text-on-surface">{formatDate(swap.createdAt)}</p>
               </div>
-              <div className="bg-surface-container-low p-3 rounded">
+              <div className="bg-surface-container-low p-3 rounded-xl">
                 <p className="text-xs uppercase tracking-wider text-on-surface-variant">Last Updated</p>
                 <p className="text-sm mt-1 text-on-surface">{formatDate(swap.updatedAt || swap.updateAt)}</p>
               </div>

@@ -225,7 +225,7 @@ const SwapUpdateForm = ({
               <button
                 type="button"
                 onClick={() => setFormData(prev => ({ ...prev, swapType: 'item-for-item' }))}
-                className={`flex items-center justify-center gap-2 p-3 rounded border transition-all ${
+                className={`flex items-center justify-center gap-2 p-3 rounded-lg border transition-all ${
                   formData.swapType === 'item-for-item'
                     ? 'bg-primary border-primary text-on-primary shadow-md'
                     : 'bg-surface border-outline-variant text-on-surface-variant hover:border-primary hover:bg-primary-fixed/10'
@@ -237,7 +237,7 @@ const SwapUpdateForm = ({
               <button
                 type="button"
                 onClick={() => setFormData(prev => ({ ...prev, swapType: 'swap-with-cash' }))}
-                className={`flex items-center justify-center gap-2 p-3 rounded border transition-all ${
+                className={`flex items-center justify-center gap-2 p-3 rounded-lg border transition-all ${
                   formData.swapType === 'swap-with-cash'
                     ? 'bg-primary border-primary text-on-primary shadow-md'
                     : 'bg-surface border-outline-variant text-on-surface-variant hover:border-primary hover:bg-primary-fixed/10'
@@ -265,7 +265,7 @@ const SwapUpdateForm = ({
                 onChange={handleOfferedItemChange}
                 required
                 placeholder="e.g. Wooden Chair"
-                className="w-full border border-outline-variant rounded px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface placeholder:text-on-surface-variant transition-all"
+                className="w-full border border-outline-variant rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface placeholder:text-on-surface-variant transition-all"
               />
             </div>
             
@@ -275,7 +275,7 @@ const SwapUpdateForm = ({
                 name="condition"
                 value={formData.offeredItem.condition}
                 onChange={handleOfferedItemChange}
-                className="w-full border border-outline-variant rounded px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface transition-all appearance-none"
+                className="w-full border border-outline-variant rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface transition-all appearance-none"
               >
                 <option value="Like New">Like New</option>
                 <option value="Good">Good</option>
@@ -292,7 +292,7 @@ const SwapUpdateForm = ({
                 onChange={handleOfferedItemChange}
                 rows="2"
                 placeholder="Describe your item..."
-                className="w-full border border-outline-variant rounded px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface placeholder:text-on-surface-variant transition-all resize-none"
+                className="w-full border border-outline-variant rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-surface text-on-surface placeholder:text-on-surface-variant transition-all resize-none"
               />
             </div>
 
