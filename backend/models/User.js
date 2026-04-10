@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs'; // Make sure bcryptjs is imported!
 
 /**
  * @desc Mongoose schema for the SwapNest User entity
@@ -18,7 +19,6 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Please add a password']
     },
-    
     resetPasswordToken: {
         type: String
     },
@@ -41,5 +41,10 @@ const UserSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
+
+// --- CRITICAL: Teach Mongoose how to verify passwords ---
+UserSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
 
 export default mongoose.model('User', UserSchema);

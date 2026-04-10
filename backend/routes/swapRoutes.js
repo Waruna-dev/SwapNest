@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { uploadSwapPhotos } from '../middlewares/upload.js';
+import { uploadSwapPhotos } from '../middlewares/swapCloudinaryUpload.js';
 import { validateSwapRequest, validateStatusUpdate } from '../middlewares/validation.js';
 import {
   createSwapRequest,
