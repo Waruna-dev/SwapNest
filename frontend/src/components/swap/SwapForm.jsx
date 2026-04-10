@@ -112,7 +112,6 @@ const SwapForm = ({
       }
       
       setPhotos(newPhotos);
-      
       // Create previews from compressed files
       const newPreviews = compressedFiles.map(file => URL.createObjectURL(file));
       setPreviewImages([...previewImages, ...newPreviews]);
@@ -242,7 +241,7 @@ const SwapForm = ({
 
   return (
     <>
-      {/* Main Form Modal */}
+     
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
           <div className="sticky top-0 bg-white border-b border-outline-variant px-6 py-5 flex justify-between items-center">
@@ -322,7 +321,7 @@ const SwapForm = ({
                   onChange={handleOfferedItemChange}
                   required
                   placeholder="e.g. Wooden Chair"
-                  className="w-full border border-outline-variant rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-on-surface placeholder:text-on-surface-variant transition-all"
+                  className="w-full border border-outline-variant rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-on-surface placeholder:text-black-400 transition-all"
                 />
               </div>
               
@@ -349,7 +348,7 @@ const SwapForm = ({
                   onChange={handleOfferedItemChange}
                   rows="2"
                   placeholder="Describe your item..."
-                  className="w-full border border-outline-variant rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-on-surface placeholder:text-on-surface-variant transition-all resize-none"
+                  className="w-full border border-outline-variant rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-on-surface placeholder:text-black-400 transition-all resize-none"
                 />
               </div>
 
@@ -481,8 +480,8 @@ const SwapForm = ({
                 value={formData.messageToOwner}
                 onChange={handleChange}
                 rows="2"
-                placeholder={`Write a friendly message to ${ownerName}...`}
-                className="w-full border border-outline-variant rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-on-surface placeholder:text-on-surface-variant transition-all resize-none"
+                placeholder={`Add the contact number for contact each other....`}
+                className="w-full border border-outline-variant rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white text-on-surface placeholder:text-black-400 transition-all resize-none"
               />
             </div>
             
@@ -542,7 +541,7 @@ const SwapForm = ({
       {showSuccessPopup && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[60] p-4">
           <div className="bg-surface rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
-            {/* Success Animation Header */}
+          
             <div className="relative bg-gradient-to-br from-green-500 to-green-600 p-8 text-center">
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-32 h-32 bg-white/10 rounded-full"></div>

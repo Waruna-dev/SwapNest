@@ -27,6 +27,7 @@ router.post('/', uploadSwapPhotos, validateSwapRequest, createSwapRequest);
 router.put('/:id', updateSwapRequest);
 
 router.put('/:id/photos', uploadSwapPhotos, updateSwapPhotos);
+
 //get all swap req-admin
 router.get('/all', getAllSwaps);
 
