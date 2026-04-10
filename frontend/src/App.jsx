@@ -38,6 +38,16 @@ import ItemAddNewItems from "./pages/item-listing/ItemAddNewItem";
 import ItemGalleryPage from "./pages/item-gallery/ItemGalleryPage";
 import ItemDashboard1 from "./pages/item-listing/ItemDashboard";
 
+<<<<<<< HEAD
+=======
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/AdminDashboard';
+
+
+import SwapList from "./components/swap/SwapList";
+import Privacy from "./pages/PrivacyPolicy";
+import Term from "./pages/TermsConditions";
+>>>>>>> origin/Test
 function App() {
   return (
     <Router>
@@ -87,9 +97,18 @@ function App() {
           <Route path="/item/gallery" element={<ItemGalleryPage />} />
           <Route path="/item/dashboard" element={<ItemDashboard1 />} />
 
+<<<<<<< HEAD
           {/* Legal */}
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Term />} />
+=======
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          
+             <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          
+>>>>>>> origin/Test
         </Routes>
       </div>
     </Router>

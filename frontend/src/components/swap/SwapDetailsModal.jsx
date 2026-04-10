@@ -112,7 +112,7 @@ const SwapDetailsModal = ({ swap, onClose }) => {
           
           <div className="p-6 space-y-6">
          
-            <div className="bg-gradient-to-r from-primary-fixed/90 to-transparent p-4 rounded">
+            <div className="bg-gradient-to-r from-primary-fixed/90 to-transparent p-4 rounded-xl">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-xs uppercase tracking-wider text-on-surface-variant">Request ID</p>
@@ -125,9 +125,9 @@ const SwapDetailsModal = ({ swap, onClose }) => {
           
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-              <div className="bg-surface-container-low p-4 rounded border border-outline-variant">
+              <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="p-2 bg-primary-fixed/90 rounded-lg">
+                  <div className="p-2 bg-primary-fixed/90 rounded-xl">
                     <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                     </svg>
@@ -186,9 +186,9 @@ const SwapDetailsModal = ({ swap, onClose }) => {
                 )}
               </div>
 
-              <div className="bg-surface-container-low p-4 rounded border border-outline-variant">
+              <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="p-2 bg-secondary-fixed/90 rounded-lg">
+                  <div className="p-2 bg-secondary-fixed/90 rounded-xl">
                     <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4" />
                     </svg>
@@ -267,7 +267,7 @@ const SwapDetailsModal = ({ swap, onClose }) => {
                 )}
               </div>
 
-              <div className="bg-surface-container-low p-4 rounded border border-outline-variant">
+              <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-tertiary-fixed/90 rounded-lg">
                     <svg className="w-5 h-5 text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -280,7 +280,7 @@ const SwapDetailsModal = ({ swap, onClose }) => {
                 <p className="text-sm font-mono text-on-surface-variant mt-1 break-all">{getRequesterId()}</p>
               </div>
 
-              <div className="bg-surface-container-low p-4 rounded border border-outline-variant">
+              <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="p-2 bg-primary-fixed/90 rounded-lg">
                     <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -295,7 +295,7 @@ const SwapDetailsModal = ({ swap, onClose }) => {
             </div>
 
             {swap.messageToOwner && (
-              <div className="bg-primary-fixed/30 p-4 rounded">
+              <div className="bg-primary-fixed/30 p-4 rounded-xl border ">
                 <div className="flex items-center gap-2 mb-2">
                   <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -308,11 +308,11 @@ const SwapDetailsModal = ({ swap, onClose }) => {
 
     
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-surface-container-low p-3 rounded">
+              <div className="bg-surface-container-low p-3 rounded-xl">
                 <p className="text-xs uppercase font-bold tracking-wider text-on-surface-variant">Created At</p>
                 <p className="text-sm mt-1 text-on-surface">{new Date(swap.createdAt).toLocaleString()}</p>
               </div>
-              <div className="bg-surface-container-low p-3 rounded">
+              <div className="bg-surface-container-low p-3 rounded-xl">
                 <p className="text-xs uppercase font-bold tracking-wider text-on-surface-variant">Last Updated</p>
                 <p className="text-sm mt-1 text-on-surface">{new Date(swap.updatedAt || swap.updateAt).toLocaleString()}</p>
               </div>

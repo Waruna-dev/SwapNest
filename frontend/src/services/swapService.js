@@ -1,9 +1,9 @@
-// src/services/swapService.js
+// services/swapService.js
 import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api/swaps';
 
-// Create swap request
+// Create swap request with timeout and optimization
 export const createSwap = async (data, photos = null) => {
   try {
     let response;
@@ -11,6 +11,7 @@ export const createSwap = async (data, photos = null) => {
     if (photos && photos.length > 0) {
       const formData = new FormData();
       
+      // Add all data to formData
       Object.keys(data).forEach(key => {
         if (key === 'offeredItem') {
           formData.append('offeredItem[name]', data.offeredItem.name);
@@ -26,13 +27,20 @@ export const createSwap = async (data, photos = null) => {
         }
       });
       
-      photos.forEach(photo => formData.append('photos', photo));
+      // Add photos
+      photos.forEach(photo => {
+        formData.append('photos', photo);
+      });
       
+      // Increase timeout for image upload (30 seconds)
       response = await axios.post(API_URL, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 30000, // 30 seconds timeout
       });
     } else {
-      response = await axios.post(API_URL, data);
+      response = await axios.post(API_URL, data, {
+        timeout: 10000, // 10 seconds timeout
+      });
     }
     
     return response.data;
@@ -78,7 +86,7 @@ export const updateSwapPhotos = async (swapId, requesterId, newPhotos, removePho
   }
 };
 
-// Get user swaps
+// Get user swaps (both as requester and owner)
 export const getUserSwaps = async (userId) => {
   try {
     console.log("getUserSwaps called with userId:", userId);
@@ -111,7 +119,7 @@ export const getSwapById = async (swapId) => {
   }
 };
 
-// Update swap status
+// Update swap status (accept, reject, complete)
 export const updateSwapStatus = async (swapId, status, notes = '') => {
   try {
     const response = await axios.put(`${API_URL}/${swapId}/status`, { status, notes });
@@ -121,7 +129,7 @@ export const updateSwapStatus = async (swapId, status, notes = '') => {
   }
 };
 
-// Cancel swap
+// Cancel swap request (requester only)
 export const cancelSwap = async (swapId) => {
   try {
     const response = await axios.put(`${API_URL}/${swapId}/cancel`);
@@ -156,25 +164,7 @@ export const deleteSwap = async (swapId) => {
   }
 };
 
-// Mark swap as complete
-export const markSwapComplete = async (swapId, userId) => {
-  try {
-    const response = await axios.put(
-      `${API_URL}/${swapId}/status`,
-      { status: 'completed', notes: 'Swap completed successfully' },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('swapnest_token')}`
-        }
-      }
-    );
-    return response;
-  } catch (error) {
-    console.error('Error marking swap complete:', error);
-    throw error;
-  }
-};
-
+// Request completion (both parties)
 export const requestCompletion = async (swapId, userId, userRole) => {
   try {
     const response = await axios.post(`${API_URL}/${swapId}/complete`, {
@@ -191,6 +181,17 @@ export const requestCompletion = async (swapId, userId, userRole) => {
 export const getCompletionStatus = async (swapId) => {
   try {
     const response = await axios.get(`${API_URL}/${swapId}/completion-status`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+// Get swaps by item ID
+export const getSwapsByItem = async (itemId, status = null) => {
+  try {
+    const params = status ? { itemId, status } : { itemId };
+    const response = await axios.get(`${API_URL}/by-item`, { params });
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;

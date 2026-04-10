@@ -34,6 +34,7 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import geocodingRoutes from './routes/geocoding.js';
 import simpleVolunteerHelpRoutes from "./routes/simpleVolunteerHelpRoutes.js";
 import testRoutes from "./routes/testRoutes.js";
+import adminRoutes from './routes/adminRoutes.js';
 
 // Connect to MongoDB
 connectDB();
@@ -41,21 +42,18 @@ connectDB();
 const app = express();
 
 // =======================
-// GLOBAL MIDDLEWARES
+// 1. GLOBAL MIDDLEWARES (Runs first!)
 // =======================
 app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:3000'],
   credentials: true
 }));
 app.use(express.json());
-// Using extended: true from the team's code to support complex form data
 app.use(express.urlencoded({ extended: true }));
-
-// Logging middleware
-app.use(morgan("dev"));
+app.use(morgan("dev")); // Moved to the top so it logs EVERY incoming request
 
 // =======================
-// ROUTES
+// 2. ROUTES (The core application)
 // =======================
 app.use('/api/swaps', swapRoutes); 
 app.use("/api/items", itemRoutes);
@@ -67,11 +65,12 @@ app.use("/api/centers", centerRoutes);
 app.use("/api/geocoding", geocodingRoutes);
 app.use("/api/simple-volunteer-help", simpleVolunteerHelpRoutes);
 app.use("/api/test", testRoutes);
+app.use('/api/admin', adminRoutes);
 
 // In server.js - This serves files from the uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// TEST ROUTE (Combined)
+// TEST ROUTE 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "SwapNest API is running..." });
 });
@@ -85,13 +84,15 @@ app.use((req,res,next)=>{
 });
 
 // =======================
-// ERROR HANDLING
+// 3. ERROR HANDLING (The Safety Net at the bottom)
 // =======================
+// I removed the manual 404 because you are already importing 
+// your custom 'notFound' middleware from your volunteer middlewares!
 app.use(notFound);
 app.use(errorHandler);
 
 // =======================
-// SERVER STARTUP
+// 4. SERVER STARTUP
 // =======================
 const port = process.env.PORT || 5000;
 app.listen(port, () => console.log(`Server started on port ${port}`));
