@@ -24,6 +24,7 @@ import swapRoutes from "./routes/swapRoutes.js";
 import volunteerRoutes from "./routes/VolunteerRoutes.js";
 import pickupRoutes from "./routes/PickupRoutes.js";
 import centerRoutes from "./routes/CenterRoutes.js";
+import notificationRoutes from './routes/notificationRoutes.js';
 
 // Connect to MongoDB
 connectDB();
@@ -38,10 +39,20 @@ app.use(express.json());
 // Using extended: true from the team's code to support complex form data
 app.use(express.urlencoded({ extended: true }));
 
-// Prevent destructure errors inside middlewares / routes
-app.use((req, res, next) => {
-  if (!req.body) req.body = {};
-  next();
+app.use('/api/swaps', swapRoutes); 
+app.use("/api/items", itemRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/notifications', notificationRoutes);
+// In server.js - This serves files from the uploads folder
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+//404
+app.use((req,res)=>{
+    console.log('404 not found:', req.method,req.url);
+    res.status(404).json({
+        success:false,
+        message:'Route not found'
+    });
 });
 
 // Logging middleware
