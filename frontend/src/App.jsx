@@ -12,6 +12,10 @@ import ResetPassword from "./pages/ResetPassword";
 import Privacy from "./pages/PrivacyPolicy";
 import Term from "./pages/TermsConditions";
 
+// Admin Pages
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+
 // Components
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminSwapDashboard from "./components/swap/AdminSwapDashboard";
@@ -38,21 +42,12 @@ import ItemAddNewItems from "./pages/item-listing/ItemAddNewItem";
 import ItemGalleryPage from "./pages/item-gallery/ItemGalleryPage";
 import ItemDashboard1 from "./pages/item-listing/ItemDashboard";
 
-<<<<<<< HEAD
-=======
-import AdminLogin from './pages/admin/AdminLogin';
-import AdminDashboard from './pages/admin/AdminDashboard';
-
-
-import SwapList from "./components/swap/SwapList";
-import Privacy from "./pages/PrivacyPolicy";
-import Term from "./pages/TermsConditions";
->>>>>>> origin/Test
 function App() {
   return (
     <Router>
       <div className="app-container">
         <Routes>
+
           {/* Public routes */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
@@ -74,7 +69,7 @@ function App() {
             <Route path="/profile" element={<Profile />} />
           </Route>
 
-          {/* Volunteer Dashboard (separate module) */}
+          {/* Volunteer Dashboard */}
           <Route path="/volunteer-dashboard" element={<VolunteerDashboard />}>
             <Route index element={<DashboardOverview />} />
             <Route path="volunteer-hero" element={<VolunteerPage />} />
@@ -97,18 +92,14 @@ function App() {
           <Route path="/item/gallery" element={<ItemGalleryPage />} />
           <Route path="/item/dashboard" element={<ItemDashboard1 />} />
 
-<<<<<<< HEAD
+          {/* Admin */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+
           {/* Legal */}
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Term />} />
-=======
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          
-             <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          
->>>>>>> origin/Test
+
         </Routes>
       </div>
     </Router>
