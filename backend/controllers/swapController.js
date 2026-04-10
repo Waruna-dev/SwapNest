@@ -2,7 +2,7 @@ import Swap from "../models/Swap.js";
 import Item from "../models/Item.js";
 import User from "../models/User.js";
 import Notification from "../models/Notification.js";
-import { deleteSwapPhoto } from "../middlewares/swapCloudinaryUpload.js"; // ✅ Your helper
+import { deleteSwapPhoto } from "../middlewares/swapCloudinaryUpload.js"; 
 import mongoose from "mongoose";
 
 const createNotification = async (userId, type, title, message, swapId = null, itemId = null, metadata = {}) => {
@@ -64,10 +64,10 @@ const createSwapRequest = async (req, res) => {
       console.log("User lookup failed, using default name");
     }
 
-    // ✅ Process Cloudinary photos
+   
     const photos = req.files?.map((file) => ({
-      url: file.path,           // Cloudinary URL
-      publicId: file.filename,  // Cloudinary public ID
+      url: file.path,           
+      publicId: file.filename,  
       originalName: file.originalname,
     })) || [];
 
