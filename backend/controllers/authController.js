@@ -103,6 +103,7 @@ const updateProfile = asyncHandler(async (req, res) => {
         req.user.id,
         {
             username: req.body.username || user.username,
+            email: req.body.email || user.email,
             bio: req.body.bio !== undefined ? req.body.bio : user.bio, 
             profilePic: profileImageUrl,
         },

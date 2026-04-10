@@ -14,27 +14,21 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
-  const [selectedInterests, setSelectedInterests] = useState(['Vintage Fashion']);
-  const interestsList = ['Vintage Fashion', 'Home Decor', 'Books', 'Art & Prints', 'Ceramics', 'Tech'];
-
   const navigate = useNavigate();
 
-  // --- NEW: Password Strength Validators ---
+  // --- NEW: Email Validator ---
+  // This regex checks for the standard format: text @ text . text
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailValid = emailRegex.test(email);
+
+  // --- Password Strength Validators ---
   const isLengthValid = password.length >= 8;
-  const hasNumber = /\d/.test(password); // Checks for at least one digit
-  const hasUppercase = /[A-Z]/.test(password); // Checks for an uppercase letter
-  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password); // Checks for a special character
+  const hasNumber = /\d/.test(password); 
+  const hasUppercase = /[A-Z]/.test(password); 
+  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password); 
 
   // Check if ALL conditions are met
   const isPasswordStrong = isLengthValid && hasNumber && hasUppercase && hasSpecial;
-
-  const toggleInterest = (interest) => {
-    if (selectedInterests.includes(interest)) {
-      setSelectedInterests(selectedInterests.filter(i => i !== interest));
-    } else {
-      setSelectedInterests([...selectedInterests, interest]);
-    }
-  };
 
   const loginWithGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -59,7 +53,11 @@ const Register = () => {
     e.preventDefault();
     setError('');
 
-    // --- NEW: Block submission if password isn't strong ---
+    // Double-check validations before hitting the backend
+    if (!isEmailValid) {
+      return setError('Please enter a valid email address.');
+    }
+
     if (!isPasswordStrong) {
       return setError('Please ensure your password meets all the security requirements.');
     }
@@ -92,17 +90,14 @@ const Register = () => {
       
       <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl shadow-sm border-b border-outline-variant/10">
         <div className="relative flex justify-between items-center px-6 md:px-8 py-4 max-w-7xl mx-auto">
-          
           <Link to="/" className="relative z-10 text-2xl font-extrabold text-primary tracking-tighter font-headline hover:opacity-80 transition-opacity">
             SwapNest
           </Link>
-          
           <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center space-x-8 font-headline font-bold text-sm tracking-tight">
             <Link to="/" className="text-secondary font-bold border-b-2 border-secondary pb-1">Discover</Link>
             <a className="text-primary/80 hover:text-primary transition-colors" href="#">How it Works</a>
             <a className="text-primary/80 hover:text-primary transition-colors" href="#">Our Story</a>
           </div>
-                    
         </div>
       </nav>
 
@@ -176,16 +171,34 @@ const Register = () => {
                   />
                 </div>
                 
+                {/* --- UPDATED: Email Input with visual feedback --- */}
                 <div className="relative group">
-                  <label className="block text-[11px] uppercase tracking-widest font-bold text-on-surface-variant mb-1.5 ml-1">Email Address</label>
-                  <input 
-                    className="w-full bg-surface-container-high border-none rounded-2xl px-6 py-3 text-on-surface focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-on-surface-variant/40 font-medium outline-none" 
-                    placeholder="hello@example.com" 
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
+                  <div className="flex justify-between items-end mb-1.5 px-1">
+                    <label className="block text-[11px] uppercase tracking-widest font-bold text-on-surface-variant">Email Address</label>
+                    {/* Shows a subtle error message only if they started typing but the email is invalid */}
+                    {email.length > 0 && !isEmailValid && (
+                      <span className="text-[10px] text-error font-bold tracking-wide">Invalid format</span>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <input 
+                      className={`w-full bg-surface-container-high border rounded-2xl px-6 py-3 text-on-surface focus:ring-2 transition-all placeholder:text-on-surface-variant/40 font-medium outline-none ${
+                        email.length > 0 && !isEmailValid 
+                          ? 'border-error/50 focus:ring-error/20 bg-error-container/10' 
+                          : 'border-transparent focus:ring-primary/20'
+                      }`} 
+                      placeholder="hello@example.com" 
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                    {isEmailValid && email.length > 0 && (
+                      <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-green-600 material-symbols-outlined text-[18px]">
+                        check_circle
+                      </span>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -236,7 +249,7 @@ const Register = () => {
                     </div>
                   </div>
 
-                  {/* --- NEW: Visual Password Strength Tracker --- */}
+                  {/* Visual Password Strength Tracker */}
                   <div className="col-span-1 md:col-span-2 flex flex-wrap gap-x-4 gap-y-2 pt-1 px-2">
                     <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${isLengthValid ? 'text-green-600' : 'text-on-surface-variant/40'}`}>
                       <span className="material-symbols-outlined text-[14px]">{isLengthValid ? 'check_circle' : 'radio_button_unchecked'}</span>
@@ -259,35 +272,11 @@ const Register = () => {
                 </div>
               </div>
 
-              <div className="pt-1">
-                <div className="flex justify-between items-center mb-3 ml-1">
-                  <label className="block text-[11px] uppercase tracking-widest font-bold text-on-surface-variant">Personalize your feed</label>
-                  <span className="text-[9px] font-bold text-on-surface-variant/50 uppercase">Select 1+</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {interestsList.map((interest) => (
-                    <button
-                      key={interest}
-                      type="button"
-                      onClick={() => toggleInterest(interest)}
-                      className={`px-4 py-2 rounded-full text-xs font-semibold transition-all hover:scale-105 active:scale-95 flex items-center gap-2 ${
-                        selectedInterests.includes(interest)
-                          ? 'bg-primary text-stone-50 shadow-md'
-                          : 'bg-surface-container-highest text-on-surface-variant hover:bg-surface-container-high'
-                      }`}
-                    >
-                      {selectedInterests.includes(interest) && <span className="material-symbols-outlined text-[16px]">check</span>}
-                      {interest}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               <div className="pt-4">
                 <button 
                   type="submit"
-                  // --- NEW: Disable the button completely until the password is strong ---
-                  disabled={isLoading || !isPasswordStrong}
+                  // --- UPDATED: Button is disabled if email is invalid OR password is weak ---
+                  disabled={isLoading || !isPasswordStrong || !isEmailValid || name.trim() === ''}
                   className="w-full py-3.5 rounded-full bg-secondary text-on-secondary font-headline font-bold text-base hover:bg-[#822800] transition-all shadow-lg shadow-secondary/20 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-secondary"
                 >
                   {isLoading ? 'Creating Account...' : 'Create Account'}
