@@ -323,6 +323,7 @@ const SwapList = ({ userId }) => {
     pending: swaps.filter((s) => s.status === "pending").length,
     accepted: swaps.filter((s) => s.status === "accepted").length,
     completed: swaps.filter((s) => s.status === "completed").length,
+    rejected:swaps.filter((s)=> s.status==="rejected").length,
   };
 
   const hasActiveFilters =
@@ -404,77 +405,44 @@ const SwapList = ({ userId }) => {
         <div className="pointer-events-none fixed bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-orange-100/10 blur-[100px] -z-10" />
 
         <div className="max-w-[1400px] mx-auto px-4 py-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <div className="bg-white rounded border border-gray-200 px-5 py-4 shadow-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700 font-medium">
-                  Total Swaps
-                </span>
-                <svg
-                  className="w-5 h-5 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                  />
-                </svg>
-              </div>
-              <p className="text-3xl font-bold text-gray-900 mt-2">
-                {stats.total}
-              </p>
-            </div>
-            <div className="bg-white rounded border border-gray-200 px-5 py-4 shadow-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700 font-medium">
-                  Accepted
-                </span>
-                <svg
-                  className="w-5 h-5 text-green-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <p className="text-3xl font-bold text-gray-900 mt-2">
-                {stats.accepted}
-              </p>
-            </div>
-            <div className="bg-white rounded border border-gray-200 px-5 py-4 shadow-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-700 font-medium">
-                  Completed
-                </span>
-                <svg
-                  className="w-5 h-5 text-blue-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <p className="text-3xl font-bold text-gray-900 mt-2">
-                {stats.completed}
-              </p>
-            </div>
-          </div>
+          <div className="grid grid-cols-4 gap-4 mb-6">
+  <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-gray-700 font-medium">Total Swaps</span>
+      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+      </svg>
+    </div>
+    <p className="text-3xl font-bold text-gray-900 mt-2">{stats.total}</p>
+  </div>
+  <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
+    <div className="flex items-center justify-between">
+  <span className="text-sm text-gray-700 font-medium">Rejected</span>
+  <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+  </svg>
+</div>
+    <p className="text-3xl font-bold text-gray-900 mt-2">{stats.rejected}</p>
+  </div>
+  <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-gray-700 font-medium">Accepted</span>
+      <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+    <p className="text-3xl font-bold text-gray-900 mt-2">{stats.accepted}</p>
+  </div>
+  <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
+    <div className="flex items-center justify-between">
+      <span className="text-sm text-gray-700 font-medium">Completed</span>
+      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      </svg>
+    </div>
+    <p className="text-3xl font-bold text-gray-900 mt-2">{stats.completed}</p>
+  </div>
+</div>
 
           <div className="flex gap-2 mb-6 bg-white rounded-xl p-1 border border-gray-200 w-fit shadow-sm">
             {tabs.map((tab) => (

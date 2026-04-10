@@ -6,6 +6,7 @@ import {
   LogOut, Menu, X, Bell, RefreshCw, Flag 
 } from 'lucide-react';
 import ManageUsers from './ManageUsers';
+import AdminSwapDashboard from '../../components/swap/AdminSwapDashboard';
 
 // Placeholders for your future admin components
 const DashboardOverview = () => <div className="p-6">Overview Metrics Coming Soon</div>;
@@ -43,6 +44,8 @@ const AdminDashboard = () => {
     { id: 'items', label: 'Manage Items', icon: <Package size={20} /> },
     { id: 'reports', label: 'Reported Listings', icon: <Flag size={20} /> }, 
     { id: 'settings', label: 'System Settings', icon: <Settings size={20} /> },
+    {id: 'swaps', label: 'Manage Swaps', icon: <RefreshCw size={20} />, component: <AdminSwapDashboard /> },
+
   ];
 
   if (!adminUser) return null; // Prevent flickering before redirect
@@ -148,6 +151,7 @@ const AdminDashboard = () => {
           {activeTab === 'items' && <ManageItems />}
           {activeTab === 'reports' && <ReportedListings />}
           {activeTab === 'settings' && <SystemSettings />}
+          {activeTab === 'swaps' && <AdminSwapDashboard />}
         </div>
       </main>
 
