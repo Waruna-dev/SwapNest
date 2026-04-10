@@ -19,8 +19,9 @@ const Dashboard = () => {
   const [userName, setUserName] = useState('');
   const [userId, setUserId] = useState('');
   
-  // --- FIXED: Removed the default Unsplash image. Starts as null. ---
   const [profilePic, setProfilePic] = useState(null); 
+  // --- NEW: State to track if the Google image URL is broken ---
+  const [imageError, setImageError] = useState(false);
   
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -35,7 +36,6 @@ const Dashboard = () => {
   const profileMenuRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
-  // --- NEW: Helper to get the first letter of the user's name ---
   const userInitial = userName ? userName.charAt(0).toUpperCase() : 'U';
 
   useEffect(() => {
@@ -237,13 +237,18 @@ const Dashboard = () => {
             
             {/* Profile Menu */}
             <div className="relative" ref={profileMenuRef}>
-              {/* --- UPDATED: Dynamic Initials Avatar Render --- */}
               <div 
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} 
                 className="w-10 h-10 rounded-full border-2 border-primary/10 overflow-hidden cursor-pointer hover:ring-2 hover:ring-secondary transition-all bg-primary flex items-center justify-center text-white font-bold font-headline"
               >
-                {profilePic ? (
-                  <img src={profilePic} alt="Profile" className="w-full h-full object-cover" />
+                {/* --- UPDATED: Fallback gracefully to initials if image is broken --- */}
+                {profilePic && !imageError ? (
+                  <img 
+                    src={profilePic} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover" 
+                    onError={() => setImageError(true)} 
+                  />
                 ) : (
                   <span>{userInitial}</span>
                 )}
