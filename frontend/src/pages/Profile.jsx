@@ -4,6 +4,10 @@ import API from '../services/api';
 
 const Profile = () => {
   const navigate = useNavigate();
+  
+  // --- NEW: Loading State ---
+  const [isLoading, setIsLoading] = useState(true);
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   
@@ -17,14 +21,26 @@ const Profile = () => {
 
   const [userId, setUserId] = useState(null); 
 
-  // --- NEW: AVATAR STATES & REFS ---
+  // --- AVATAR STATES & REFS ---
   const [profileImageFile, setProfileImageFile] = useState(null);
-  // Default image to show before they upload one
   const [previewImage, setPreviewImage] = useState('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80'); 
   const fileInputRef = useRef(null);
 
   const profileMenuRef = useRef(null);
   const mobileMenuRef = useRef(null);
+
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    bio: '',
+    interests: ['Tech & Gadgets', 'Software Dev', 'Baroque Pop / Dreamcore Vibe']
+  });
+
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
 
   // --- FETCHING USER DATA ---
   useEffect(() => {
@@ -48,7 +64,6 @@ const Profile = () => {
           bio: user.bio || '', 
         }));
 
-        // NEW: If the user already has a profile pic in the DB, show it!
         if (user.profilePic) {
           setPreviewImage(user.profilePic);
         }
@@ -57,6 +72,9 @@ const Profile = () => {
         console.error("Authentication failed:", error);
         localStorage.removeItem('swapnest_token');
         navigate('/login');
+      } finally {
+        // --- NEW: Turn off loading state regardless of success or failure ---
+        setIsLoading(false);
       }
     };
 
@@ -72,46 +90,30 @@ const Profile = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    bio: '',
-    interests: ['Tech & Gadgets', 'Software Dev', 'Baroque Pop / Dreamcore Vibe']
-  });
-
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
-
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
   const handlePasswordChange = (e) => setPasswordData({ ...passwordData, [e.target.name]: e.target.value });
 
-  // --- NEW: HANDLE IMAGE SELECTION ---
+  // --- HANDLE IMAGE SELECTION ---
   const handleImageClick = () => {
-    fileInputRef.current.click(); // Simulates a click on the hidden file input
+    fileInputRef.current.click(); 
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setProfileImageFile(file); // Save the actual file to send to backend later
-      setPreviewImage(URL.createObjectURL(file)); // Create a temporary URL to show instant preview
+      setProfileImageFile(file); 
+      setPreviewImage(URL.createObjectURL(file)); 
     }
   };
 
-  // --- SAVE PROFILE INFO (NOW WITH IMAGE UPLOAD) ---
+  // --- SAVE PROFILE INFO ---
   const handleSavePersonalInfo = async (e) => {
     e.preventDefault();
     try {
-      // Because we are sending a file, we MUST use FormData instead of standard JSON
       const formDataToSend = new FormData();
       formDataToSend.append('username', formData.fullName);
       formDataToSend.append('bio', formData.bio);
       
-      // If they selected a new image, attach it!
-      // Note: 'profileImage' MUST match the string in your backend upload.single('profileImage')
       if (profileImageFile) {
         formDataToSend.append('profileImage', profileImageFile);
       }
@@ -162,19 +164,33 @@ const Profile = () => {
 
   const handleLogout = async () => {
     try {
-      // Tell the backend to actively kill the session in MongoDB
       await API.post('/users/logout');
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      // The 'finally' block ensures we ALWAYS wipe the local token, 
-      // even if the user's internet drops and the backend call fails.
       localStorage.removeItem('swapnest_token');
-      
-      // Send them back to the login screen
       navigate('/login');
     }
   };
+
+  // --- NEW: LOADING SCREEN RENDER ---
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center selection:bg-secondary-fixed selection:text-on-secondary-fixed">
+        <div className="relative flex items-center justify-center">
+          {/* Outer spinning ring */}
+          <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+          {/* Inner pulsating icon */}
+          <span className="material-symbols-outlined text-primary absolute animate-pulse text-2xl">
+            sync
+          </span>
+        </div>
+        <h2 className="text-xl font-headline font-bold text-primary mt-6 animate-pulse">
+          Loading your Nest...
+        </h2>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-background text-on-surface font-body min-h-screen antialiased selection:bg-secondary-fixed selection:text-on-secondary-fixed">
@@ -203,7 +219,6 @@ const Profile = () => {
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                 className="w-10 h-10 rounded-full border-2 border-secondary overflow-hidden cursor-pointer shadow-md ring-2 ring-secondary/20 transition-all"
               >
-                {/* Dynamically update Nav Avatar too! */}
                 <img src={previewImage} alt="Profile" className="w-full h-full object-cover" />
               </div>
 
@@ -258,7 +273,6 @@ const Profile = () => {
               <div className="relative mb-6 group">
                 <img src={previewImage} alt="Avatar" className="w-32 h-32 rounded-full object-cover shadow-lg border-4 border-white transition-opacity group-hover:opacity-90" />
                 
-                {/* Hidden File Input */}
                 <input 
                   type="file" 
                   ref={fileInputRef} 
@@ -276,7 +290,7 @@ const Profile = () => {
                 </button>
               </div>
 
-              <h2 className="text-xl font-headline font-bold text-primary">{formData.fullName || 'Curator'}</h2>
+              <h2 className="text-xl font-headline font-bold text-primary">{formData.fullName || 'User'}</h2>
               <p className="text-xs font-bold text-on-surface-variant/70 mt-1">{formData.email}</p>
               
               <div className="w-full h-px bg-outline-variant/20 my-6"></div>
