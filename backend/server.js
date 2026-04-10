@@ -34,26 +34,13 @@ const app = express();
 // =======================
 // GLOBAL MIDDLEWARES
 // =======================
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  credentials: true
+}));
 app.use(express.json());
 // Using extended: true from the team's code to support complex form data
 app.use(express.urlencoded({ extended: true }));
-
-app.use('/api/swaps', swapRoutes); 
-app.use("/api/items", itemRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/notifications', notificationRoutes);
-// In server.js - This serves files from the uploads folder
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-//404
-app.use((req,res)=>{
-    console.log('404 not found:', req.method,req.url);
-    res.status(404).json({
-        success:false,
-        message:'Route not found'
-    });
-});
 
 // Logging middleware
 app.use(morgan("dev"));
@@ -61,17 +48,28 @@ app.use(morgan("dev"));
 // =======================
 // ROUTES
 // =======================
-
-app.use("/api/users", userRoutes);
+app.use('/api/swaps', swapRoutes); 
 app.use("/api/items", itemRoutes);
-app.use("/api/swaps", swapRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use("/api/volunteers", volunteerRoutes);
 app.use("/api/pickups", pickupRoutes);
 app.use("/api/centers", centerRoutes);
 
+// In server.js - This serves files from the uploads folder
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // TEST ROUTE (Combined)
 app.get("/", (req, res) => {
   res.status(200).json({ message: "SwapNest API is running..." });
+});
+
+//404
+app.use((req,res,next)=>{
+    console.log('404 not found:', req.method,req.url);
+    const error = new Error(`Not Found - ${req.originalUrl}`);
+    res.status(404);
+    next(error);
 });
 
 // =======================
