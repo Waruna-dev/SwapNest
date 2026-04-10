@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import API from '../services/api';
-// 1. Import the Google Login hook
 import { useGoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
@@ -13,7 +12,6 @@ const Login = () => {
   
   const navigate = useNavigate();
 
-  // 2. Setup the Google Login Hook
   const loginWithGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       setIsLoading(true);
@@ -54,24 +52,7 @@ const Login = () => {
   return (
     <div className="bg-background font-body text-on-surface antialiased min-h-screen flex flex-col selection:bg-secondary-fixed selection:text-on-secondary-fixed">
       
-      {/* Top Navigation Bar */}
-      <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl shadow-sm border-b border-outline-variant/10">
-        <div className="relative flex justify-between items-center px-6 md:px-8 py-4 max-w-7xl mx-auto">
-          
-          <Link to="/" className="text-2xl font-extrabold text-primary tracking-tighter font-headline hover:opacity-80 transition-opacity z-10">
-            SwapNest
-          </Link>
-          
-          <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center space-x-8 font-headline font-bold text-sm tracking-tight">
-            <Link to="/" className="text-secondary border-b-2 border-secondary pb-1">Discover</Link>
-            <a className="text-primary/80 hover:text-primary transition-colors" href="#">How it Works</a>
-            <a className="text-primary/80 hover:text-primary transition-colors" href="#">Our Story</a>
-          </div>
-                    
-        </div>
-      </nav>
-
-      <main className="flex-grow flex flex-col md:flex-row min-h-screen overflow-hidden pt-16 md:pt-0">
+      <main className="flex-grow flex flex-col md:flex-row min-h-screen overflow-hidden">
         
         {/* Left Side: Cinematic Editorial Image */}
         <section className="hidden md:flex md:w-1/2 lg:w-[55%] relative overflow-hidden bg-primary-container">
@@ -107,6 +88,16 @@ const Login = () => {
 
         {/* Right Side: Login Form */}
         <section className="flex-1 flex flex-col justify-center items-center p-8 md:p-16 lg:p-24 bg-surface-container-low relative min-h-screen md:min-h-0">
+          
+          {/* --- UPDATED: Button moved to top right --- */}
+          <Link 
+            to="/" 
+            className="absolute top-6 right-6 md:top-10 md:right-10 flex items-center gap-2 px-4 py-2.5 bg-white/60 backdrop-blur-md border border-outline-variant/20 rounded-full shadow-sm text-on-surface-variant hover:text-primary hover:bg-white hover:shadow-md font-headline font-bold text-sm transition-all group z-10"
+          >
+            <span className="material-symbols-outlined text-[18px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
+            Back to Home
+          </Link>
+
           <div className="w-full max-w-md space-y-10">
             
             <div className="text-center md:text-left space-y-3">
@@ -114,7 +105,6 @@ const Login = () => {
               <p className="text-on-surface-variant font-medium">Continue your journey in curated exchange.</p>
             </div>
 
-            {/* Dynamic Error Message */}
             {error && (
               <div className="bg-error-container text-on-error-container p-4 rounded-2xl text-sm font-bold text-center border border-error/20 flex items-center justify-center gap-2">
                 <span className="material-symbols-outlined text-[18px]">error</span>
@@ -136,7 +126,6 @@ const Login = () => {
               </div>
               
               <div className="space-y-2">
-                {/* --- FORGOT PASSWORD LINK ADDED HERE --- */}
                 <div className="flex justify-between items-center px-1">
                   <label className="font-label text-xs font-bold uppercase tracking-widest text-primary/70">Password</label>
                   <Link to="/forgot-password" className="text-[11px] font-headline font-bold text-secondary uppercase tracking-wider hover:underline transition-all">Forgot?</Link>
@@ -210,17 +199,6 @@ const Login = () => {
           </footer>
         </section>
       </main>
-
-      {/* Mobile Sticky Badge */}
-      <div className="fixed top-20 right-4 z-40 md:hidden">
-        <Link to="/" className="flex items-center gap-2 bg-white/90 backdrop-blur-xl px-4 py-2 rounded-full border border-outline-variant/20 shadow-md">
-          <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-on-secondary">
-            <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>eco</span>
-          </div>
-          <span className="font-headline font-black text-sm tracking-tighter text-primary">SwapNest</span>
-        </Link>
-      </div>
-
     </div>
   );
 };

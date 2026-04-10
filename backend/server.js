@@ -60,8 +60,16 @@ app.get("/", (req, res) => {
   res.status(200).json({ message: "SwapNest API is running..." });
 });
 
+// =======================
+// 3. ERROR HANDLING (The Safety Net at the bottom)
+// =======================
+// I removed the manual 404 because you are already importing 
+// your custom 'notFound' middleware from your volunteer middlewares!
 app.use(notFound);
 app.use(errorHandler);
 
+// =======================
+// 4. SERVER STARTUP
+// =======================
 const port = process.env.PORT || 5000;
 app.listen(port, () => console.log(`Server started on port ${port}`));

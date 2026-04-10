@@ -5,7 +5,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const sendEmail = async (options) => {
   try {
     const data = await resend.emails.send({
-      from: 'SwapNest <onboarding@resend.dev>',
+      from: 'SwapNest Support <noreply@swapnest.me>',
       to: options.email, 
       subject: options.subject,
       // CHANGED: We swapped 'text' for 'html'

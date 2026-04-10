@@ -3,14 +3,12 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import API from '../services/api';
 
 const ResetPassword = () => {
-  // Grab the secure token from the URL (e.g., /reset-password/abc123token)
   const { token } = useParams();
   const navigate = useNavigate();
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   
-  // Password visibility toggles
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
@@ -18,15 +16,25 @@ const ResetPassword = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // --- NEW: Password Strength Validators ---
+  const isLengthValid = password.length >= 8;
+  const hasNumber = /\d/.test(password); 
+  const hasUppercase = /[A-Z]/.test(password); 
+  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password); 
+
+  // Check if ALL conditions are met
+  const isPasswordStrong = isLengthValid && hasNumber && hasUppercase && hasSpecial;
+
   const handleReset = async (e) => {
     e.preventDefault();
     setError('');
     setMessage('');
 
-    // 1. Basic frontend validation
-    if (password.length < 8) {
-      return setError('Password must be at least 8 characters long.');
+    // --- NEW: Block submission if password isn't strong ---
+    if (!isPasswordStrong) {
+      return setError('Please ensure your password meets all the security requirements.');
     }
+
     if (password !== confirmPassword) {
       return setError('Passwords do not match.');
     }
@@ -34,12 +42,11 @@ const ResetPassword = () => {
     setIsLoading(true);
 
     try {
-      // 2. Send the new password AND the token from the URL to the backend
+      // NOTE: If your backend route uses PUT instead of POST, change API.post to API.put below!
       await API.post(`/users/reset-password/${token}`, { password });
       
       setMessage('Password reset successfully! Redirecting to login...');
       
-      // 3. Automatically send them to login after a short delay
       setTimeout(() => {
         navigate('/login');
       }, 3000);
@@ -54,7 +61,6 @@ const ResetPassword = () => {
   return (
     <div className="bg-background font-body text-on-surface antialiased min-h-screen flex flex-col selection:bg-secondary-fixed selection:text-on-secondary-fixed">
       
-      {/* Minimal Navigation */}
       <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl shadow-sm border-b border-outline-variant/10">
         <div className="relative flex justify-between items-center px-6 md:px-8 py-4 max-w-7xl mx-auto">
           <Link to="/" className="text-2xl font-extrabold text-primary tracking-tighter font-headline hover:opacity-80 transition-opacity z-10">
@@ -68,10 +74,8 @@ const ResetPassword = () => {
 
       <main className="flex-grow flex flex-col md:flex-row min-h-screen overflow-hidden pt-16 md:pt-0">
         
-        {/* Left Side: Editorial Image */}
         <section className="hidden md:flex md:w-1/2 lg:w-[55%] relative overflow-hidden bg-primary-container">
           <div className="absolute inset-0 z-0">
-            {/* A vintage key image representing "access" and "passwords" */}
             <img 
               alt="Vintage Keys" 
               className="w-full h-full object-cover grayscale-[20%] contrast-[1.1]" 
@@ -93,7 +97,6 @@ const ResetPassword = () => {
           </div>
         </section>
 
-        {/* Right Side: Recovery Form */}
         <section className="flex-1 flex flex-col justify-center items-center p-8 md:p-16 lg:p-24 bg-surface-container-low relative min-h-screen md:min-h-0">
           <div className="w-full max-w-md space-y-10">
             
@@ -102,7 +105,6 @@ const ResetPassword = () => {
               <p className="text-on-surface-variant font-medium">Almost done! Create your new password below.</p>
             </div>
 
-            {/* Dynamic Success Message */}
             {message && (
               <div className="bg-primary-fixed text-on-primary-fixed p-4 rounded-2xl text-sm font-bold border border-primary-fixed-dim/20 flex items-start gap-3">
                 <span className="material-symbols-outlined text-[20px] mt-0.5">check_circle</span>
@@ -110,7 +112,6 @@ const ResetPassword = () => {
               </div>
             )}
 
-            {/* Dynamic Error Message */}
             {error && (
               <div className="bg-error-container text-on-error-container p-4 rounded-2xl text-sm font-bold border border-error/20 flex items-start gap-3">
                 <span className="material-symbols-outlined text-[20px] mt-0.5">error</span>
@@ -165,10 +166,31 @@ const ResetPassword = () => {
                   </button>
                 </div>
               </div>
+
+              {/* --- NEW: Visual Password Strength Tracker --- */}
+              <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1 px-2">
+                <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${isLengthValid ? 'text-green-600' : 'text-on-surface-variant/40'}`}>
+                  <span className="material-symbols-outlined text-[14px]">{isLengthValid ? 'check_circle' : 'radio_button_unchecked'}</span>
+                  8+ Chars
+                </div>
+                <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${hasUppercase ? 'text-green-600' : 'text-on-surface-variant/40'}`}>
+                  <span className="material-symbols-outlined text-[14px]">{hasUppercase ? 'check_circle' : 'radio_button_unchecked'}</span>
+                  1 Uppercase
+                </div>
+                <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${hasNumber ? 'text-green-600' : 'text-on-surface-variant/40'}`}>
+                  <span className="material-symbols-outlined text-[14px]">{hasNumber ? 'check_circle' : 'radio_button_unchecked'}</span>
+                  1 Number
+                </div>
+                <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${hasSpecial ? 'text-green-600' : 'text-on-surface-variant/40'}`}>
+                  <span className="material-symbols-outlined text-[14px]">{hasSpecial ? 'check_circle' : 'radio_button_unchecked'}</span>
+                  1 Special (!@#)
+                </div>
+              </div>
               
               <button 
                 type="submit"
-                disabled={isLoading || message !== ''} 
+                // --- NEW: Added !isPasswordStrong to the disabled array ---
+                disabled={isLoading || message !== '' || !isPasswordStrong} 
                 className="w-full h-16 bg-secondary text-on-secondary rounded-full font-headline font-bold text-lg hover:bg-[#822800] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_20px_40px_-15px_rgba(27,28,26,0.2)] flex items-center justify-center gap-2 mt-8 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-secondary"
               >
                 {isLoading ? 'Updating...' : 'Update Password'}
