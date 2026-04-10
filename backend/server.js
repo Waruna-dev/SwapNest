@@ -32,6 +32,8 @@ import pickupRoutes from "./routes/PickupRoutes.js";
 import centerRoutes from "./routes/CenterRoutes.js";
 import notificationRoutes from './routes/notificationRoutes.js';
 import geocodingRoutes from './routes/geocoding.js';
+import simpleVolunteerHelpRoutes from "./routes/simpleVolunteerHelpRoutes.js";
+import testRoutes from "./routes/testRoutes.js";
 
 // Connect to MongoDB
 connectDB();
@@ -63,6 +65,8 @@ app.use("/api/volunteers", volunteerRoutes);
 app.use("/api/pickups", pickupRoutes);
 app.use("/api/centers", centerRoutes);
 app.use("/api/geocoding", geocodingRoutes);
+app.use("/api/simple-volunteer-help", simpleVolunteerHelpRoutes);
+app.use("/api/test", testRoutes);
 
 // In server.js - This serves files from the uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));

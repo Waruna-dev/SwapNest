@@ -16,6 +16,7 @@ function ItemCard({ item, isFavorite, onToggleFavorite, onQuickView }) {
   const isSwapItem = String(item.mode || "")
     .toLowerCase()
     .includes("swap");
+  const isFreeItem = !isSwapItem && (item.price === 0 || item.price === "0" || item.price === "Rs 0");
   const conditionText = item.condition ? item.condition : "Used";
   const isNewCondition = conditionText.toLowerCase().includes("new");
 
@@ -107,6 +108,10 @@ function ItemCard({ item, isFavorite, onToggleFavorite, onQuickView }) {
               <span className="rounded-full bg-[#d1fae5] px-2 py-1 text-sm font-semibold text-[#065f46]">
                 Swap item
               </span>
+            ) : isFreeItem ? (
+              <span className="rounded-full bg-[#dbeafe] px-2 py-1 text-sm font-semibold text-[#1e40af]">
+                Free item
+              </span>
             ) : (
               <p className="font-headline text-[1.6rem] font-bold leading-none text-[#f97316]">
                 {formatPrice(item.price)}
@@ -137,7 +142,7 @@ function ItemCard({ item, isFavorite, onToggleFavorite, onQuickView }) {
           </div>
 
           <div
-            className={`grid gap-2 pt-1 ${isSwapItem ? "grid-cols-3" : "grid-cols-2"}`}
+            className={`grid gap-2 pt-1 ${isSwapItem ? "grid-cols-3" : isFreeItem ? "grid-cols-2" : "grid-cols-2"}`}
           >
             <button
               type="button"
@@ -169,6 +174,20 @@ function ItemCard({ item, isFavorite, onToggleFavorite, onQuickView }) {
                   <IconSwap /> Swap
                 </button>
               </>
+            ) : isFreeItem ? (
+              <button
+                type="button"
+                className="rounded-full border border-[#d4d4d8] bg-white px-3 py-2 text-xs font-semibold text-[#0b3b30] transition hover:border-[#0b3b30] hover:bg-[#eff6f3]"
+                onClick={() => {
+                  if (!currentUser._id) {
+                    alert("Please login to request free delivery");
+                    return;
+                  }
+                  alert("Free delivery feature coming soon!");
+                }}
+              >
+                Free Delivery
+              </button>
             ) : (
               <button
                 type="button"
