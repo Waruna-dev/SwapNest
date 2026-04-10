@@ -1,6 +1,64 @@
 import { useEffect, useRef, useState } from "react";
 
 const defaultMapCenter = { lat: 6.9271, lng: 79.8612 };
+const defaultMarkerHtml = `
+  <div style="position: relative; width: 50px; height: 80px;">
+    
+    <!-- Shadow -->
+    <div style="
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      width: 20px;
+      height: 8px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 50%;
+      transform: translateX(-50%);
+      animation: shadowBounce 1s infinite;
+    "></div>
+
+    <!-- Dot -->
+    <div style="
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      width: 28px;
+      height: 28px;
+      background: #e81515;
+      border-radius: 50%;
+      border: 3px solid white;
+      transform: translateX(-50%);
+      animation: bounce 1s infinite;
+    "></div>
+
+    <!-- Tail -->
+    <div style="
+      position: absolute;
+      top: 36px;
+      left: 50%;
+      width: 16px;
+      height: 28px;
+      background: #e81515;
+      transform: translateX(-50%) rotate(45deg);
+      border-radius: 0 0 12px 0;
+      animation: bounce 1s infinite;
+    "></div>
+
+    <!-- Animation -->
+    <style>
+      @keyframes bounce {
+        0%, 100% { transform: translate(-50%, 0); }
+        50% { transform: translate(-50%, -8px); }
+      }
+
+      @keyframes shadowBounce {
+        0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.3; }
+        50% { transform: translateX(-50%) scale(0.7); opacity: 0.15; }
+      }
+    </style>
+
+  </div>
+`;
 
 const createCustomMarkerIcon = (L, markerHtml) =>
   L.divIcon({
@@ -29,6 +87,53 @@ const loadLeafletAssets = () => {
     link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
     link.dataset.leaflet = "swapnest";
     document.head.appendChild(link);
+  }
+
+  if (!document.querySelector('style[data-leaflet-marker="swapnest"]')) {
+    const style = document.createElement("style");
+    style.dataset.leafletMarker = "swapnest";
+    style.textContent = `
+      .swapnest-location-marker {
+        background: transparent;
+        border: 0;
+      }
+
+      @keyframes swapnest-marker-bounce {
+        0%, 100% {
+          transform: translateX(-50%) translateY(0);
+        }
+        50% {
+          transform: translateX(-50%) translateY(-8px);
+        }
+      }
+
+      @keyframes swapnest-marker-shadow {
+        0%, 100% {
+          opacity: 0.4;
+          transform: translateX(-50%) scale(1);
+        }
+        50% {
+          opacity: 0.22;
+          transform: translateX(-50%) scale(0.82);
+        }
+      }
+
+      @keyframes swapnest-marker-pulse {
+        0% {
+          opacity: 0.6;
+          transform: translateX(-50%) scale(0.8);
+        }
+        70% {
+          opacity: 0;
+          transform: translateX(-50%) scale(1.5);
+        }
+        100% {
+          opacity: 0;
+          transform: translateX(-50%) scale(1.6);
+        }
+      }
+    `;
+    document.head.appendChild(style);
   }
 
   const existingScript = document.querySelector(
@@ -62,7 +167,7 @@ export const useLocationPicker = (
   initialLocation = {},
   options = {},
 ) => {
-  const { markerHtml = "" } = options;
+  const { markerHtml = defaultMarkerHtml } = options;
   const [locationSearch, setLocationSearch] = useState("");
   const [selectedAddress, setSelectedAddress] = useState("");
   const [locationState, setLocationState] = useState({
@@ -108,11 +213,9 @@ export const useLocationPicker = (
           attribution: "&copy; OpenStreetMap contributors",
         }).addTo(map);
 
-        const marker = markerHtml
-          ? L.marker([startLat, startLng], {
-              icon: createCustomMarkerIcon(L, markerHtml),
-            }).addTo(map)
-          : L.marker([startLat, startLng]).addTo(map);
+        const marker = L.marker([startLat, startLng], {
+          icon: createCustomMarkerIcon(L, markerHtml),
+        }).addTo(map);
 
         mapInstanceRef.current = map;
         markerRef.current = marker;

@@ -343,11 +343,9 @@ const ItemLocation = () => {
         return searchableText.includes(normalizedSearch);
       })
       .filter((item) => (nearbyOnly ? item.mapDistanceKm <= distanceKm : true))
-      .sort((a, b) => a.mapDistanceKm - b.mapDistanceKm)
-      .slice(0, displayMode === "pagination" ? 8 : 12);
+      .sort((a, b) => a.mapDistanceKm - b.mapDistanceKm);
   }, [
     allItems,
-    displayMode,
     distanceKm,
     hasCoordinates,
     itemSearch,
@@ -358,6 +356,11 @@ const ItemLocation = () => {
     selectedLat,
     selectedLng,
   ]);
+
+  const displayedItems = useMemo(
+    () => filteredItems.slice(0, displayMode === "pagination" ? 8 : 12),
+    [displayMode, filteredItems],
+  );
 
   const searchSuggestions = useMemo(() => {
     const normalizedSearch = itemSearch.trim().toLowerCase();
@@ -536,10 +539,38 @@ const ItemLocation = () => {
       marker.addTo(markerLayer);
     });
 
+    if (hasCoordinates) {
+      if (filteredItems.length) {
+        const bounds = L.latLngBounds([[selectedLat, selectedLng]]);
+
+        filteredItems.forEach((item) => {
+          const coords = item?.location?.coordinates;
+
+          if (
+            !Array.isArray(coords) ||
+            coords.length !== 2 ||
+            !Number.isFinite(Number(coords[0])) ||
+            !Number.isFinite(Number(coords[1]))
+          ) {
+            return;
+          }
+
+          bounds.extend([Number(coords[1]), Number(coords[0])]);
+        });
+
+        map.fitBounds(bounds, {
+          padding: [48, 48],
+          maxZoom: 13,
+        });
+      } else {
+        map.setView([selectedLat, selectedLng], 15);
+      }
+    }
+
     return () => {
       markerLayer.clearLayers();
     };
-  }, [filteredItems, mapInstanceRef]);
+  }, [filteredItems, hasCoordinates, mapInstanceRef, selectedLat, selectedLng]);
 
   return (
     <section className="min-h-screen bg-[#f5f1ea] px-4 py-10 text-[#0a3327] md:px-8 2xl:px-10">
@@ -875,7 +906,7 @@ const ItemLocation = () => {
                       Loading nearby items...
                     </p>
                   ) : filteredItems.length ? (
-                    filteredItems.map((item) => (
+                    displayedItems.map((item) => (
                       <ItemLocationCard
                         key={item.itemId}
                         item={item}
