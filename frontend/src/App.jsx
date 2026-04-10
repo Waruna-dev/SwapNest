@@ -16,6 +16,9 @@ import ItemDashboard1 from "./pages/item-listing/ItemDashboard";
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminDashboard from './pages/admin/AdminDashboard';
+
 
 import SwapList from "./components/swap/SwapList";
 import Privacy from "./pages/PrivacyPolicy";
@@ -51,6 +54,9 @@ function App() {
           <Route path="/item/form" element={<ItemAddNewItems />} />
           <Route path="/item/gallery" element={<ItemGalleryPage />} />
           <Route path="/item/dashboard" element={<ItemDashboard1 />} />
+
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
           
         </Routes>
       </div>

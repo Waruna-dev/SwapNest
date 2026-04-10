@@ -25,6 +25,7 @@ import volunteerRoutes from "./routes/VolunteerRoutes.js";
 import pickupRoutes from "./routes/PickupRoutes.js";
 import centerRoutes from "./routes/CenterRoutes.js";
 import notificationRoutes from './routes/notificationRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 // Connect to MongoDB
 connectDB();
@@ -32,56 +33,43 @@ connectDB();
 const app = express();
 
 // =======================
-// GLOBAL MIDDLEWARES
+// 1. GLOBAL MIDDLEWARES (Runs first!)
 // =======================
 app.use(cors());
 app.use(express.json());
-// Using extended: true from the team's code to support complex form data
 app.use(express.urlencoded({ extended: true }));
+app.use(morgan("dev")); // Moved to the top so it logs EVERY incoming request
 
-app.use('/api/swaps', swapRoutes); 
-app.use("/api/items", itemRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/notifications', notificationRoutes);
-// In server.js - This serves files from the uploads folder
+// Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-//404
-app.use((req,res)=>{
-    console.log('404 not found:', req.method,req.url);
-    res.status(404).json({
-        success:false,
-        message:'Route not found'
-    });
-});
-
-// Logging middleware
-app.use(morgan("dev"));
-
 // =======================
-// ROUTES
+// 2. ROUTES (The core application)
 // =======================
-
-app.use("/api/users", userRoutes);
-app.use("/api/items", itemRoutes);
-app.use("/api/swaps", swapRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/items', itemRoutes);
+app.use('/api/swaps', swapRoutes);
 app.use("/api/volunteers", volunteerRoutes);
 app.use("/api/pickups", pickupRoutes);
 app.use("/api/centers", centerRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/admin', adminRoutes);
 
-// TEST ROUTE (Combined)
+// TEST ROUTE 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "SwapNest API is running..." });
 });
 
 // =======================
-// ERROR HANDLING
+// 3. ERROR HANDLING (The Safety Net at the bottom)
 // =======================
+// I removed the manual 404 because you are already importing 
+// your custom 'notFound' middleware from your volunteer middlewares!
 app.use(notFound);
 app.use(errorHandler);
 
 // =======================
-// SERVER STARTUP
+// 4. SERVER STARTUP
 // =======================
 const port = process.env.PORT || 5000;
 app.listen(port, () => console.log(`Server started on port ${port}`));
