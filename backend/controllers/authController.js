@@ -235,7 +235,6 @@ const forgotPassword = asyncHandler(async (req, res) => {
     await user.save();
 
     // --- DYNAMIC FRONTEND URL ---
-    // If running locally, uses port 5173. If deployed, uses your production domain.
     const baseUrl = process.env.NODE_ENV === 'production' 
       ? 'https://swapnest.me' 
       : 'http://localhost:5173';
@@ -248,7 +247,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
           SwapNest
         </h1>
         <p style="color: #4a4a4a; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
-          Hello,
+          Hello ${user.username},
         </p>
         <p style="color: #4a4a4a; font-size: 16px; line-height: 1.6; margin-bottom: 30px;">
           We received a request to reset the password for your SwapNest account. Click the button below to choose a new password. This link will expire in 15 minutes.
