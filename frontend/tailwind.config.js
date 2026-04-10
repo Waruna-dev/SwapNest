@@ -61,10 +61,7 @@ export default {
       },
       // 👇 THIS IS THE ONLY THING ADDED! 👇
       borderRadius: {
-        "DEFAULT": "1rem", 
-        "lg": "2rem", 
-        "xl": "3rem", 
-        "full": "9999px"
+        
       },
       keyframes: {
         'fade-in-up': {
