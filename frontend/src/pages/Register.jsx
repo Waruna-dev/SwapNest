@@ -16,18 +16,13 @@ const Register = () => {
   
   const navigate = useNavigate();
 
-  // --- NEW: Email Validator ---
-  // This regex checks for the standard format: text @ text . text
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isEmailValid = emailRegex.test(email);
 
-  // --- Password Strength Validators ---
   const isLengthValid = password.length >= 8;
   const hasNumber = /\d/.test(password); 
   const hasUppercase = /[A-Z]/.test(password); 
   const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password); 
-
-  // Check if ALL conditions are met
   const isPasswordStrong = isLengthValid && hasNumber && hasUppercase && hasSpecial;
 
   const loginWithGoogle = useGoogleLogin({
@@ -53,7 +48,6 @@ const Register = () => {
     e.preventDefault();
     setError('');
 
-    // Double-check validations before hitting the backend
     if (!isEmailValid) {
       return setError('Please enter a valid email address.');
     }
@@ -88,20 +82,7 @@ const Register = () => {
   return (
     <div className="bg-background font-body text-on-surface antialiased min-h-screen flex flex-col selection:bg-secondary-fixed selection:text-on-secondary-fixed overflow-hidden">
       
-      <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl shadow-sm border-b border-outline-variant/10">
-        <div className="relative flex justify-between items-center px-6 md:px-8 py-4 max-w-7xl mx-auto">
-          <Link to="/" className="relative z-10 text-2xl font-extrabold text-primary tracking-tighter font-headline hover:opacity-80 transition-opacity">
-            SwapNest
-          </Link>
-          <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center space-x-8 font-headline font-bold text-sm tracking-tight">
-            <Link to="/" className="text-secondary font-bold border-b-2 border-secondary pb-1">Discover</Link>
-            <a className="text-primary/80 hover:text-primary transition-colors" href="#">How it Works</a>
-            <a className="text-primary/80 hover:text-primary transition-colors" href="#">Our Story</a>
-          </div>
-        </div>
-      </nav>
-
-      <main className="flex-grow flex flex-col md:flex-row h-screen pt-[72px]">
+      <main className="flex-grow flex flex-col md:flex-row h-screen">
         
         <section className="relative w-full md:w-5/12 lg:w-1/2 h-[400px] md:h-full overflow-hidden bg-primary-container hidden md:block">
           <div className="absolute inset-0 z-0">
@@ -127,22 +108,22 @@ const Register = () => {
                 Exchange premium goods, reduce your footprint, and join a community that values craftsmanship over consumption.
               </p>
             </div>
-            
-            <div className="flex items-center gap-6 mt-12 md:mt-0">
-              <div className="flex -space-x-4">
-                <img className="w-12 h-12 rounded-full border-2 border-primary object-cover" alt="User" src="https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?auto=format&fit=crop&w=100&q=80"/>
-                <img className="w-12 h-12 rounded-full border-2 border-primary object-cover" alt="User" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=100&q=80"/>
-                <div className="w-12 h-12 rounded-full border-2 border-primary bg-secondary flex items-center justify-center text-[10px] font-bold text-white tracking-tighter">+12k</div>
-              </div>
-              <p className="text-stone-50/60 text-sm font-medium tracking-wide">
-                Swapping today in <br/>Colombo, Kandy, & Galle.
-              </p>
-            </div>
+            <div></div>
           </div>
         </section>
 
-        <section className="w-full md:w-7/12 lg:w-1/2 flex items-start justify-center px-6 md:px-12 lg:px-16 py-6 md:py-8 bg-surface-container-low h-full overflow-y-auto">
-          <div className="w-full max-w-lg pb-4">
+        <section className="w-full md:w-7/12 lg:w-1/2 flex items-start justify-center px-6 md:px-12 lg:px-16 py-6 md:py-8 bg-surface-container-low h-full overflow-y-auto relative">
+          
+          {/* --- UPDATED: Button moved to top right --- */}
+          <Link 
+            to="/" 
+            className="absolute top-6 right-6 md:top-10 md:right-10 flex items-center gap-2 px-4 py-2.5 bg-white/60 backdrop-blur-md border border-outline-variant/20 rounded-full shadow-sm text-on-surface-variant hover:text-primary hover:bg-white hover:shadow-md font-headline font-bold text-sm transition-all group z-10"
+          >
+            <span className="material-symbols-outlined text-[18px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
+            Back to Home
+          </Link>
+
+          <div className="w-full max-w-lg pb-4 mt-12 md:mt-10">
             
             <div className="mb-6">
               <h2 className="font-headline font-bold text-4xl text-on-surface tracking-tight mb-2">Create your account</h2>
@@ -171,11 +152,9 @@ const Register = () => {
                   />
                 </div>
                 
-                {/* --- UPDATED: Email Input with visual feedback --- */}
                 <div className="relative group">
                   <div className="flex justify-between items-end mb-1.5 px-1">
                     <label className="block text-[11px] uppercase tracking-widest font-bold text-on-surface-variant">Email Address</label>
-                    {/* Shows a subtle error message only if they started typing but the email is invalid */}
                     {email.length > 0 && !isEmailValid && (
                       <span className="text-[10px] text-error font-bold tracking-wide">Invalid format</span>
                     )}
@@ -249,7 +228,6 @@ const Register = () => {
                     </div>
                   </div>
 
-                  {/* Visual Password Strength Tracker */}
                   <div className="col-span-1 md:col-span-2 flex flex-wrap gap-x-4 gap-y-2 pt-1 px-2">
                     <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors duration-300 ${isLengthValid ? 'text-green-600' : 'text-on-surface-variant/40'}`}>
                       <span className="material-symbols-outlined text-[14px]">{isLengthValid ? 'check_circle' : 'radio_button_unchecked'}</span>
@@ -275,7 +253,6 @@ const Register = () => {
               <div className="pt-4">
                 <button 
                   type="submit"
-                  // --- UPDATED: Button is disabled if email is invalid OR password is weak ---
                   disabled={isLoading || !isPasswordStrong || !isEmailValid || name.trim() === ''}
                   className="w-full py-3.5 rounded-full bg-secondary text-on-secondary font-headline font-bold text-base hover:bg-[#822800] transition-all shadow-lg shadow-secondary/20 hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-secondary"
                 >
