@@ -18,21 +18,25 @@ const Dashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userName, setUserName] = useState('');
   const [userId, setUserId] = useState('');
-  const [profilePic, setProfilePic] = useState('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80');
+  
+  // --- FIXED: Removed the default Unsplash image. Starts as null. ---
+  const [profilePic, setProfilePic] = useState(null); 
+  
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   
- 
   const [showSwapForm, setShowSwapForm] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [user, setUser] = useState(null);
   
-
   const [selectedSwap, setSelectedSwap] = useState(null);
   const [showSwapModal, setShowSwapModal] = useState(false);
   
   const profileMenuRef = useRef(null);
   const mobileMenuRef = useRef(null);
+
+  // --- NEW: Helper to get the first letter of the user's name ---
+  const userInitial = userName ? userName.charAt(0).toUpperCase() : 'U';
 
   useEffect(() => {
     if (location.state?.activeNav) {
@@ -41,7 +45,6 @@ const Dashboard = () => {
     }
   }, [location]);
 
- 
   const handleNotificationClick = async (swapId) => {
     try {
       const response = await getSwapById(swapId);
@@ -110,7 +113,6 @@ const Dashboard = () => {
   const handleSwapCreated = () => {
     setShowSwapForm(false);
     setSelectedItem(null);
-   
   };
 
   const renderContent = () => {
@@ -124,10 +126,8 @@ const Dashboard = () => {
       );
     }
 
-
     return (
       <>
-     
         <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-4xl font-headline font-extrabold text-primary tracking-tight">
@@ -142,11 +142,9 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           <div className="lg:col-span-2 space-y-8">
-      
             {userId && (
               <section className="bg-white rounded-[2.5rem] p-6 md:p-8 border border-outline-variant/20 shadow-sm">
                 <div className="flex items-center gap-2 mb-6">
-                
                   <h2 className="text-2xl font-headline font-bold text-primary">Accepted Swaps</h2>
                 </div>
                 <AcceptedSwapsCard userId={userId} />
@@ -154,7 +152,6 @@ const Dashboard = () => {
             )}
           </div>
 
-    
           <div className="lg:col-span-1 space-y-6">
             <Link to="/my-list" className="block relative bg-primary text-white rounded-[2.5rem] p-8 shadow-xl overflow-hidden group hover:-translate-y-1 transition-all duration-300">
               <div className="absolute top-0 right-0 w-40 h-40 bg-secondary rounded-full blur-[50px] -mr-10 -mt-10 opacity-30 group-hover:opacity-50 transition-opacity"></div>
@@ -240,9 +237,18 @@ const Dashboard = () => {
             
             {/* Profile Menu */}
             <div className="relative" ref={profileMenuRef}>
-              <div onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="w-10 h-10 rounded-full border-2 border-primary/10 overflow-hidden cursor-pointer hover:ring-2 hover:ring-secondary transition-all">
-                <img src={profilePic} alt="Profile" className="w-full h-full object-cover" />
+              {/* --- UPDATED: Dynamic Initials Avatar Render --- */}
+              <div 
+                onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} 
+                className="w-10 h-10 rounded-full border-2 border-primary/10 overflow-hidden cursor-pointer hover:ring-2 hover:ring-secondary transition-all bg-primary flex items-center justify-center text-white font-bold font-headline"
+              >
+                {profilePic ? (
+                  <img src={profilePic} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <span>{userInitial}</span>
+                )}
               </div>
+
               {isProfileMenuOpen && (
                 <div className="absolute right-0 mt-3 w-48 bg-white rounded-2xl shadow-xl border border-outline-variant/20 py-2 z-50">
                   <Link to="/profile" className="flex items-center gap-2 px-4 py-3 text-sm font-bold text-primary hover:bg-surface-container-high transition-colors">
