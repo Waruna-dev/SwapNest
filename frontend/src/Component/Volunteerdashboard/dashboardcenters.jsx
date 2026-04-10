@@ -32,7 +32,7 @@ function StatusBadge({ status }) {
   );
 }
 
-export default function DashboardCenters() {
+export default function DashboardCenters({ onEdit }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -129,7 +129,11 @@ export default function DashboardCenters() {
   };
 
   const handleEditCenter = (centerId) => {
-    navigate(`/volunteer-dashboard/center/${centerId}/edit`);
+    if (onEdit) {
+      onEdit(centerId);
+    } else {
+      navigate(`/volunteer-dashboard/center/${centerId}/edit`);
+    }
   };
 
   const handleDeleteCenter = async (centerId) => {

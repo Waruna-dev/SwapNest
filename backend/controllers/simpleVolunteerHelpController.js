@@ -85,6 +85,28 @@ const createVolunteerHelp = async (req, res) => {
   }
 };
 
+// Get all volunteer help requests (for admin/volunteer dashboard)
+const getAllVolunteerHelpRequests = async (req, res) => {
+  try {
+    const requests = await SimpleVolunteerHelp.find({})
+      .populate('centerId', 'name city district')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      data: requests
+    });
+
+  } catch (error) {
+    console.error('Error fetching all volunteer help requests:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
+
 // Get volunteer help requests by user
 const getVolunteerHelpByUser = async (req, res) => {
   try {
@@ -121,5 +143,6 @@ const getVolunteerHelpByUser = async (req, res) => {
 
 export {
   createVolunteerHelp,
+  getAllVolunteerHelpRequests,
   getVolunteerHelpByUser
 };

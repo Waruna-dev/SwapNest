@@ -7,7 +7,7 @@ import autoTable from "jspdf-autotable";
 const API_BASE_FALLBACK = "http://localhost:5000";
 const API_BASE = import.meta.env.VITE_API_URL || API_BASE_FALLBACK;
 
-export default function VolunteerDashboardVolunteersTable() {
+export default function VolunteerDashboardVolunteersTable({ onEdit }) {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -662,7 +662,7 @@ export default function VolunteerDashboardVolunteersTable() {
                                 <button
                                   type="button"
                                   disabled={actionBusyId === id}
-                                  onClick={() => navigate(`/volunteer-dashboard/volunteer/${id}/edit`)}
+                                  onClick={() => onEdit ? onEdit(id) : navigate(`/volunteer-dashboard/volunteer/${id}/edit`)}
                                   className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-3 py-2 rounded-xl font-bold text-xs hover:shadow-lg transform hover:scale-105 disabled:opacity-60 transition-all duration-200"
                                 >
                                   ✏️ Edit

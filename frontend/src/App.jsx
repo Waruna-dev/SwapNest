@@ -36,6 +36,7 @@ import DashboardCenters from "./Component/Volunteerdashboard/dashboardcenters";
 import CenterEdit from "./Component/Volunteerdashboard/centeredit.jsx";
 import VolunteerDashboardVolunteersTable from "./Component/Volunteerdashboard/VolunteerDashboardVolunteersTable";
 import VolunteerEdit from "./Component/Volunteerdashboard/volunteeredit";
+import VolunteerPickup from "./Component/Volunteerdashboard/volunteerpickup";
 
 // Item components
 import ItemAddNewItems from "./pages/item-listing/ItemAddNewItem";
@@ -79,6 +80,7 @@ function App() {
             <Route path="center" element={<DashboardCenters />} />
             <Route path="center/:id/edit" element={<CenterEdit />} />
             <Route path="add-center" element={<Center />} />
+            <Route path="pickup" element={<VolunteerPickup />} />
             <Route path="distribution-plan" element={<DistributionPlan />} />
           </Route>
 

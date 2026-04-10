@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import API from "../../services/api";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -10,8 +10,7 @@ const parseList = (value) =>
     .map((s) => s.trim())
     .filter(Boolean);
 
-export default function VolunteerEdit() {
-  const { id } = useParams();
+export default function VolunteerEdit({ id, onBack }) {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -240,7 +239,7 @@ export default function VolunteerEdit() {
         throw new Error('Failed to update volunteer');
       }
 
-      navigate("/volunteer-dashboard/volunteer");
+      if (onBack) onBack(); else navigate("/volunteer-dashboard/volunteer");
     } catch (e2) {
       console.error('Save error details:', e2);
       console.error('Error response:', e2.response?.data);

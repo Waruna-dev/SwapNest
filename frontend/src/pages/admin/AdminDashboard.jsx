@@ -7,12 +7,115 @@ import {
 } from 'lucide-react';
 import ManageUsers from './ManageUsers';
 import AdminSwapDashboard from '../../components/swap/AdminSwapDashboard';
+import VolunteerDashboard from '../../Component/Volunteerdashboard/volunteerdashboard';
+import DashboardOverview from '../../Component/Volunteerdashboard/dashboardOverview';
+import VolunteerDashboardVolunteersTable from '../../Component/Volunteerdashboard/VolunteerDashboardVolunteersTable';
+import DashboardCenters from '../../Component/Volunteerdashboard/dashboardcenters';
+import VolunteerPickup from '../../Component/Volunteerdashboard/volunteerpickup';
+import DistributionPlan from '../../Component/Volunteer/distributionPlan';
+import CenterEdit from '../../Component/Volunteerdashboard/centeredit';
+import VolunteerEdit from '../../Component/Volunteerdashboard/volunteeredit';
 
 // Placeholders for your future admin components
-const DashboardOverview = () => <div className="p-6">Overview Metrics Coming Soon</div>;
+const AdminDashboardOverview = () => <div className="p-6">Overview Metrics Coming Soon</div>;
 const ManageItems = () => <div className="p-6">Swap Items Grid Coming Soon</div>;
 const ReportedListings = () => <div className="p-6">Reported Content Coming Soon</div>;
 const SystemSettings = () => <div className="p-6">Platform Settings Coming Soon</div>;
+
+// Volunteer Dashboard Layout Component - shows volunteer dashboard within admin layout
+const VolunteerDashboardLayout = () => {
+  const [activeVolunteerTab, setActiveVolunteerTab] = useState('overview');
+  const [currentView, setCurrentView] = useState('list');
+  const [editId, setEditId] = useState(null);
+
+  const volunteerNavLinks = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'volunteers', label: 'Volunteer' },
+    { id: 'centers', label: 'Volunteer Center' },
+    { id: 'pickup', label: 'Pickup' },
+    { id: 'distribution', label: 'Distribution Plan' }
+  ];
+
+  const handleNavigation = (tab, view = 'list', id = null) => {
+    setActiveVolunteerTab(tab);
+    setCurrentView(view);
+    setEditId(id);
+  };
+
+  const renderContent = () => {
+    switch (activeVolunteerTab) {
+      case 'overview':
+        return <DashboardOverview />;
+      
+      case 'volunteers':
+        if (currentView === 'edit' && editId) {
+          return <VolunteerEdit id={editId} onBack={() => handleNavigation('volunteers', 'list')} />;
+        }
+        return <VolunteerDashboardVolunteersTable onEdit={(id) => handleNavigation('volunteers', 'edit', id)} />;
+      
+      case 'centers':
+        if (currentView === 'edit' && editId) {
+          return <CenterEdit id={editId} onBack={() => handleNavigation('centers', 'list')} />;
+        }
+        return <DashboardCenters onEdit={(id) => handleNavigation('centers', 'edit', id)} />;
+      
+      case 'pickup':
+        return <VolunteerPickup />;
+      
+      case 'distribution':
+        return <DistributionPlan />;
+      
+      default:
+        return <DashboardOverview />;
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Volunteer Navigation */}
+      <header className="bg-white border-b border-gray-200">
+        <nav className="px-6 py-4">
+          <div className="flex items-center space-x-8">
+            {volunteerNavLinks.map((link) => (
+              <button
+                key={link.id}
+                onClick={() => handleNavigation(link.id, 'list')}
+                className={`inline-block px-4 py-2 font-medium transition-colors ${
+                  activeVolunteerTab === link.id && currentView === 'list'
+                    ? 'text-gray-900 border-b-2 border-gray-900 font-semibold'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {link.label}
+              </button>
+            ))}
+          </div>
+        </nav>
+      </header>
+
+      {/* Breadcrumb for edit views */}
+      {currentView === 'edit' && (
+        <div className="bg-white border-b border-gray-200 px-6 py-3">
+          <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <button 
+              onClick={() => handleNavigation(activeVolunteerTab, 'list')}
+              className="hover:text-gray-900"
+            >
+              {volunteerNavLinks.find(link => link.id === activeVolunteerTab)?.label}
+            </button>
+            <span>/</span>
+            <span className="text-gray-900">Edit</span>
+          </div>
+        </div>
+      )}
+
+      {/* Volunteer Content */}
+      <main className="flex-1 overflow-y-auto bg-gray-50">
+        {renderContent()}
+      </main>
+    </div>
+  );
+};
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -41,6 +144,7 @@ const AdminDashboard = () => {
   const navLinks = [
     { id: 'overview', label: 'Platform Overview', icon: <LayoutDashboard size={20} /> },
     { id: 'users', label: 'Manage Users', icon: <Users size={20} /> },
+    { id: 'volunteers', label: 'Manage Volunteers', icon: <Users size={20} /> },
     { id: 'items', label: 'Manage Items', icon: <Package size={20} /> },
     { id: 'reports', label: 'Reported Listings', icon: <Flag size={20} /> }, 
     { id: 'settings', label: 'System Settings', icon: <Settings size={20} /> },
@@ -146,8 +250,9 @@ const AdminDashboard = () => {
 
         {/* Dynamic Page Content */}
         <div className="flex-1 overflow-y-auto bg-gray-50">
-          {activeTab === 'overview' && <DashboardOverview />}
+          {activeTab === 'overview' && <AdminDashboardOverview />}
           {activeTab === 'users' && <ManageUsers />}
+          {activeTab === 'volunteers' && <VolunteerDashboardLayout />}
           {activeTab === 'items' && <ManageItems />}
           {activeTab === 'reports' && <ReportedListings />}
           {activeTab === 'settings' && <SystemSettings />}

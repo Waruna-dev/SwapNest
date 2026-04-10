@@ -3,42 +3,39 @@ import { NavLink, Outlet } from "react-router-dom";
 
 const linkClassName = ({ isActive }) =>
   isActive
-    ? "block rounded-xl bg-white/10 px-4 py-3 font-bold text-white shadow-sm"
-    : "block rounded-xl px-4 py-3 font-bold text-white/90 hover:bg-white/5 hover:text-white transition-colors";
+    ? "inline-block px-4 py-2 font-semibold text-gray-900 border-b-2 border-gray-900"
+    : "inline-block px-4 py-2 font-medium text-gray-600 hover:text-gray-900 transition-colors";
 
 export default function VolunteerDashboardLayout() {
   return (
-    <div className="min-h-screen flex bg-[#F5F0E8] text-[#1A1A1A]">
-      <aside className="w-72 bg-[#012d1d] text-white flex flex-col">
-        <div className="p-6 pb-4 flex items-center gap-2">
-          <div className="w-9 h-9 bg-white/10 rounded-xl flex items-center justify-center">
-            🏠
+    <div className="min-h-screen flex flex-col bg-white text-gray-900">
+      {/* Horizontal Navigation Bar */}
+      <header className="bg-white border-b border-gray-200">
+        <nav className="px-6 py-4">
+          <div className="flex items-center space-x-8">
+            <NavLink to="/volunteer-dashboard" end className={linkClassName}>
+              Overview
+            </NavLink>
+            <NavLink to="/volunteer-dashboard/volunteer" className={linkClassName}>
+              Volunteer
+            </NavLink>
+            <NavLink to="/volunteer-dashboard/center" className={linkClassName}>
+              Volunteer Center
+            </NavLink>
+            <NavLink to="/volunteer-dashboard/pickup" className={linkClassName}>
+              Pickup
+            </NavLink>
+            <NavLink to="/volunteer-dashboard/distribution-plan" className={linkClassName}>
+              Distribution Plan
+            </NavLink>
+            <NavLink to="/volunteer-hero" end className={linkClassName}>
+              Volunteer Page
+            </NavLink>
           </div>
-          <div className="text-xl font-serif font-bold tracking-tight">SwapNest</div>
-        </div>
-
-        <nav className="flex-1 px-4 pb-4 space-y-2">
-          <NavLink to="/volunteer-dashboard" end className={linkClassName}>
-            📊 Overview
-          </NavLink>
-          <NavLink to="/volunteer-dashboard/volunteer" className={linkClassName}>
-            👥 Volunteer
-          </NavLink>
-          <NavLink to="/volunteer-dashboard/center" className={linkClassName}>
-            🏢 Volunteer Center
-          </NavLink>
-          <NavLink to="/volunteer-dashboard/distribution-plan" className={linkClassName}>
-            📦 Distribution Plan
-          </NavLink>
         </nav>
+      </header>
 
-        <div className="px-4 pb-6 mt-auto">
-          <NavLink to="/volunteer-hero" end className={linkClassName}>
-            🌟 Volunteer Page
-          </NavLink>
-        </div>
-      </aside>
-
+      {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
         <Outlet />
       </main>
