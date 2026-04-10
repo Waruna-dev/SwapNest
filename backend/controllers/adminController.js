@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import User from '../models/User.js';
 import generateToken from '../utils/generateToken.js';
+import bcrypt from 'bcryptjs';
 
 // @desc    Auth admin & get token
 // @route   POST /api/admin/login
@@ -60,18 +61,25 @@ const updateUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
 
   if (user) {
-    // Update the fields if new data was provided, otherwise keep the old data
     user.username = req.body.username || user.username;
     user.email = req.body.email || user.email;
     user.role = req.body.role || user.role;
 
+    // --- NEW: Hash and save the password ONLY if the admin provided one ---
+    if (req.body.password) {
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(req.body.password, salt);
+    }
+
     const updatedUser = await user.save();
 
+    // Do NOT send the password back to the frontend in the response!
     res.json({
       _id: updatedUser._id,
       username: updatedUser.username,
       email: updatedUser.email,
       role: updatedUser.role,
+      profilePic: updatedUser.profilePic, // Send the picture back too!
     });
   } else {
     res.status(404);
