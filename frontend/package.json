@@ -7,6 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+      "test": "vitest",
+      "test:clean": "vitest --reporter=verbose --silent",
+    "test:ui": "vitest --ui",
     "preview": "vite preview"
   },
   "dependencies": {
