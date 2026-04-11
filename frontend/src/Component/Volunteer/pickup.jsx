@@ -53,14 +53,14 @@ export default function DeliveryForm() {
         {submitted ? (
           <div className="text-center">
             <div className="text-5xl mb-4">
-              {method === "pickup" ? "🛍️" : "🏢"}
+              {method === "delivery" ? "�" : "🏢"}
             </div>
             <h2 className="text-xl font-bold text-gray-800">
               Order Confirmed!
             </h2>
             <p className="text-sm text-gray-500 mt-2 mb-6">
-              {method === "pickup"
-                ? `Pickup on ${formData.date}`
+              {method === "delivery"
+                ? `Delivery on ${formData.date}`
                 : `Ready at ${formData.center}`}
             </p>
 
@@ -84,7 +84,7 @@ export default function DeliveryForm() {
             {/* METHOD */}
             <div className="grid grid-cols-2 gap-3 mb-6">
               {[
-                { key: "pickup", label: "Pickup", icon: "🛍️" },
+                { key: "delivery", label: "Delivery", icon: "�" },
                 { key: "center", label: "Center", icon: "🏢" },
               ].map((m) => (
                 <button
@@ -99,6 +99,7 @@ export default function DeliveryForm() {
                 >
                   <div className="text-2xl">{m.icon}</div>
                   <div className="text-sm font-semibold mt-1">
+       
                     {m.label}
                   </div>
                 </button>
@@ -130,14 +131,14 @@ export default function DeliveryForm() {
                 </div>
 
                 {/* ADDRESS */}
-                {method === "pickup" && (
+                {method === "delivery" && (
                   <input
                     name="address"
                     placeholder="Address"
                     value={formData.address}
                     onChange={onChange}
                     required
-                    className="border p-2 rounded-lg w-full focus:ring-2 focus:ring-blue-400"
+                    className="col-span-2 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 )}
 
@@ -184,8 +185,8 @@ export default function DeliveryForm() {
                 >
                   {loading
                     ? "Processing..."
-                    : method === "pickup"
-                    ? "Confirm Pickup"
+                    : method === "delivery"
+                    ? "Confirm Delivery"
                     : "Reserve Center"}
                 </button>
               </form>

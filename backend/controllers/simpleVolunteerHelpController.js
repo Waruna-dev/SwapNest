@@ -101,7 +101,9 @@ const createVolunteerHelp = async (req, res) => {
 const getAllVolunteerHelpRequests = async (req, res) => {
   try {
     const requests = await SimpleVolunteerHelp.find({})
-      .populate('centerId', 'name city district')
+      .populate('centerId', 'centerName name city district')
+      .populate('assignedCenterId', 'centerName name city district')
+      .populate('assignedVolunteerId', 'firstName lastName')
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -189,7 +191,60 @@ const acceptRequest = async (req, res) => {
 
     const request = await SimpleVolunteerHelp.findByIdAndUpdate(
       id,
-      { assignedVolunteerId: volunteerId, status: 'accepted' },
+      { assignedVolunteerId: volunteerId, status: 'accepted', acceptedAt: new Date() },
+      { new: true }
+    ).populate('assignedVolunteerId', 'firstName lastName email');
+
+    if (!request) {
+      return res.status(404).json({ success: false, message: 'Request not found' });
+    }
+
+    // Create notification for the user
+    try {
+      const Notification = require('../models/Notification.js');
+      const volunteer = request.assignedVolunteerId;
+      
+      await Notification.create({
+        userId: request.userId,
+        title: 'Volunteer Accepted Your Request',
+        message: `Great news! ${volunteer.firstName} ${volunteer.lastName} has accepted your delivery request for "${request.itemTitle}". They will contact you soon to arrange the delivery.`,
+        type: 'volunteer_accept',
+        relatedId: request._id,
+        relatedModel: 'SimpleVolunteerHelp',
+        volunteerInfo: {
+          volunteerId: volunteer._id,
+          volunteerName: `${volunteer.firstName} ${volunteer.lastName}`,
+          volunteerEmail: volunteer.email
+        },
+        itemInfo: {
+          itemId: request.itemId,
+          itemTitle: request.itemTitle,
+          itemCategory: request.itemCategory
+        }
+      });
+    } catch (notificationError) {
+      console.error('Error creating notification:', notificationError);
+      // Continue with response even if notification fails
+    }
+
+    res.status(200).json({ success: true, data: request, message: 'Request accepted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+  }
+};
+
+const cancelRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const request = await SimpleVolunteerHelp.findByIdAndUpdate(
+      id,
+      { 
+        assignedVolunteerId: null, 
+        status: 'center_assigned', 
+        acceptedAt: null,
+        cancelledAt: null 
+      },
       { new: true }
     );
 
@@ -197,7 +252,7 @@ const acceptRequest = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Request not found' });
     }
 
-    res.status(200).json({ success: true, data: request, message: 'Request accepted successfully' });
+    res.status(200).json({ success: true, data: request, message: 'Request cancelled successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
   }
@@ -224,7 +279,7 @@ const getRequestsByVolunteer = async (req, res) => {
     
     const requests = await SimpleVolunteerHelp.find({ 
       assignedVolunteerId: volunteerId,
-      status: 'accepted' 
+      status: { $in: ['accepted', 'center_received'] }
     })
       .populate('assignedVolunteerId', 'firstName lastName')
       .populate('centerId', 'centerName city district')
@@ -236,12 +291,39 @@ const getRequestsByVolunteer = async (req, res) => {
   }
 };
 
+const updateRequestStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({ success: false, message: 'Status is required' });
+    }
+
+    const request = await SimpleVolunteerHelp.findByIdAndUpdate(
+      id,
+      { status, updatedAt: new Date() },
+      { new: true }
+    );
+
+    if (!request) {
+      return res.status(404).json({ success: false, message: 'Request not found' });
+    }
+
+    res.status(200).json({ success: true, data: request, message: 'Request status updated successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+  }
+};
+
 export {
   createVolunteerHelp,
   getAllVolunteerHelpRequests,
   getVolunteerHelpByUser,
   assignRequestToCenter,
   acceptRequest,
+  cancelRequest,
   getRequestsByCenter,
-  getRequestsByVolunteer
+  getRequestsByVolunteer,
+  updateRequestStatus
 };

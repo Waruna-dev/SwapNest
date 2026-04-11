@@ -37,6 +37,7 @@ import CenterEdit from "./Component/Volunteerdashboard/centeredit.jsx";
 import VolunteerDashboardVolunteersTable from "./Component/Volunteerdashboard/VolunteerDashboardVolunteersTable";
 import VolunteerEdit from "./Component/Volunteerdashboard/volunteeredit";
 import VolunteerPickup from "./Component/Volunteerdashboard/volunteerpickup";
+import DeliveryAll from "./Component/Volunteerdashboard/DeliveryAll";
 import NGODashboard from "./Component/Volunteerdashboard/ngodashboard";
 
 // Item components
@@ -83,6 +84,7 @@ function App() {
             <Route path="add-center" element={<Center />} />
             <Route path="pickup" element={<VolunteerPickup />} />
             <Route path="distribution-plan" element={<DistributionPlan />} />
+            <Route path="delivery-all" element={<DeliveryAll />} />
           </Route>
 
           {/* NGO Volunteer Dashboard */}

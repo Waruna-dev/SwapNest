@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import API from '../../services/api';
 import NgoOverview from './ngooverview';
 import NgoEdit from './ngoedit';
+import DeliveryAll from './DeliveryAll';
 
 export default function NGODashboard() {
   const navigate = useNavigate();
@@ -29,12 +30,28 @@ export default function NGODashboard() {
   const [loadingActivities, setLoadingActivities] = useState(false);
   const [activityError, setActivityError] = useState('');
 
+  // Centers state
+  const [centers, setCenters] = useState([]);
+
   // Keep centerId in state so it updates when we re-fetch from backend
   const [centerId, setCenterId] = useState(userData.centerId || null);
   const [volunteerId, setVolunteerId] = useState(userData._id || null);
   const [displayName, setDisplayName] = useState(
     userData.username || `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || 'Volunteer'
   );
+  const [volunteerDistrict, setVolunteerDistrict] = useState(userData.district || null);
+
+  // Load centers data
+  const loadCenters = useCallback(async () => {
+    try {
+      const response = await API.get('/centers');
+      const centersData = Array.isArray(response.data?.data) ? response.data.data : 
+                         Array.isArray(response.data) ? response.data : [];
+      setCenters(centersData);
+    } catch (err) {
+      console.error('Error loading centers:', err);
+    }
+  }, []);
 
   // On mount: always re-fetch volunteer profile from backend
   // so centerId reflects any admin changes made after last login
@@ -48,32 +65,32 @@ export default function NGODashboard() {
         const me = all.find(v => v.email === userData.email);
         if (me) {
           // centerId can be an ObjectId object or a string
-          const cid = me.centerId
-            ? (typeof me.centerId === 'object' ? (me.centerId._id || String(me.centerId)) : me.centerId)
-            : null;
-          if (cid) setCenterId(cid);
-          if (me._id) setVolunteerId(me._id);
-          const name = `${me.firstName || ''} ${me.lastName || ''}`.trim() || userData.email;
-          setDisplayName(name);
-
-          // Refresh localStorage so next page load is instant
-          const updated = {
+          const newCenterId = me.centerId?._id || me.centerId;
+          setCenterId(newCenterId);
+          setVolunteerId(me._id);
+          setDisplayName(
+            me.username || `${me.firstName || ''} ${me.lastName || ''}`.trim() || 'Volunteer'
+          );
+          // Update localStorage with fresh data
+          localStorage.setItem('swapnest_user', JSON.stringify({
             ...userData,
-            centerId: cid,
+            centerId: newCenterId,
             _id: me._id,
             firstName: me.firstName,
             lastName: me.lastName,
-            username: name,
-          };
-          localStorage.setItem('swapnest_user', JSON.stringify(updated));
+            username: me.username,
+            district: me.district,
+          }));
+          setVolunteerDistrict(me.district);
         }
       } catch (err) {
-        console.error('Could not sync volunteer profile:', err);
+        console.error('Error syncing volunteer profile:', err);
       }
     };
-    syncProfile();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    
+    // Load both profile and centers on mount
+    Promise.all([syncProfile(), loadCenters()]);
+  }, [userData.email, loadCenters]);
 
   const loadCenterRequests = useCallback(async () => {
     if (!centerId) {
@@ -83,15 +100,69 @@ export default function NGODashboard() {
     try {
       setLoadingRequests(true);
       setRequestError('');
+      
+      // Fetch requests from volunteer's center
       const res = await API.get(`/simple-volunteer-help/center/${centerId}`);
-      setRequests(Array.isArray(res.data?.data) ? res.data.data : []);
+      const centerRequests = Array.isArray(res.data?.data) ? res.data.data : [];
+      
+      // Fetch all notified items (center_assigned requests from all centers)
+      const allRes = await API.get('/simple-volunteer-help');
+      const allRequests = Array.isArray(allRes.data?.data) ? allRes.data.data : [];
+      
+      // Combine center requests and notified items
+      const combinedRequests = [...centerRequests, ...allRequests];
+      
+      // Filter requests from same district and not accepted by others
+      const relevantRequests = combinedRequests.filter(request => {
+        
+        // Get volunteer's assigned center
+        const volunteerCenter = centers.find(c => String(c._id) === String(centerId));
+        const centerDistrict = volunteerCenter?.district;
+        
+        // Filter by assigned center's district
+        if (centerDistrict && request.userDistrict !== centerDistrict) {
+          return false;
+        }
+        
+        // Filter out requests accepted by other volunteers, but keep own accepted requests
+        const isAcceptedByOthers = request.status === 'accepted' && 
+          request.assignedVolunteerId && 
+          String(request.assignedVolunteerId?._id || request.assignedVolunteerId) !== String(volunteerId);
+        
+        return !isAcceptedByOthers;
+      });
+      
+      // Fetch item details for each request to get images
+      const requestsWithImages = await Promise.all(
+        relevantRequests.map(async (request) => {
+          try {
+            if (request.itemId) {
+              const itemRes = await API.get(`/items/${request.itemId}`);
+              const itemData = itemRes.data;
+              return {
+                ...request,
+                itemDetails: itemData
+              };
+            }
+            return request;
+          } catch (err) {
+            console.error('Error fetching item details:', err);
+            return {
+              ...request,
+              itemDetails: null
+            };
+          }
+        })
+      );
+      
+      setRequests(requestsWithImages);
     } catch (err) {
       console.error('Error loading center requests:', err);
       setRequestError('Failed to load requests. Please try again.');
     } finally {
       setLoadingRequests(false);
     }
-  }, [centerId]);
+  }, [centerId, centers, volunteerId]);
 
   const loadActivities = useCallback(async () => {
     if (!volunteerId) {
@@ -172,9 +243,71 @@ export default function NGODashboard() {
       if (activeTab === 'activity') {
         loadActivities();
       }
+      
+      // Send notification
+      const requestDetails = requests.find(r => r._id === requestId);
+      if (requestDetails) {
+        await API.post('/notifications', {
+          userId: requestDetails.userId,
+          title: 'Volunteer Assigned',
+          message: `Your request for "${requestDetails.itemTitle || 'an item'}" has been accepted by our volunteer ${displayName}.`,
+          type: 'volunteer_accept'
+        }).catch(e => console.error('Notification failed to send', e));
+      }
+      
+      // Show success message
+      alert('Request accepted successfully! User has been notified.');
+      
+      // Refresh data after a short delay to ensure consistency across all volunteers
+      setTimeout(() => {
+        loadCenterRequests();
+      }, 1000);
     } catch (error) {
       console.error('Failed to accept request:', error);
       alert('Failed to accept request. Please try again.');
+      // Refresh data on error to restore correct state
+      loadCenterRequests();
+    } finally {
+      setAcceptingId(null);
+    }
+  };
+
+  const handleCancelRequest = async (requestId) => {
+    try {
+      setAcceptingId(requestId);
+      await API.put(`/simple-volunteer-help/${requestId}/cancel`);
+      setRequests(prev =>
+        prev.map(r =>
+          r._id === requestId
+            ? { ...r, status: 'center_assigned', cancelledAt: new Date() }
+            : r
+        )
+      );
+      setActivities(prev => prev.filter(a => a._id !== requestId));
+      
+      // Send notification
+      const activityDetails = activities.find(a => a._id === requestId) || requests.find(r => r._id === requestId);
+      if (activityDetails) {
+        await API.post('/notifications', {
+          userId: activityDetails.userId,
+          title: 'Volunteer Unassigned',
+          message: `The volunteer assigned to your request for "${activityDetails.itemTitle || 'an item'}" has stepped down. Your request is now back in our available pool and will be picked up shortly.`,
+          type: 'volunteer_cancel'
+        }).catch(e => console.error('Notification failed to send', e));
+      }
+
+      // Refresh data after a short delay to ensure consistency across all volunteers
+      setTimeout(() => {
+        loadCenterRequests();
+        loadActivities();
+      }, 1000);
+      alert('Request closed and returned to available volunteers pool.');
+    } catch (error) {
+      console.error('Failed to cancel request:', error);
+      alert('Failed to close request. Please try again.');
+      // Refresh data on error to restore correct state
+      loadCenterRequests();
+      loadActivities();
     } finally {
       setAcceptingId(null);
     }
@@ -195,7 +328,7 @@ export default function NGODashboard() {
       };
 
       await API.post('/notifications', messageData);
-      alert('Message sent to user successfully!');
+      alert('Request accepted successfully! User has been notified.');
     } catch (error) {
       console.error('Failed to send message to user:', error);
       alert('Failed to send message. Please try again.');
@@ -233,9 +366,16 @@ export default function NGODashboard() {
     return <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${t.bg}`}>{t.label}</span>;
   };
 
+  const getCenterName = (centerId) => {
+    if (!centerId) return 'Unknown Center';
+    const centerObj = centers.find(c => c._id === centerId || c._id === centerId._id);
+    return centerObj ? (centerObj.centerName || centerObj.name) : 'Unknown Center';
+  };
+
   const navItems = [
     { id: 'overview',     label: 'Overview',     icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
     { id: 'my-requests',  label: 'My Requests',  icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' },
+    { id: 'delivery-all', label: 'Delivery All',  icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
     { id: 'activity',     label: 'Activity',     icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
   ];
 
@@ -358,20 +498,22 @@ export default function NGODashboard() {
             <div className="space-y-6 max-w-4xl mx-auto">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">My Center Requests</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">Nearby Assigments</h2>
                   <p className="text-sm text-gray-500 mt-1">
-                    Requests sent to your center. Accept the ones you can handle.
+                    Pickup and delivery tasks located near your assigned center. Accept the ones you can handle.
                   </p>
                 </div>
-                <button
-                  onClick={loadCenterRequests}
-                  className="flex items-center gap-2 px-3 py-2 text-sm bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  Refresh
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={loadCenterRequests}
+                    className="flex items-center gap-2 px-3 py-2 text-sm bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span className="hidden sm:inline">Refresh</span>
+                  </button>
+                </div>
               </div>
 
               {requestError && (
@@ -394,14 +536,14 @@ export default function NGODashboard() {
                 <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-8 text-center">
                   <div className="text-4xl mb-3">🏢</div>
                   <h3 className="text-lg font-semibold text-yellow-800 mb-1">No Center Assigned</h3>
-                  <p className="text-yellow-700 text-sm">You are not assigned to any center yet. Contact admin.</p>
+                  <p className="text-yellow-700">You are not assigned to any center yet. Contact admin.</p>
                 </div>
               ) : requests.length === 0 ? (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-10 text-center">
-                  <div className="text-5xl mb-4">📭</div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-2">No Requests Yet</h3>
+                  <div className="text-5xl mb-4">?</div>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">No Requests Nearby</h3>
                   <p className="text-gray-500 text-sm">
-                    When an admin notifies your center, pickup/delivery requests will appear here.
+                    There are currently no items that need to be handled near your center's district.
                   </p>
                 </div>
               ) : (
@@ -414,72 +556,124 @@ export default function NGODashboard() {
                     const isAccepting   = acceptingId === request._id;
 
                     return (
-                      <div
-                        key={request._id}
-                        className={`bg-white rounded-xl shadow-sm border-2 overflow-hidden transition-all ${
-                          canAccept ? 'border-purple-200 shadow-purple-50' : 'border-gray-200'
-                        }`}
-                      >
-                        {/* Card header */}
-                        <div className={`px-6 py-3 flex items-center justify-between ${
-                          canAccept ? 'bg-purple-50' : isAccepted ? 'bg-indigo-50' : 'bg-gray-50'
-                        }`}>
-                          <div className="flex items-center gap-2">
-                            {getStatusBadge(request.status)}
-                            {getTypeBadge(request.deliveryType)}
-                            <span className="text-xs text-gray-400">#{request._id?.slice(-8)}</span>
+                      <div key={request._id} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300">
+                        {/* Card Header with Image */}
+                        <div className="relative h-48 bg-gradient-to-r from-orange-400 to-orange-600">
+                          {/* Item Image */}
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            {request.itemDetails?.images?.length > 0 ? (
+                              <img
+                                src={request.itemDetails.images[0]}
+                                alt={request.itemTitle}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="text-center text-white">
+                                <svg className="w-16 h-16 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                                <p className="text-sm">No Image Available</p>
+                              </div>
+                            )}
                           </div>
-                          <span className="text-xs text-gray-400">
-                            {new Date(request.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                          </span>
+
+                          {/* Status Badge Overlay */}
+                          <div className="absolute top-4 right-4">
+                            {getStatusBadge(request.status)}
+                          </div>
+
+                          {/* Price/Mode Badge */}
+                          <div className="absolute bottom-4 left-4">
+                            <span className="px-3 py-1 bg-white/90 backdrop-blur text-orange-600 rounded-full text-sm font-semibold">
+                              {request.itemDetails?.mode === 'Free' ? 'Free' : request.itemDetails?.mode || 'Delivery'}
+                            </span>
+                          </div>
                         </div>
 
-                        {/* Card body */}
+                        {/* Card Content */}
                         <div className="p-6">
-                          <h3 className="text-lg font-bold text-gray-900 mb-4">{request.itemTitle || 'Unknown Item'}</h3>
-
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-
-                            {/* User */}
-                            <div>
-                              <h4 className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2">User Information</h4>
-                              <div className="space-y-1.5 text-sm">
-                                <div className="flex gap-2"><span className="text-gray-500 w-14 flex-shrink-0">Name:</span><span className="text-gray-800 font-medium">{request.userName || 'N/A'}</span></div>
-                                <div className="flex gap-2"><span className="text-gray-500 w-14 flex-shrink-0">Phone:</span><a href={`tel:${request.userPhone}`} className="text-indigo-600 hover:underline font-medium">{request.userPhone || 'N/A'}</a></div>
-                                <div className="flex gap-2"><span className="text-gray-500 w-14 flex-shrink-0">Email:</span><a href={`mailto:${request.userEmail}`} className="text-indigo-600 hover:underline text-xs">{request.userEmail || 'N/A'}</a></div>
-                              </div>
+                          {/* Item Title and Basic Info */}
+                          <div className="mb-4">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">
+                              {request.itemTitle || 'Unknown Item'}
+                            </h3>
+                            <div className="flex items-center gap-3 text-sm text-gray-600">
+                              <span className="flex items-center gap-1">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg>
+                                {request.itemCategory || 'Uncategorized'}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                {new Date(request.createdAt || Date.now()).toLocaleDateString()}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                ID: {request._id?.slice(-8)}
+                              </span>
                             </div>
+                          </div>
 
-                            {/* Location */}
-                            <div>
-                              <h4 className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2">
-                                {request.deliveryType === 'delivery' ? 'Delivery' : 'Pickup'} Location
-                              </h4>
+                          {/* User and Location Info */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div className="bg-gray-50 rounded-lg p-3">
+                              <h4 className="font-semibold text-gray-700 mb-2 text-sm">Customer Information</h4>
                               <div className="space-y-1 text-sm">
-                                <div className="text-gray-800">{request.userAddress || 'N/A'}</div>
-                                <div className="text-gray-600">{request.userCity || 'N/A'}</div>
-                                <div className="text-gray-600">{request.userDistrict || 'N/A'}</div>
-                                <a
-                                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([request.userAddress, request.userCity, request.userDistrict].filter(Boolean).join(', '))}`}
-                                  target="_blank" rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:underline mt-1"
-                                >📍 View on Map</a>
+                                <div className="flex items-center gap-2">
+                                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                  </svg>
+                                  <span className="text-gray-900">{request.userName || 'N/A'}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                  </svg>
+                                  <span className="text-gray-900">{request.userPhone || 'N/A'}</span>
+                                </div>
                               </div>
                             </div>
 
-                            {/* Item */}
-                            <div>
-                              <h4 className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2">Item Details</h4>
-                              <div className="space-y-1.5 text-sm">
-                                <div className="flex gap-2"><span className="text-gray-500 w-20 flex-shrink-0">Category:</span><span className="text-gray-800">{request.itemCategory || 'N/A'}</span></div>
-                                <div className="flex gap-2"><span className="text-gray-500 w-20 flex-shrink-0">Type:</span><span className="text-gray-800 capitalize">{request.deliveryType || 'N/A'}</span></div>
-                                {(request.pickupNotes || request.userNotes) && (
-                                  <div className="mt-2 p-2 bg-gray-50 rounded-lg text-xs text-gray-600">
-                                    📝 {request.pickupNotes || request.userNotes}
-                                  </div>
-                                )}
+                            <div className="bg-blue-50 rounded-lg p-3">
+                              <h4 className="font-semibold text-blue-700 mb-2 text-sm">Delivery Location</h4>
+                              <div className="space-y-1 text-sm">
+                                <div className="flex items-start gap-2">
+                                  <svg className="w-4 h-4 text-blue-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  </svg>
+                                  <span className="text-gray-900">{request.userAddress || 'N/A'}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                  </svg>
+                                  <span className="text-gray-900">{request.userCity || 'N/A'}, {request.userDistrict || 'N/A'}</span>
+                                </div>
                               </div>
                             </div>
+                          </div>
+
+                          {/* Additional Details */}
+                          <div className="mb-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="font-semibold text-gray-700 text-sm">Additional Information</h4>
+                              <span className="text-xs text-gray-500">
+                                Center: {getCenterName(request.centerId || request.assignedCenterId)}
+                              </span>
+                            </div>
+                            {request.pickupNotes || request.userNotes ? (
+                              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-gray-700">
+                                <svg className="w-4 h-4 inline mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                {request.pickupNotes || request.userNotes}
+                              </div>
+                            ) : (
+                              <div className="text-sm text-gray-500 italic">No additional notes</div>
+                            )}
                           </div>
 
                           {/* Accepted-by banner */}
@@ -494,36 +688,36 @@ export default function NGODashboard() {
                             </div>
                           )}
 
-                          {/* Action row */}
-                          <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                            <span className="text-xs text-gray-400">
-                              {canAccept && '⚡ Action required — accept if you can handle this.'}
-                            </span>
-                            <div className="flex gap-2">
-                              {canAccept && (
+                          {/* Action Buttons */}
+                          <div className="flex gap-3 pt-4 border-t border-gray-100">
+                            {canAccept ? (
+                              <>
                                 <button
                                   onClick={() => handleAcceptRequest(request._id)}
                                   disabled={isAccepting}
-                                  className={`flex items-center gap-2 px-5 py-2 rounded-lg font-semibold text-sm text-white transition-all ${
-                                    isAccepting ? 'bg-purple-400 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700 shadow-md hover:shadow-lg'
-                                  }`}
+                                  className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
                                 >
-                                  {isAccepting ? (
-                                    <><svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>Accepting...</>
-                                  ) : <>✅ Accept Request</>}
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  {isAccepting ? 'Accepting...' : 'Accept'}
                                 </button>
-                              )}
-                              {isAcceptedByMe && (
-                                <span className="flex items-center gap-1 px-4 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-semibold">
-                                  ✓ Accepted by You
-                                </span>
-                              )}
-                              {isAccepted && !isAcceptedByMe && (
-                                <span className="px-4 py-2 bg-gray-100 text-gray-500 rounded-lg text-sm">
-                                  Taken by another volunteer
-                                </span>
-                              )}
-                            </div>
+                                <button
+                                  onClick={() => handleCancelRequest(request._id)}
+                                  disabled={isAccepting}
+                                  className="px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
+                                >
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                  Cancel
+                                </button>
+                              </>
+                            ) : (
+                              <div className="flex items-center justify-center w-full py-2.5 bg-gray-100 text-gray-600 rounded-lg font-medium">
+                                {isAcceptedByMe ? 'Accepted by You' : isAccepted ? 'Taken by another volunteer' : 'Not Available'}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -536,6 +730,15 @@ export default function NGODashboard() {
 
           {/* Edit Profile */}
           {activeTab === 'edit-profile' && <NgoEdit />}
+
+          {/* Delivery All */}
+          {activeTab === 'delivery-all' && (
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <DeliveryAll />
+              </div>
+            </div>
+          )}
 
           {/* Activity */}
           {activeTab === 'activity' && (
@@ -616,9 +819,15 @@ export default function NGODashboard() {
                                 {activity.itemTitle || 'Unknown Item'}
                               </h3>
                               <div className="flex items-center gap-2 mb-2">
-                                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
-                                  ✓ Accepted
-                                </span>
+                                {activity.status === 'center_received' ? (
+                                  <span className="px-3 py-1 bg-gradient-to-r from-yellow-300 to-amber-500 text-yellow-900 border border-amber-500 shadow-sm text-xs font-bold rounded-full flex items-center gap-1 shadow-amber-200">
+                                    🌟 Mission Successful!
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
+                                    ✓ Accepted
+                                  </span>
+                                )}
                                 <span className="text-xs text-gray-500">
                                   Item ID: {activity.itemId || 'N/A'}
                                 </span>
@@ -671,21 +880,53 @@ export default function NGODashboard() {
                                   className="inline-flex items-center gap-1 text-xs text-indigo-600 hover:underline mt-1"
                                 >📍 View on Map</a>
                               </div>
+                              <h4 className="font-semibold text-gray-700 mb-1 mt-4 border-t border-gray-100 pt-3">Assignment Details</h4>
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2 text-xs">
+                                  <span className="text-gray-500 font-medium">Center:</span>
+                                  <span className="text-gray-900 font-medium">{activity.assignedCenterId?.name || activity.assignedCenterId?.centerName || activity.centerId?.name || activity.centerId?.centerName || 'Unknown Center'}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs">
+                                  <span className="text-gray-500 font-medium">Volunteer:</span>
+                                  <span className="text-gray-900 font-medium">{activity.assignedVolunteerId ? `${activity.assignedVolunteerId.firstName} ${activity.assignedVolunteerId.lastName}` : 'Unassigned'}</span>
+                                </div>
+                              </div>
                             </div>
                           </div>
 
                           {/* Action Buttons */}
-                          <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
-                            <button 
-                              onClick={() => handleContactUser(activity)}
-                              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                              </svg>
-                              Contact User
-                            </button>
-                          </div>
+                          {activity.status === 'center_received' ? (
+                            <div className="mt-4 pt-4 border-t border-gray-100">
+                              <div className="flex items-center justify-center p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 rounded-lg">
+                                <p className="text-green-800 font-medium text-sm flex items-center gap-2">
+                                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                  Great job! You securely delivered this item. Thank you for your service!
+                                </p>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
+                              <button 
+                                onClick={() => handleContactUser(activity)}
+                                className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                                Contact User
+                              </button>
+                              <button 
+                                onClick={() => handleCancelRequest(activity._id)}
+                                disabled={acceptingId === activity._id}
+                                className="flex items-center gap-1.5 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium disabled:opacity-50"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                {acceptingId === activity._id ? 'Closing...' : 'Close Task'}
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

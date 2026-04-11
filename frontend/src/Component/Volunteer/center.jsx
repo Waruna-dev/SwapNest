@@ -164,7 +164,7 @@ export default function Center() {
     }
     if (step === 2) {
       if (!capacity)                                     e.capacity      = "Capacity is required";
-      else if (isNaN(capacity) || Number(capacity) < 1)  e.capacity      = "Enter a valid capacity";
+      else if (isNaN(capacity) || Number(capacity) < 1)  e.capacity      = "Capacity must be a positive number";
       if (operatingDays.length === 0)                    e.operatingDays = "Select at least one operating day";
     }
     if (step === 4) {
@@ -200,7 +200,7 @@ export default function Center() {
       operatingDays, facilities, managerName, managerContact,
     };
     try {
-      const res = await API.post("/api/centers", payload);
+      const res = await API.post("/centers", payload);
       const data = res.data;
       if (data.success || data._id) {
         setSubmitted(true);
@@ -209,7 +209,9 @@ export default function Center() {
       }
     } catch (error) {
       console.error("Error submitting center:", error);
-      alert(error.response?.data?.message || "Submission failed. Please try again.");
+      const backendMsg = error.response?.data?.message || "";
+      const errMsg = error.message || "";
+      alert(`Submission failed. ${backendMsg ? "Backend: " + backendMsg : "Error: " + errMsg}`);
     } finally {
       setIsLoading(false);
     }

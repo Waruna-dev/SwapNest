@@ -7,6 +7,8 @@ export default function DistributionPlan() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
+  const [statusFilter, setStatusFilter] = useState('all'); // all, to_be_collected, center_received
+
   useEffect(() => {
     loadDistributions();
   }, []);
@@ -15,39 +17,23 @@ export default function DistributionPlan() {
     try {
       setLoading(true);
       setError('');
-      // This would typically fetch from backend API
-      // For now, using sample data to demonstrate the table structure
-      const sampleData = [
-        {
-          id: 1,
-          centerName: 'SwapNest Colombo Central',
-          volunteerName: 'John Smith',
-          itemId: 'itm_abc123def456',
-          givenDateTime: '2024-01-15 09:30 AM'
-        },
-        {
-          id: 2,
-          centerName: 'SwapNest Kandy Hub',
-          volunteerName: 'Sarah Johnson',
-          itemId: 'itm_def789ghi012',
-          givenDateTime: '2024-01-15 02:45 PM'
-        },
-        {
-          id: 3,
-          centerName: 'SwapNest Galle Center',
-          volunteerName: 'Michael Wilson',
-          itemId: 'itm_ghi345jkl678',
-          givenDateTime: '2024-01-14 11:15 AM'
-        },
-        {
-          id: 4,
-          centerName: 'SwapNest Colombo Central',
-          volunteerName: 'Emma Davis',
-          itemId: 'itm_jkl901mno345',
-          givenDateTime: '2024-01-14 04:20 PM'
-        }
-      ];
-      setDistributions(sampleData);
+      
+      const res = await API.get('/simple-volunteer-help');
+      const allRequests = res.data?.data || res.data || [];
+      
+      // Filter for items that volunteers have accepted to collect, or have already brought to the center
+      const validRequests = allRequests.filter(r => r.status === 'accepted' || r.status === 'center_received');
+      
+      const mappedData = validRequests.map(r => ({
+        id: r._id,
+        centerName: r.assignedCenterId?.name || r.assignedCenterId?.centerName || r.centerId?.name || r.centerId?.centerName || 'Unknown Center',
+        volunteerName: r.assignedVolunteerId ? `${r.assignedVolunteerId.firstName} ${r.assignedVolunteerId.lastName}` : 'Unknown Volunteer',
+        itemId: r.itemId,
+        status: r.status === 'center_received' ? 'center_received' : 'to_be_collected',
+        givenDateTime: r.updatedAt ? new Date(r.updatedAt).toLocaleString() : 'Pending'
+      }));
+      
+      setDistributions(mappedData);
     } catch (err) {
       console.error('Error loading distributions:', err);
       setError('Failed to load distribution data');
@@ -56,10 +42,31 @@ export default function DistributionPlan() {
     }
   };
 
-  // Filter distributions based on search term
-  const filteredDistributions = distributions.filter(distribution => 
-    searchTerm === '' || distribution.itemId.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleStatusChange = async (id, newUIStatus) => {
+    try {
+      let backendStatus;
+      if (newUIStatus === 'to_be_collected') {
+        backendStatus = 'accepted';
+      } else if (newUIStatus === 'center_received') {
+        backendStatus = 'center_received';
+      } else if (newUIStatus === 'completed') {
+        backendStatus = 'completed';
+      }
+      
+      await API.put(`/simple-volunteer-help/${id}/status`, { status: backendStatus });
+      setDistributions(prev => prev.map(d => d.id === id ? { ...d, status: newUIStatus, givenDateTime: new Date().toLocaleString() } : d));
+    } catch (err) {
+      console.error('Error updating status:', err);
+      alert('Failed to update status');
+    }
+  };
+
+  // Filter distributions based on search term and status
+  const filteredDistributions = distributions.filter(distribution => {
+    const matchesSearch = searchTerm === '' || distribution.itemId.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || distribution.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   if (loading) {
     return (
@@ -84,8 +91,8 @@ export default function DistributionPlan() {
           </p>
         </div>
 
-        <div className="mb-6">
-          <div className="max-w-md">
+        <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-center">
+          <div className="w-full max-w-md">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,6 +107,18 @@ export default function DistributionPlan() {
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
               />
             </div>
+          </div>
+          <div className="w-full sm:w-auto">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full py-2 pl-3 pr-8 border border-gray-300 bg-white rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm cursor-pointer"
+            >
+              <option value="all">All Statuses</option>
+              <option value="to_be_collected">To be Collected</option>
+              <option value="center_received">Center Received</option>
+              <option value="completed">Completed</option>
+            </select>
           </div>
         </div>
 
@@ -124,7 +143,10 @@ export default function DistributionPlan() {
                     Item ID
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Given Date Time
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Last Updated
                   </th>
                 </tr>
               </thead>
@@ -157,8 +179,25 @@ export default function DistributionPlan() {
                           {distribution.itemId}
                         </span>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <select
+                          value={distribution.status}
+                          onChange={(e) => handleStatusChange(distribution.id, e.target.value)}
+                          className={`text-xs font-medium rounded-full px-2.5 py-1 py-1.5 focus:outline-none cursor-pointer border-0 ${
+                            distribution.status === 'center_received' 
+                            ? 'bg-green-100 text-green-800 focus:ring-green-500'
+                            : distribution.status === 'completed'
+                            ? 'bg-gray-100 text-gray-800 focus:ring-gray-500'
+                            : 'bg-yellow-100 text-yellow-800 focus:ring-yellow-500'
+                          }`}
+                        >
+                          <option value="to_be_collected">To be Collected</option>
+                          <option value="center_received">Center Received</option>
+                          <option value="completed">Completed</option>
+                        </select>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {distribution.givenDateTime}
+                        {distribution.status === 'center_received' ? distribution.givenDateTime : '-'}
                       </td>
                     </tr>
                   ))

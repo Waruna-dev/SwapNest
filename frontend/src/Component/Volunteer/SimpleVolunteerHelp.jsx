@@ -25,7 +25,7 @@ export default function SimpleVolunteerHelp({
     userDistrict: 'Western Province',
     pickupNotes: '',
     userNotes: '',
-    deliveryType: 'delivery', // New field for pickup/delivery selection
+    deliveryType: itemData.mode === "Free" ? 'delivery' : 'pickup', // Free mode defaults to delivery, others default to pickup
     locationCoordinates: { type: 'Point', coordinates: [0, 0] } // New field for GPS coordinates
   });
 
@@ -405,19 +405,79 @@ export default function SimpleVolunteerHelp({
             </div>
           </div>
 
-          {/* Delivery Type - Auto-selected as Delivery */}
+          {/* Delivery Type - Based on item mode */}
           <div className="bg-blue-50 rounded-xl p-6">
             <h3 className="text-lg font-semibold mb-4 text-blue-900">Delivery Type</h3>
             <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-white"></div>
+              {itemData.mode === "Free" ? (
+                // Free mode - Only show Pickup center option
+                <div className="border rounded-lg p-4 bg-blue-100 border-blue-500">
+                  <div className="flex items-center gap-3">
+                    <div className="w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-white"></div>
+                    </div>
+                    <span className="text-sm font-medium text-blue-800">Pickup center (Free mode)</span>
+                  </div>
+                  <p className="text-xs text-blue-600 italic">
+                    Free pickup center request - volunteer will deliver the item to pickup center location
+                  </p>
                 </div>
-                <span className="text-sm font-medium text-blue-800">Delivery (Automatically selected)</span>
-              </div>
-              <p className="text-xs text-blue-600 italic">
-                Free delivery request - volunteer will deliver the item to your location
-              </p>
+              ) : (
+                // Other modes - Show both Pickup and Delivery options
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Pickup Option */}
+                  <div 
+                    className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                      formData.deliveryType === 'pickup' 
+                        ? 'border-blue-500 bg-blue-100' 
+                        : 'border-gray-300 bg-white hover:border-gray-400'
+                    }`}
+                    onClick={() => setFormData(prev => ({ ...prev, deliveryType: 'pickup' }))}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                        formData.deliveryType === 'pickup' ? 'bg-blue-600' : 'bg-gray-400'
+                      }`}>
+                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                      </div>
+                      <span className={`text-sm font-medium ${
+                        formData.deliveryType === 'pickup' ? 'text-blue-800' : 'text-gray-700'
+                      }`}>
+                        Pickup
+                      </span>
+                    </div>
+                    <p className="text-xs text-blue-600 italic">
+                      You will pick up the item from the Center's location
+                    </p>
+                  </div>
+
+                  {/* Delivery Option */}
+                  <div 
+                    className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                      formData.deliveryType === 'delivery' 
+                        ? 'border-blue-500 bg-blue-100' 
+                        : 'border-gray-300 bg-white hover:border-gray-400'
+                    }`}
+                    onClick={() => setFormData(prev => ({ ...prev, deliveryType: 'delivery' }))}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                        formData.deliveryType === 'delivery' ? 'bg-blue-600' : 'bg-gray-400'
+                      }`}>
+                        <div className="w-2 h-2 rounded-full bg-white"></div>
+                      </div>
+                      <span className={`text-sm font-medium ${
+                        formData.deliveryType === 'delivery' ? 'text-blue-800' : 'text-gray-700'
+                      }`}>
+                        Delivery
+                      </span>
+                    </div>
+                    <p className="text-xs text-blue-600 italic">
+                      Item Delivery request - volunteer will get your item deliver the item to center location
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

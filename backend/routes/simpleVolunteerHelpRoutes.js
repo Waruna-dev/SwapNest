@@ -5,8 +5,10 @@ import {
   getVolunteerHelpByUser,
   assignRequestToCenter,
   acceptRequest,
+  cancelRequest,
   getRequestsByCenter,
-  getRequestsByVolunteer
+  getRequestsByVolunteer,
+  updateRequestStatus
 } from '../controllers/simpleVolunteerHelpController.js';
 
 const router = express.Router();
@@ -34,5 +36,11 @@ router.put('/:id/assign-center', assignRequestToCenter);
 
 // Accept a request (by volunteer)
 router.put('/:id/accept', acceptRequest);
+
+// Cancel a request (by volunteer)
+router.put('/:id/cancel', cancelRequest);
+
+// Update status (e.g. center_received)
+router.put('/:id/status', updateRequestStatus);
 
 export default router;

@@ -75,19 +75,9 @@ app.get("/", (req, res) => {
   res.status(200).json({ message: "SwapNest API is running..." });
 });
 
-//404
-app.use((req,res,next)=>{
-    console.log('404 not found:', req.method,req.url);
-    const error = new Error(`Not Found - ${req.originalUrl}`);
-    res.status(404);
-    next(error);
-});
-
 // =======================
 // 3. ERROR HANDLING (The Safety Net at the bottom)
 // =======================
-// I removed the manual 404 because you are already importing 
-// your custom 'notFound' middleware from your volunteer middlewares!
 app.use(notFound);
 app.use(errorHandler);
 

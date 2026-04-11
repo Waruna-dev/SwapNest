@@ -10,6 +10,7 @@ export default function VolunteerPickup() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [deliveryTypeFilter, setDeliveryTypeFilter] = useState('all');
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [volunteers, setVolunteers] = useState([]);
   const [notifying, setNotifying] = useState(false);
   const [selectedRequests, setSelectedRequests] = useState(new Set());
@@ -18,6 +19,7 @@ export default function VolunteerPickup() {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [nearestCenterForModal, setNearestCenterForModal] = useState(null);
   const [volunteersInNearestCenter, setVolunteersInNearestCenter] = useState([]);
+  const [checkedPickups, setCheckedPickups] = useState(new Set());
 
   const handleViewDetails = (request) => {
     // Find nearest center with volunteers for this request
@@ -30,7 +32,7 @@ export default function VolunteerPickup() {
     const centersWithDistance = centers.map(center => {
       const centerCoords = getLocationCoordinates(center, 'center');
       const distance = calculateDistance(userCoords[0], userCoords[1], centerCoords[0], centerCoords[1]);
-      
+
       return {
         ...center,
         distance,
@@ -43,9 +45,9 @@ export default function VolunteerPickup() {
     let volunteersInCenter = [];
 
     for (const center of centersWithDistance) {
-      const volunteersInThisCenter = volunteers.filter(volunteer => 
-        volunteer.applicationStatus === 'Accepted' && 
-        volunteer.phone && 
+      const volunteersInThisCenter = volunteers.filter(volunteer =>
+        volunteer.applicationStatus === 'Accepted' &&
+        volunteer.phone &&
         volunteer.centerId === center._id
       );
 
@@ -72,8 +74,8 @@ export default function VolunteerPickup() {
     try {
       setLoading(true);
       const response = await API.get('/simple-volunteer-help');
-      const requests = Array.isArray(response.data?.data) ? response.data.data : 
-                      Array.isArray(response.data) ? response.data : [];
+      const requests = Array.isArray(response.data?.data) ? response.data.data :
+        Array.isArray(response.data) ? response.data : [];
       setPickupRequests(requests);
     } catch (err) {
       console.error('Error loading pickup requests:', err);
@@ -86,8 +88,8 @@ export default function VolunteerPickup() {
   const loadCenters = async () => {
     try {
       const response = await API.get('/centers');
-      const centersData = Array.isArray(response.data?.data) ? response.data.data : 
-                         Array.isArray(response.data) ? response.data : [];
+      const centersData = Array.isArray(response.data?.data) ? response.data.data :
+        Array.isArray(response.data) ? response.data : [];
       setCenters(centersData);
     } catch (err) {
       console.error('Error loading centers:', err);
@@ -97,8 +99,8 @@ export default function VolunteerPickup() {
   const loadVolunteers = async () => {
     try {
       const response = await API.get('/volunteers');
-      const volunteersData = Array.isArray(response.data?.data) ? response.data.data : 
-                           Array.isArray(response.data) ? response.data : [];
+      const volunteersData = Array.isArray(response.data?.data) ? response.data.data :
+        Array.isArray(response.data) ? response.data : [];
       setVolunteers(volunteersData);
     } catch (err) {
       console.error('Error loading volunteers:', err);
@@ -118,7 +120,7 @@ export default function VolunteerPickup() {
       completed: 'bg-green-100 text-green-800',
       cancelled: 'bg-red-100 text-red-800'
     };
-    
+
     return (
       <span className={`px-2 py-1 text-xs rounded-full ${statusColors[status] || statusColors.pending}`}>
         {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -132,7 +134,7 @@ export default function VolunteerPickup() {
       pickup: 'bg-orange-100 text-orange-800',
       delivery: 'bg-green-100 text-green-800'
     };
-    
+
     return (
       <span className={`px-2 py-1 text-xs rounded-full ${typeColors[deliveryType] || typeColors.pickup}`}>
         {deliveryType.charAt(0).toUpperCase() + deliveryType.slice(1)}
@@ -142,11 +144,11 @@ export default function VolunteerPickup() {
 
   const filteredRequests = pickupRequests.filter(request => {
     const matchesCenter = !selectedCenter || request.centerId === selectedCenter;
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       request.itemId?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDeliveryType = deliveryTypeFilter === 'all' || request.deliveryType === deliveryTypeFilter;
     const matchesStatus = statusFilter === 'all' || request.status === statusFilter;
-    
+
     return matchesCenter && matchesSearch && matchesDeliveryType && matchesStatus;
   });
 
@@ -157,11 +159,11 @@ export default function VolunteerPickup() {
     const R = 6371; // Earth's radius in kilometers
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c; // Distance in kilometers
   };
 
@@ -170,41 +172,41 @@ export default function VolunteerPickup() {
     // Sri Lanka district coordinates (approximate center points) - fallback when precise coordinates not available
     const districtCoordinates = {
       // Districts
-      'Colombo':       [6.9271, 79.8612],
-      'Gampaha':       [7.0873, 80.0098],
-      'Kalutara':      [6.5605, 79.9620],
-      'Kandy':         [7.2906, 80.6337],
-      'Galle':         [6.0535, 80.2200],
-      'Jaffna':        [9.6615, 80.0255],
-      'Trincomalee':   [8.5874, 81.2152],
-      'Batticaloa':    [7.7102, 81.7067],
-      'Ampara':        [7.2964, 81.6884],
-      'Kurunegala':    [7.4818, 80.3637],
-      'Puttalam':      [7.9823, 79.8338],
-      'Anuradhapura':  [8.3114, 80.4037],
-      'Polonnaruwa':   [7.9393, 81.0188],
-      'Ratnapura':     [6.6828, 80.3984],
-      'Kegalle':       [7.2513, 80.3464],
-      'Matale':        [7.4675, 80.6234],
-      'Nuwara Eliya':  [6.9707, 80.7797],
-      'Badulla':       [6.9934, 81.0550],
-      'Monaragala':    [6.8703, 81.3524],
-      'Hambantota':    [6.1244, 81.1185],
-      'Matara':        [5.9548, 80.5550],
-      'Mannar':        [8.9790, 79.9043],
-      'Kilinochchi':   [9.3803, 80.0982],
-      'Vavuniya':      [8.7564, 80.4968],
-      'Mullaitivu':    [9.2675, 80.8124],
+      'Colombo': [6.9271, 79.8612],
+      'Gampaha': [7.0873, 80.0098],
+      'Kalutara': [6.5605, 79.9620],
+      'Kandy': [7.2906, 80.6337],
+      'Galle': [6.0535, 80.2200],
+      'Jaffna': [9.6615, 80.0255],
+      'Trincomalee': [8.5874, 81.2152],
+      'Batticaloa': [7.7102, 81.7067],
+      'Ampara': [7.2964, 81.6884],
+      'Kurunegala': [7.4818, 80.3637],
+      'Puttalam': [7.9823, 79.8338],
+      'Anuradhapura': [8.3114, 80.4037],
+      'Polonnaruwa': [7.9393, 81.0188],
+      'Ratnapura': [6.6828, 80.3984],
+      'Kegalle': [7.2513, 80.3464],
+      'Matale': [7.4675, 80.6234],
+      'Nuwara Eliya': [6.9707, 80.7797],
+      'Badulla': [6.9934, 81.0550],
+      'Monaragala': [6.8703, 81.3524],
+      'Hambantota': [6.1244, 81.1185],
+      'Matara': [5.9548, 80.5550],
+      'Mannar': [8.9790, 79.9043],
+      'Kilinochchi': [9.3803, 80.0982],
+      'Vavuniya': [8.7564, 80.4968],
+      'Mullaitivu': [9.2675, 80.8124],
       // Province name aliases — map to their geographic center
-      'Western Province':        [6.9271, 79.8612],  // Colombo
-      'Central Province':        [7.2906, 80.6337],  // Kandy
-      'Southern Province':       [6.0535, 80.2200],  // Galle
-      'Northern Province':       [9.6615, 80.0255],  // Jaffna
-      'Eastern Province':        [7.7102, 81.7067],  // Batticaloa
-      'North Western Province':  [7.4818, 80.3637],  // Kurunegala
-      'North Central Province':  [8.3114, 80.4037],  // Anuradhapura
-      'Uva Province':            [6.9934, 81.0550],  // Badulla
-      'Sabaragamuwa Province':   [6.6828, 80.3984],  // Ratnapura
+      'Western Province': [6.9271, 79.8612],  // Colombo
+      'Central Province': [7.2906, 80.6337],  // Kandy
+      'Southern Province': [6.0535, 80.2200],  // Galle
+      'Northern Province': [9.6615, 80.0255],  // Jaffna
+      'Eastern Province': [7.7102, 81.7067],  // Batticaloa
+      'North Western Province': [7.4818, 80.3637],  // Kurunegala
+      'North Central Province': [8.3114, 80.4037],  // Anuradhapura
+      'Uva Province': [6.9934, 81.0550],  // Badulla
+      'Sabaragamuwa Province': [6.6828, 80.3984],  // Ratnapura
     };
 
     // For centers: try lat/lng fields first, then fall back to district name lookup
@@ -219,7 +221,7 @@ export default function VolunteerPickup() {
             return [location[field].latitude, location[field].longitude];
         }
       }
-      if (location.lat && location.lng)       return [location.lat, location.lng];
+      if (location.lat && location.lng) return [location.lat, location.lng];
       if (location.latitude && location.longitude) return [location.latitude, location.longitude];
       if (location.district) return districtCoordinates[location.district] || [6.9271, 79.8612];
     }
@@ -413,6 +415,40 @@ export default function VolunteerPickup() {
     }
   };
 
+  const notifyUserPickupStatus = async (request, isReady, linkedCenterName = null) => {
+    try {
+      setNotifying(true);
+      setError('');
+      setSuccessMsg('');
+      
+      const message = isReady 
+        ? `Great news! The item you requested is physically present and ready for pickup. Please come and collect it from our center: ${linkedCenterName}. Visit the volunteer centers page for directions.`
+        : `Update on your requested item: We haven't received the item at our center yet. We're keeping an eye out and will notify you as soon as it arrives!`;
+        
+      await API.post('/notifications', {
+        userId: request.userId?._id || request.userId,
+        title: isReady ? 'Item Ready for Pickup!' : 'Pickup Request Update',
+        message: message,
+        type: 'system',
+        itemId: request.itemId,
+        read: false
+      }).catch(err => {
+         console.error("Non-fatal notification api error", err);
+      });
+      
+      if (isReady && request._id) {
+        await API.put(`/simple-volunteer-help/${request._id}/status`, { status: 'completed' });
+        setPickupRequests(prev => prev.map(r => r._id === request._id ? { ...r, status: 'completed' } : r));
+      }
+      
+      setSuccessMsg(`User notified: ${isReady ? 'Ready for Pickup' : 'Still waiting for item'}`);
+    } catch (err) {
+      setError(`Failed to notify user: ${err.message}`);
+    } finally {
+      setNotifying(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-6">
@@ -539,6 +575,12 @@ export default function VolunteerPickup() {
         </div>
       )}
 
+      {successMsg && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+          {successMsg}
+        </div>
+      )}
+
       <div className="space-y-4">
         {filteredRequests.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
@@ -549,7 +591,11 @@ export default function VolunteerPickup() {
           </div>
         ) : (
           filteredRequests.map((request, index) => (
-            <div key={request._id || index} className="relative bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+            <div key={request._id || index} className={`relative rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow ${
+              request.deliveryType === 'delivery' 
+                ? 'bg-emerald-50/40 border-emerald-100' 
+                : 'bg-amber-50/40 border-amber-100'
+            }`}>
               {/* Checkbox for selection */}
               {(!request.status || request.status === 'pending') && (statusFilter === 'all' || statusFilter === 'pending') ? (
                 <div className="absolute top-4 left-4">
@@ -652,19 +698,69 @@ export default function VolunteerPickup() {
                 </div>
               </div>
 
+              {/* Pickup Notification Display for "pickup" requests */}
+              {request.deliveryType === 'pickup' && (
+                <div className="mt-4 border border-gray-200 rounded-lg p-4 bg-gray-50">
+                  <h4 className="font-semibold text-gray-900 mb-2">Pickup Verification</h4>
+                  {!checkedPickups.has(request._id || request.itemId) ? (
+                    <button
+                      onClick={() => setCheckedPickups(prev => new Set(prev).add(request._id || request.itemId))}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition font-medium w-full md:w-auto"
+                    >
+                      🔍 Find in Center Received Table
+                    </button>
+                  ) : (() => {
+                    const linkedReceivedItem = pickupRequests.find(r => 
+                      r.itemId === request.itemId && 
+                      (r.status === 'center_received' || r.status === 'completed') && 
+                      r.deliveryType !== 'pickup'
+                    );
+                    
+                    if (linkedReceivedItem) {
+                      const cName = getCenterName(linkedReceivedItem.centerId?._id || linkedReceivedItem.assignedCenterId?._id);
+                      return (
+                        <div>
+                          <p className="text-sm text-green-700 font-medium mb-3">✓ The specific requested item is physically present at a center.</p>
+                          <button
+                            onClick={() => notifyUserPickupStatus(request, true, cName)}
+                            disabled={notifying}
+                            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition font-medium w-full md:w-auto"
+                          >
+                            {notifying ? 'Notifying...' : 'Notify User: Item is Ready for Collection'}
+                          </button>
+                        </div>
+                      );
+                    } else {
+                      return (
+                        <div>
+                          <p className="text-sm text-yellow-700 font-medium mb-3">⚠️ This item has NOT yet been retrieved to any of our centers.</p>
+                          <button
+                            onClick={() => notifyUserPickupStatus(request, false)}
+                            disabled={notifying}
+                            className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border border-yellow-300 px-4 py-2 rounded-lg text-sm transition font-medium w-full md:w-auto"
+                          >
+                            {notifying ? 'Notifying...' : 'Notify User: Item Not Yet Received'}
+                          </button>
+                        </div>
+                      );
+                    }
+                  })()}
+                </div>
+              )}
+
               {/* Center Assignment Display — shown after admin clicks Notify */}
               {(() => {
                 const requestId = request._id || `temp-${request.itemTitle}-${request.userAddress}`;
                 const assignment = centerAssignments.get(requestId);
                 const isCenterAssigned = request.status === 'center_assigned' || !!assignment;
-                if (!isCenterAssigned) return null;
+                if (!isCenterAssigned || request.deliveryType === 'pickup') return null;
 
-                const centerName    = assignment?.center?.centerName || 'Nearest Center';
+                const centerName = assignment?.center?.centerName || 'Nearest Center';
                 const centerDistrict = assignment?.center?.district || '';
-                const distance      = assignment?.distance;
-                const volNames      = assignment?.volunteerNames || [];
-                const volCount      = assignment?.volunteerCount || volNames.length;
-                const assignedAt    = assignment?.assignedAt;
+                const distance = assignment?.distance;
+                const volNames = assignment?.volunteerNames || [];
+                const volCount = assignment?.volunteerCount || volNames.length;
+                const assignedAt = assignment?.assignedAt;
 
                 return (
                   <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
@@ -714,27 +810,32 @@ export default function VolunteerPickup() {
 
               {(() => {
                 const requestId = request._id || `temp-${request.itemTitle}-${request.userAddress}`;
-                const isNotified = request.status === 'center_assigned' || request.status === 'accepted' || centerAssignments.has(requestId);
+                const isNotified = request.status === 'center_assigned' || request.status === 'accepted' || request.status === 'center_received' || request.status === 'completed' || centerAssignments.has(requestId);
+                const isCompleted = request.status === 'center_received' || request.status === 'completed';
                 return (
                   <div className="flex gap-2 mt-4 pt-4 border-t items-center">
-                    {isNotified ? (
-                      <button
-                        disabled
-                        className="flex items-center gap-1.5 px-4 py-2 bg-blue-100 text-blue-700 border border-blue-300 rounded-lg cursor-default font-medium text-sm"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        Notified
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => notifyNearbyVolunteers(request)}
-                        disabled={notifying}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
-                      >
-                        {notifying ? 'Notifying...' : 'Notify Volunteer'}
-                      </button>
+                    {request.deliveryType === 'delivery' && (
+                      <>
+                        {isNotified || isCompleted ? (
+                          <button
+                            disabled
+                            className={`flex items-center gap-1.5 px-4 py-2 border rounded-lg cursor-default font-medium text-sm ${isCompleted ? 'bg-green-100 text-green-700 border-green-300' : 'bg-blue-100 text-blue-700 border-blue-300'}`}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            {isCompleted ? 'Finished' : 'Notified'}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => notifyNearbyVolunteers(request)}
+                            disabled={notifying}
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
+                          >
+                            {notifying ? 'Notifying...' : 'Notify Volunteer'}
+                          </button>
+                        )}
+                      </>
                     )}
                     <button
                       onClick={() => handleViewDetails(request)}
@@ -742,9 +843,7 @@ export default function VolunteerPickup() {
                     >
                       View Details
                     </button>
-                    <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
-                      Mark Complete
-                    </button>
+
                   </div>
                 );
               })()}
@@ -762,19 +861,19 @@ export default function VolunteerPickup() {
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-yellow-600">
-              {pickupRequests.filter(r => !r.status || r.status === 'pending').length}
+              {pickupRequests.filter(r => !r.status || r.status === 'pending' || r.status === 'center_assigned').length}
             </div>
             <div className="text-sm text-gray-500">Pending</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">
-              {pickupRequests.filter(r => r.status === 'assigned').length}
+              {pickupRequests.filter(r => r.status === 'accepted').length}
             </div>
             <div className="text-sm text-gray-500">Assigned</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">
-              {pickupRequests.filter(r => r.status === 'completed').length}
+              {pickupRequests.filter(r => r.status === 'center_received' || r.status === 'completed').length}
             </div>
             <div className="text-sm text-gray-500">Completed</div>
           </div>
@@ -899,7 +998,7 @@ export default function VolunteerPickup() {
               {volunteersInNearestCenter.length > 0 && (
                 <div className="bg-green-50 rounded-lg p-4">
                   <h3 className="text-lg font-semibold text-green-900 mb-4">
-                    Volunteers at {nearestCenterForModal?.centerName || 'Nearest Center'} 
+                    Volunteers at {nearestCenterForModal?.centerName || 'Nearest Center'}
                     <span className="text-sm font-normal text-green-700 ml-2">
                       ({volunteersInNearestCenter.length} available)
                     </span>
