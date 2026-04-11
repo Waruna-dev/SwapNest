@@ -252,8 +252,21 @@ const Volunteer = ({ isOpen, onClose, center }) => {
           <h2 className="text-3xl font-bold text-[#1A1A1A] mb-4">Application Submitted!</h2>
           <p className="text-gray-600 mb-8">
             Thank you for applying to be a SwapNest volunteer. Our team will review your
-            application and contact you within 3-5 business days.
+            application and contact you within 3-5 business days. Once approved, you will 
+            receive a message with login instructions to access the volunteer dashboard.
           </p>
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-8">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-2xl">ℹ️</span>
+              <h3 className="font-semibold text-blue-900">Next Steps:</h3>
+            </div>
+            <ul className="text-sm text-blue-800 space-y-1">
+              <li>• Application review by our team (3-5 business days)</li>
+              <li>• Approval message sent to your email</li>
+              <li>• Login credentials provided</li>
+              <li>• Access to volunteer dashboard</li>
+            </ul>
+          </div>
           <button
             onClick={handleClose}
             className="block w-full py-4 bg-[#2D4A35] text-white rounded-xl font-bold hover:bg-[#1f3325] transition-colors text-center"

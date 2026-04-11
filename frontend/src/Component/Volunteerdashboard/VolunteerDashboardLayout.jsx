@@ -26,7 +26,7 @@ export default function VolunteerDashboardLayout() {
               Pickup
             </NavLink>
             <NavLink to="/volunteer-dashboard/distribution-plan" className={linkClassName}>
-              Distribution Plan
+              Center Received
             </NavLink>
             <NavLink to="/volunteer-hero" end className={linkClassName}>
               Volunteer Page

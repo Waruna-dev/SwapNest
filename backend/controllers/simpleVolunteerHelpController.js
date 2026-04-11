@@ -153,8 +153,95 @@ const getVolunteerHelpByUser = async (req, res) => {
   }
 };
 
+const assignRequestToCenter = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { centerId } = req.body;
+    
+    if (!centerId) {
+      return res.status(400).json({ success: false, message: 'Center ID is required' });
+    }
+
+    const request = await SimpleVolunteerHelp.findByIdAndUpdate(
+      id,
+      { assignedCenterId: centerId, status: 'center_assigned' },
+      { new: true }
+    );
+
+    if (!request) {
+      return res.status(404).json({ success: false, message: 'Request not found' });
+    }
+
+    res.status(200).json({ success: true, data: request, message: 'Assigned to center successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+  }
+};
+
+const acceptRequest = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { volunteerId } = req.body;
+
+    if (!volunteerId) {
+      return res.status(400).json({ success: false, message: 'Volunteer ID is required' });
+    }
+
+    const request = await SimpleVolunteerHelp.findByIdAndUpdate(
+      id,
+      { assignedVolunteerId: volunteerId, status: 'accepted' },
+      { new: true }
+    );
+
+    if (!request) {
+      return res.status(404).json({ success: false, message: 'Request not found' });
+    }
+
+    res.status(200).json({ success: true, data: request, message: 'Request accepted successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+  }
+};
+
+const getRequestsByCenter = async (req, res) => {
+  try {
+    const { centerId } = req.params;
+    
+    const requests = await SimpleVolunteerHelp.find({ assignedCenterId: centerId })
+      .populate('assignedVolunteerId', 'firstName lastName')
+      .populate('centerId', 'centerName city district')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, data: requests });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+  }
+};
+
+const getRequestsByVolunteer = async (req, res) => {
+  try {
+    const { volunteerId } = req.params;
+    
+    const requests = await SimpleVolunteerHelp.find({ 
+      assignedVolunteerId: volunteerId,
+      status: 'accepted' 
+    })
+      .populate('assignedVolunteerId', 'firstName lastName')
+      .populate('centerId', 'centerName city district')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, data: requests });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
+  }
+};
+
 export {
   createVolunteerHelp,
   getAllVolunteerHelpRequests,
-  getVolunteerHelpByUser
+  getVolunteerHelpByUser,
+  assignRequestToCenter,
+  acceptRequest,
+  getRequestsByCenter,
+  getRequestsByVolunteer
 };

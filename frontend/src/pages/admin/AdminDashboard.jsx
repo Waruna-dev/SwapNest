@@ -32,7 +32,7 @@ const VolunteerDashboardLayout = () => {
     { id: 'volunteers', label: 'Volunteer' },
     { id: 'centers', label: 'Volunteer Center' },
     { id: 'pickup', label: 'Pickup' },
-    { id: 'distribution', label: 'Distribution Plan' }
+    { id: 'distribution', label: 'Center Received' }
   ];
 
   const handleNavigation = (tab, view = 'list', id = null) => {

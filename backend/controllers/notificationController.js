@@ -1,5 +1,43 @@
 import Notification from "../models/Notification.js";
 
+// Create a new notification
+export const createNotification = async (req, res) => {
+  try {
+    const { userId, type, title, message, itemId, volunteerId, volunteerName, itemTitle } = req.body;
+    
+    // Validate required fields
+    if (!userId || !type || !title || !message) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Missing required fields: userId, type, title, message' 
+      });
+    }
+
+    const notification = new Notification({
+      userId,
+      type,
+      title,
+      message,
+      itemId,
+      metadata: {
+        volunteerId,
+        volunteerName,
+        itemTitle
+      }
+    });
+
+    await notification.save();
+    
+    res.status(201).json({ 
+      success: true, 
+      data: notification,
+      message: 'Notification created successfully' 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // Get user notifications
 export const getUserNotifications = async (req, res) => {
   try {

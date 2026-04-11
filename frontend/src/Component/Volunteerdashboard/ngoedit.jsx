@@ -4,13 +4,11 @@ import API from '../../services/api';
 const fallbackApiBase = "http://localhost:5000";
 
 const NgoEdit = () => {
-  const [volunteerId, setVolunteerId] = useState('');
   const [volunteer, setVolunteer] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [searching, setSearching] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [editMode, setEditMode] = useState(false);
+  const [editMode, setEditMode] = useState(true); // Start in edit mode for self-profile
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -26,50 +24,97 @@ const NgoEdit = () => {
     livesImpacted: 1
   });
 
-  const searchVolunteer = async () => {
-    if (!volunteerId.trim()) {
-      setError('Please enter a volunteer ID');
-      return;
-    }
+  // Load current user's profile data on component mount
+  useEffect(() => {
+    loadCurrentUserProfile();
+  }, []);
 
-    setSearching(true);
+  const loadCurrentUserProfile = async () => {
+    setLoading(true);
     setError('');
-    setVolunteer(null);
 
     try {
-      let response;
-      try {
-        response = await API.get(`/volunteers/${volunteerId}`);
-      } catch (apiError) {
-        response = await fetch(`${fallbackApiBase}/volunteers/${volunteerId}`);
-        response = await response.json();
-      }
-
-      const volunteerData = response.data || response;
+      // Get current user data from localStorage
+      const storedUser = localStorage.getItem('swapnest_user');
+      const userEmail = localStorage.getItem('user_email');
       
-      if (volunteerData && (volunteerData._id || volunteerData.id)) {
-        setVolunteer(volunteerData);
-        setFormData({
-          firstName: volunteerData.firstName || '',
-          lastName: volunteerData.lastName || '',
-          email: volunteerData.email || '',
-          phone: volunteerData.phone || '',
-          district: volunteerData.district || '',
-          center: volunteerData.center || '',
-          status: volunteerData.status || 'active',
-          skills: volunteerData.skills || '',
-          availability: volunteerData.availability || '',
-          motivation: volunteerData.motivation || '',
-          livesImpacted: volunteerData.livesImpacted || 1
-        });
-        setSuccess('Volunteer found! You can now edit the information.');
-      } else {
-        setError('Volunteer not found');
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        const userId = userData._id || userData.id;
+
+        try {
+          let volunteerData = null;
+
+          if (userId) {
+            // Fetch by ID
+            let response;
+            try {
+              response = await API.get(`/volunteers/${userId}`);
+            } catch (apiError) {
+              response = await fetch(`${fallbackApiBase}/volunteers/${userId}`);
+              response = await response.json();
+            }
+            volunteerData = response.data || response;
+          } else if (userData.email) {
+            // Fallback: Fetch all, find by email from old session missing ID
+            let response;
+            try {
+              response = await API.get(`/volunteers`);
+            } catch (apiError) {
+              response = await fetch(`${fallbackApiBase}/volunteers`);
+              response = await response.json();
+            }
+            const allVolunteers = Array.isArray(response.data) ? response.data : (Array.isArray(response) ? response : []);
+            volunteerData = allVolunteers.find(v => v.email === userData.email);
+          }
+
+          if (volunteerData && (volunteerData._id || volunteerData.id)) {
+            setVolunteer(volunteerData);
+            
+            // Update local storage to have the ID if it was missing
+            if (!userId) {
+              const updatedUserData = { ...userData, _id: volunteerData._id || volunteerData.id };
+              localStorage.setItem('swapnest_user', JSON.stringify(updatedUserData));
+            }
+
+            setFormData({
+              firstName: volunteerData.firstName || userData.username || '',
+              lastName: volunteerData.lastName || '',
+              email: volunteerData.email || userData.email || '',
+              phone: volunteerData.phone || '',
+              district: volunteerData.district || '',
+              center: volunteerData.center || '',
+              status: volunteerData.status || 'active',
+              skills: volunteerData.skills || '',
+              availability: volunteerData.availability || '',
+              motivation: volunteerData.motivation || '',
+              livesImpacted: volunteerData.livesImpacted || 1
+            });
+          } else {
+            throw new Error("Could not fetch volunteer details");
+          }
+        } catch (fetchError) {
+          // If API fails, use localStorage data as fallback
+          setVolunteer(userData);
+          setFormData({
+            firstName: userData.username || '',
+            lastName: '',
+            email: userData.email || '',
+            phone: '',
+            district: '',
+            center: '',
+            status: 'active',
+            skills: '',
+            availability: '',
+            motivation: '',
+            livesImpacted: 1
+          });
+        }
       }
     } catch (err) {
-      setError('Failed to fetch volunteer data. Please check the ID and try again.');
+      setError('Failed to load your profile data.');
     } finally {
-      setSearching(false);
+      setLoading(false);
     }
   };
 
@@ -88,6 +133,12 @@ const NgoEdit = () => {
     setSuccess('');
 
     try {
+      const volunteerId = volunteer?._id || volunteer?.id;
+      if (!volunteerId) {
+        setError('Unable to update profile: Missing volunteer ID');
+        return;
+      }
+
       let response;
       try {
         response = await API.put(`/volunteers/${volunteerId}`, formData);
@@ -103,8 +154,7 @@ const NgoEdit = () => {
       }
 
       if (response.data || response.success) {
-        setSuccess('Volunteer information updated successfully!');
-        setEditMode(false);
+        setSuccess('Your profile has been updated successfully!');
         
         // Refresh volunteer data
         const updatedData = response.data || response;
@@ -122,109 +172,70 @@ const NgoEdit = () => {
           motivation: updatedData.motivation || '',
           livesImpacted: updatedData.livesImpacted || 1
         });
+
+        // Update localStorage with new user data
+        const updatedUserData = {
+          username: updatedData.firstName || formData.firstName,
+          email: updatedData.email || formData.email,
+          role: 'volunteer'
+        };
+        localStorage.setItem('swapnest_user', JSON.stringify(updatedUserData));
       } else {
-        setError('Failed to update volunteer information');
+        setError('Failed to update your profile information');
       }
     } catch (err) {
-      setError('Failed to update volunteer. Please try again.');
+      setError('Failed to update your profile. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   const resetForm = () => {
-    setVolunteerId('');
-    setVolunteer(null);
-    setFormData({
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      district: '',
-      center: '',
-      status: '',
-      skills: '',
-      availability: '',
-      motivation: '',
-      livesImpacted: 1
-    });
+    loadCurrentUserProfile(); // Reload current user data
     setError('');
     setSuccess('');
-    setEditMode(false);
+    setEditMode(true);
   };
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">Edit Volunteer Information</h2>
-        <p className="text-gray-600">Search for a volunteer by ID and update their information</p>
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">Edit Your Profile</h2>
+        <p className="text-gray-600">Update your personal information and volunteer details</p>
       </div>
 
-      {/* Search Section */}
-      <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 mb-6">
-        <div className="flex gap-4 items-end">
-          <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Volunteer ID
-            </label>
-            <input
-              type="text"
-              value={volunteerId}
-              onChange={(e) => setVolunteerId(e.target.value)}
-              placeholder="Enter volunteer ID (e.g., 60f7b3b3b3b3b3b3b3b3b3b3)"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-          <button
-            onClick={searchVolunteer}
-            disabled={searching}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {searching ? 'Searching...' : 'Search'}
-          </button>
-          <button
-            onClick={resetForm}
-            className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-          >
-            Reset
-          </button>
+      {loading && (
+        <div className="text-center py-8">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p className="mt-2 text-gray-600">Loading your profile...</p>
         </div>
+      )}
 
-        {error && (
-          <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-            {error}
-          </div>
-        )}
+      {error && (
+        <div className="mb-6 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          {error}
+        </div>
+      )}
 
-        {success && (
-          <div className="mt-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg">
-            {success}
-          </div>
-        )}
-      </div>
+      {success && (
+        <div className="mb-6 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+          {success}
+        </div>
+      )}
 
-      {/* Volunteer Information */}
-      {volunteer && (
+      {/* Your Profile Information */}
+      {volunteer && !loading && (
         <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-xl font-semibold text-gray-800">
-              Volunteer Information
+              Your Profile Information
             </h3>
-            {!editMode ? (
-              <button
-                onClick={() => setEditMode(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                Edit
-              </button>
-            ) : (
-              <button
-                onClick={() => setEditMode(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-            )}
+            <button
+              onClick={resetForm}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+            >
+              Reset Changes
+            </button>
           </div>
 
           {editMode ? (
@@ -383,7 +394,7 @@ const NgoEdit = () => {
                   disabled={loading}
                   className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? 'Updating...' : 'Update Volunteer'}
+                  {loading ? 'Updating...' : 'Update Your Profile'}
                 </button>
                 <button
                   type="button"
@@ -434,12 +445,6 @@ const NgoEdit = () => {
                 <div>
                   <h4 className="text-sm font-medium text-gray-500 mb-1">Lives Impacted</h4>
                   <p className="text-gray-900">{volunteer.livesImpacted || 1}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-1">Volunteer ID</h4>
-                  <p className="text-gray-900 font-mono text-sm">
-                    {volunteer._id || volunteer.id}
-                  </p>
                 </div>
               </div>
 

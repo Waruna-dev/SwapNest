@@ -1,4 +1,5 @@
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken"; // --- NEW: Required for generating the login token
 import Volunteer from "../models/VolunteerModel.js";
 
 /**
@@ -9,10 +10,6 @@ export async function insertVolunteer(data) {
     await volunteer.save();
     return volunteer;
 }
-
-
-
-
 
 /** Get all volunteers */
 export async function getVolunteers(req, res) {
@@ -58,7 +55,7 @@ export async function getVolunteerById(req, res) {
     }
 }
 
-/** Create volunteer – body must be JSON (firstName, lastName, email, nic, dob, etc.) */
+/** Create volunteer – body must be JSON */
 export async function addVolunteer(req, res) {
     if (typeof req.body === "undefined") req.body = {};
     const body = req.body != null ? req.body : {};
@@ -163,5 +160,60 @@ export async function assignVolunteer(req, res) {
             return res.status(400).json({ message: err.message, errors: err.errors });
         }
         res.status(500).json({ message: err.message });
+    }
+}
+
+// --- NEW: Volunteer Login with Status Check ---
+export async function loginVolunteer(req, res) {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ message: "Please provide both email and password" });
+        }
+
+        // 1. Find the volunteer by email
+        const volunteer = await Volunteer.findOne({ email });
+        if (!volunteer) {
+            return res.status(401).json({ message: "Invalid email or password" });
+        }
+
+        // 2. Verify the password
+        const isMatch = await bcrypt.compare(password, volunteer.password);
+        if (!isMatch) {
+            return res.status(401).json({ message: "Invalid email or password" });
+        }
+
+        // 3. Block login if application is Pending or Rejected
+        if (volunteer.applicationStatus === "Pending") {
+            return res.status(403).json({ message: "Your volunteer application is still pending review." });
+        }
+        
+        if (volunteer.applicationStatus === "Rejected") {
+            return res.status(403).json({ message: "Your volunteer application was not accepted." });
+        }
+
+        // 4. Generate JWT Token
+        const token = jwt.sign(
+            { id: volunteer._id, role: volunteer.role }, 
+            process.env.JWT_SECRET, 
+            { expiresIn: '30d' }
+        );
+
+        // 5. Send successful response
+        res.status(200).json({
+            _id: volunteer._id,
+            firstName: volunteer.firstName,
+            lastName: volunteer.lastName,
+            email: volunteer.email,
+            role: volunteer.role,
+            applicationStatus: volunteer.applicationStatus,
+            centerId: volunteer.centerId,
+            token: token
+        });
+
+    } catch (error) {
+        console.error("Volunteer login error:", error);
+        res.status(500).json({ message: "Server error during login" });
     }
 }

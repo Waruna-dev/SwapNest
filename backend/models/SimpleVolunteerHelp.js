@@ -80,8 +80,16 @@ const simpleVolunteerHelpSchema = new mongoose.Schema({
   // Status and metadata
   status: {
     type: String,
-    enum: ['pending', 'assigned', 'completed', 'cancelled'],
+    enum: ['pending', 'center_assigned', 'assigned', 'completed', 'cancelled', 'accepted'],
     default: 'pending'
+  },
+  assignedCenterId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Center'
+  },
+  assignedVolunteerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Volunteer'
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
