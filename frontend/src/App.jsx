@@ -13,6 +13,7 @@ import Swapform from "./components/swap/SwapForm";
 import ItemAddNewItems from "./pages/item-listing/ItemAddNewItem";
 import ItemGalleryPage from "./pages/item-gallery/ItemGalleryPage";
 import ItemDashboard1 from "./pages/item-listing/ItemDashboard";
+import MyItems from "./pages/item-listing/MyItems";
 import ItemLocation from "./pages/item-ocation/itemLocation";
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
@@ -47,6 +48,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/my-list" element={<MyItems />} />
             
           </Route>
 
