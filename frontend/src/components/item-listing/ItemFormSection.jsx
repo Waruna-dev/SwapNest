@@ -34,6 +34,7 @@ const ItemFormSection = ({
   handleLocationSearch,
 }) => {
   const isSwapOnly = formData.mode === "Swap";
+  const shouldSkipPrice = formData.mode === "Swap" || formData.mode === "Free";
 const [fieldErrors, setFieldErrors] = useState({});
   const shouldHidePrice = formData.mode === "Swap" || formData.mode === "Free";
   const [invalidFields, setInvalidFields] = useState({});
@@ -80,7 +81,7 @@ const [fieldErrors, setFieldErrors] = useState({});
       }
     }
 
-    if (name === "price" && !isSwapOnly) {
+    if (name === "price" && !shouldSkipPrice) {
       if (!trimmedValue) return "Price is required for sell listings.";
 
       const numericValue = Number(trimmedValue);
@@ -118,7 +119,7 @@ const [fieldErrors, setFieldErrors] = useState({});
       title: validateField("title", formData.title),
       description: validateField("description", formData.description),
       contact: validateField("contact", formData.contact),
-      ...(isSwapOnly ? {} : { price: validateField("price", formData.price) }),
+      ...(shouldSkipPrice ? {} : { price: validateField("price", formData.price) }),
     };
 
     setFieldErrors(nextErrors);

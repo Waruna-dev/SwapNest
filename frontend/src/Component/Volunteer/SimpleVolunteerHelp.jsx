@@ -25,7 +25,7 @@ export default function SimpleVolunteerHelp({
     userDistrict: 'Western Province',
     pickupNotes: '',
     userNotes: '',
-    deliveryType: itemData.mode === "Free" ? 'delivery' : 'pickup', // Free mode defaults to delivery, others default to pickup
+    deliveryType: 'pickup', // Default to pickup, will be updated based on itemData
     locationCoordinates: { type: 'Point', coordinates: [0, 0] } // New field for GPS coordinates
   });
 
@@ -39,6 +39,16 @@ export default function SimpleVolunteerHelp({
       loadUserData();
     }
   }, [isOpen]);
+
+  // Update deliveryType when itemData changes
+  useEffect(() => {
+    if (itemData?.mode) {
+      setFormData(prev => ({
+        ...prev,
+        deliveryType: itemData.mode === "Free" ? 'delivery' : 'pickup'
+      }));
+    }
+  }, [itemData]);
 
   const loadCenters = async () => {
     try {
@@ -249,9 +259,9 @@ export default function SimpleVolunteerHelp({
 
     try {
       const requestData = {
-        itemId: itemData.itemId || itemData._id,
-        itemTitle: itemData.title,
-        itemCategory: itemData.category,
+        itemId: itemData?.itemId || itemData?._id,
+        itemTitle: itemData?.title,
+        itemCategory: itemData?.category,
         ...formData,
         centerId: selectedCenter
       };
@@ -305,8 +315,8 @@ export default function SimpleVolunteerHelp({
           <div className="bg-orange-100 border-l-4 border-orange-600 p-4 m-6">
             <h3 className="font-semibold text-orange-900 mb-2">Item Details</h3>
             <div className="text-sm text-orange-800">
-              <p><strong>Title:</strong> {itemData.title}</p>
-              <p><strong>Category:</strong> {itemData.category}</p>
+              <p><strong>Title:</strong> {itemData?.title}</p>
+              <p><strong>Category:</strong> {itemData?.category}</p>
               <p><strong>Mode:</strong> Free</p>
             </div>
           </div>
@@ -409,7 +419,7 @@ export default function SimpleVolunteerHelp({
           <div className="bg-blue-50 rounded-xl p-6">
             <h3 className="text-lg font-semibold mb-4 text-blue-900">Delivery Type</h3>
             <div className="space-y-4">
-              {itemData.mode === "Free" ? (
+              {itemData?.mode === "Free" ? (
                 // Free mode - Only show Pickup center option
                 <div className="border rounded-lg p-4 bg-blue-100 border-blue-500">
                   <div className="flex items-center gap-3">

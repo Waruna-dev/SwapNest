@@ -46,8 +46,6 @@ import ItemGalleryPage from "./pages/item-gallery/ItemGalleryPage";
 import ItemDashboard1 from "./pages/item-listing/ItemDashboard";
 import MyItems from "./pages/item-listing/MyItems";
 import ItemLocation from "./pages/item-ocation/itemLocation";
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
 import ContactUs from './pages/ContactUs';
 
 function App() {

@@ -124,6 +124,9 @@ const ItemAddNewItem = () => {
       const createdItem = response.data;
 
       // Check if mode is Free - if so, show volunteer popup instead of success dialog
+      console.log('Form mode:', formData.mode);
+      console.log('Created item:', createdItem);
+      
       if (formData.mode === "Free") {
         setCreatedItemData(createdItem);
         setShowVolunteerHelp(true);
