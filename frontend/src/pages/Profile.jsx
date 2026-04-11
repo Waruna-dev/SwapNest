@@ -12,8 +12,12 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState('personal'); 
   const [userId, setUserId] = useState(null); 
 
-  // --- NEW: State for the Custom Delete Modal ---
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  // --- PASSWORD VISIBILITY STATES ---
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // --- AVATAR STATES ---
   const [profileImageFile, setProfileImageFile] = useState(null);
@@ -156,20 +160,22 @@ const Profile = () => {
       
       toast.success('Password securely updated!', { id: toastId });
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      // Reset visibility toggles after successful save
+      setShowCurrentPassword(false);
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update password.', { id: toastId });
     }
   };
 
   // --- CUSTOM DELETE ACCOUNT LOGIC ---
-  // 1. Opens the Modal
   const handleDeleteAccountClick = () => {
     setShowDeleteModal(true);
   };
 
-  // 2. Executes the deletion
   const executeDeleteAccount = async () => {
-    setShowDeleteModal(false); // Close the modal immediately
+    setShowDeleteModal(false);
     if (!userId) return;
     
     const toastId = toast.loading('Deleting account...');
@@ -211,7 +217,6 @@ const Profile = () => {
     <div className="bg-background text-on-surface font-body min-h-screen antialiased selection:bg-secondary-fixed selection:text-on-secondary-fixed">
       <Toaster position="top-right" />
 
-      {/* --- CUSTOM DELETE CONFIRMATION MODAL --- */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
           <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6 text-center transform transition-all animate-fade-in">
@@ -247,7 +252,6 @@ const Profile = () => {
           <div className="hidden md:flex items-center gap-8 font-headline font-bold text-sm tracking-tight">
             <Link to="/dashboard" className="text-primary/80 hover:text-primary transition-colors">Dashboard</Link>
             <Link to="/marketplace" className="text-primary/80 hover:text-primary transition-colors">Marketplace</Link>
-            
           </div>
           
           <div className="flex items-center gap-4">
@@ -414,14 +418,53 @@ const Profile = () => {
                 <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-sm border border-outline-variant/10">
                   <h3 className="font-headline font-bold text-xl text-primary mb-6 border-b border-outline-variant/20 pb-4">Change Password</h3>
                   <form onSubmit={handleSavePassword} className="space-y-6">
+                    
+                    {/* --- CURRENT PASSWORD WITH EYE ICON --- */}
                     <div className="space-y-2 max-w-md">
                       <label className="text-[11px] uppercase tracking-widest font-bold text-on-surface-variant ml-1">Current Password</label>
-                      <input type="password" name="currentPassword" value={passwordData.currentPassword} onChange={handlePasswordChange} className="w-full bg-surface-container-high border-none rounded-2xl px-5 py-3.5 text-on-surface focus:ring-2 focus:ring-primary/20 transition-all font-medium outline-none" required />
+                      <div className="relative">
+                        <input 
+                          type={showCurrentPassword ? "text" : "password"} 
+                          name="currentPassword" 
+                          value={passwordData.currentPassword} 
+                          onChange={handlePasswordChange} 
+                          className="w-full bg-surface-container-high border-none rounded-2xl pl-5 pr-12 py-3.5 text-on-surface focus:ring-2 focus:ring-primary/20 transition-all font-medium outline-none" 
+                          required 
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-on-surface-variant/60 hover:text-primary transition-colors focus:outline-none flex items-center justify-center"
+                        >
+                          <span className="material-symbols-outlined text-[20px]">
+                            {showCurrentPassword ? 'visibility' : 'visibility_off'}
+                          </span>
+                        </button>
+                      </div>
                     </div>
                     
+                    {/* --- NEW PASSWORD WITH EYE ICON --- */}
                     <div className="space-y-2 max-w-md">
                       <label className="text-[11px] uppercase tracking-widest font-bold text-on-surface-variant ml-1">New Password</label>
-                      <input type="password" name="newPassword" value={passwordData.newPassword} onChange={handlePasswordChange} className="w-full bg-surface-container-high border-none rounded-2xl px-5 py-3.5 text-on-surface focus:ring-2 focus:ring-primary/20 transition-all font-medium outline-none" required />
+                      <div className="relative">
+                        <input 
+                          type={showNewPassword ? "text" : "password"} 
+                          name="newPassword" 
+                          value={passwordData.newPassword} 
+                          onChange={handlePasswordChange} 
+                          className="w-full bg-surface-container-high border-none rounded-2xl pl-5 pr-12 py-3.5 text-on-surface focus:ring-2 focus:ring-primary/20 transition-all font-medium outline-none" 
+                          required 
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-on-surface-variant/60 hover:text-primary transition-colors focus:outline-none flex items-center justify-center"
+                        >
+                          <span className="material-symbols-outlined text-[20px]">
+                            {showNewPassword ? 'visibility' : 'visibility_off'}
+                          </span>
+                        </button>
+                      </div>
                       
                       {passwordData.newPassword.length > 0 && (
                         <div className="flex flex-wrap gap-x-4 gap-y-2 pt-2 px-2">
@@ -441,9 +484,28 @@ const Profile = () => {
                       )}
                     </div>
 
+                    {/* --- CONFIRM PASSWORD WITH EYE ICON --- */}
                     <div className="space-y-2 max-w-md">
                       <label className="text-[11px] uppercase tracking-widest font-bold text-on-surface-variant ml-1">Confirm New Password</label>
-                      <input type="password" name="confirmPassword" value={passwordData.confirmPassword} onChange={handlePasswordChange} className="w-full bg-surface-container-high border-none rounded-2xl px-5 py-3.5 text-on-surface focus:ring-2 focus:ring-primary/20 transition-all font-medium outline-none" required />
+                      <div className="relative">
+                        <input 
+                          type={showConfirmPassword ? "text" : "password"} 
+                          name="confirmPassword" 
+                          value={passwordData.confirmPassword} 
+                          onChange={handlePasswordChange} 
+                          className="w-full bg-surface-container-high border-none rounded-2xl pl-5 pr-12 py-3.5 text-on-surface focus:ring-2 focus:ring-primary/20 transition-all font-medium outline-none" 
+                          required 
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-4 top-1/2 transform -translate-y-1/2 text-on-surface-variant/60 hover:text-primary transition-colors focus:outline-none flex items-center justify-center"
+                        >
+                          <span className="material-symbols-outlined text-[20px]">
+                            {showConfirmPassword ? 'visibility' : 'visibility_off'}
+                          </span>
+                        </button>
+                      </div>
                     </div>
                     
                     <div className="pt-4 flex justify-start">
@@ -454,7 +516,6 @@ const Profile = () => {
                   </form>
                 </div>
 
-                {/* --- CUSTOMIZED DANGER ZONE BUTTON --- */}
                 <div className="bg-error-container/20 p-8 md:p-10 rounded-[2.5rem] border border-error/20">
                   <h3 className="font-headline font-bold text-xl text-error mb-2">Danger Zone</h3>
                   <p className="text-on-surface-variant font-medium mb-6">Once you delete your account, there is no going back. Please be certain.</p>
