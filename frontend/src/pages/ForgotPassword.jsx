@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import API from '../services/api';
 
@@ -7,6 +7,21 @@ const ForgotPassword = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false); 
+  
+  // --- NEW: Countdown state for the wait timer ---
+  const [countdown, setCountdown] = useState(0);
+
+  // --- NEW: Effect to handle the countdown timer ---
+  useEffect(() => {
+    let timer;
+    if (countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    // Cleanup the interval when the component unmounts or timer hits 0
+    return () => clearInterval(timer);
+  }, [countdown]);
 
   const handleResetRequest = async (e) => {
     e.preventDefault();
@@ -15,13 +30,14 @@ const ForgotPassword = () => {
     setIsLoading(true);
 
     try {
-      // We will build this backend route later!
       await API.post('/users/forgot-password', { email });
       setMessage('If an account exists for that email, we have sent password reset instructions.');
-      setEmail(''); // Clear the input
+      
+      // Start the 60-second cooldown timer
+      setCountdown(60); 
+      
+      // Note: We removed setEmail('') here so they don't have to re-type it to resend!
     } catch (err) {
-      // Even if it fails, for security reasons, it's best practice not to reveal if an email exists or not.
-      // We often just show the same success message, but for development, we can log the error.
       setError(err.response?.data?.message || 'Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
@@ -37,9 +53,6 @@ const ForgotPassword = () => {
           <Link to="/" className="text-2xl font-extrabold text-primary tracking-tighter font-headline hover:opacity-80 transition-opacity z-10">
             SwapNest
           </Link>
-          <Link to="/login" className="font-headline font-bold text-sm text-primary hover:text-secondary transition-colors">
-            Back to Login
-          </Link>
         </div>
       </nav>
 
@@ -48,7 +61,6 @@ const ForgotPassword = () => {
         {/* Left Side: Editorial Image */}
         <section className="hidden md:flex md:w-1/2 lg:w-[55%] relative overflow-hidden bg-primary-container">
           <div className="absolute inset-0 z-0">
-            {/* Using a vintage typewriter image to signify "writing an email/message" */}
             <img 
               alt="Vintage Typewriter" 
               className="w-full h-full object-cover grayscale-[20%] contrast-[1.1]" 
@@ -110,11 +122,29 @@ const ForgotPassword = () => {
               
               <button 
                 type="submit"
-                disabled={isLoading || message !== ''} // Disable if loading or if already sent
+                // Disable if loading OR if the countdown is running
+                disabled={isLoading || countdown > 0} 
                 className="w-full h-16 bg-secondary text-on-secondary rounded-full font-headline font-bold text-lg hover:bg-[#822800] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_20px_40px_-15px_rgba(27,28,26,0.2)] flex items-center justify-center gap-2 mt-8 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:bg-secondary"
               >
-                {isLoading ? 'Sending Link...' : 'Send Reset Link'}
-                {!isLoading && <span className="material-symbols-outlined text-xl">send</span>}
+                {/* Dynamically update the button text based on state */}
+                {isLoading 
+                  ? 'Sending Link...' 
+                  : countdown > 0 
+                    ? `Resend Link in ${countdown}s` 
+                    : message 
+                      ? 'Resend Reset Link' 
+                      : 'Send Reset Link'
+                }
+                
+                {/* Dynamically update the icon based on state */}
+                {!isLoading && countdown === 0 && (
+                  <span className="material-symbols-outlined text-xl">
+                    {message ? 'refresh' : 'send'}
+                  </span>
+                )}
+                {countdown > 0 && (
+                  <span className="material-symbols-outlined text-xl">timer</span>
+                )}
               </button>
             </form>
 

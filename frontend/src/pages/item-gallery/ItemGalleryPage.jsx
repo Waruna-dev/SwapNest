@@ -115,7 +115,11 @@ function ItemGalleryPage() {
 
         const payload = response.data;
 
-        const nextItems = (payload.items || []).filter((item) => !item?.isHidden);
+        // Filter out items that are not active (have pending swaps)
+        const nextItems = (payload.items || []).filter((item) => {
+          // Only show items that are active and don't have pending swaps
+          return item.isActive !== false;
+        });
 
         setItems((current) => (append ? [...current, ...nextItems] : nextItems));
         setPage(payload.page || nextPage);
@@ -132,6 +136,22 @@ function ItemGalleryPage() {
     },
     [buildParams, filters.useNearby, locationState.coords],
   );
+
+  // Handle swap success - refresh items list
+  const handleSwapSuccess = useCallback((swap) => {
+    console.log("Swap successful, refreshing items:", swap);
+    // Reload items to hide the swapped item
+    loadItems(1, false);
+    // Optional: Show success notification
+    // You can add a toast notification here
+  }, [loadItems]);
+
+  // Handle swap status change from ItemCard
+  const handleSwapStatusChange = useCallback((itemId, status) => {
+    console.log(`Item ${itemId} status changed to: ${status}`);
+    // Refresh items to reflect the status change
+    loadItems(1, false);
+  }, [loadItems]);
 
   useEffect(() => {
     loadItems(1, false);
@@ -397,6 +417,8 @@ function ItemGalleryPage() {
                   favorites={favorites}
                   onToggleFavorite={handleToggleFavorite}
                   onQuickView={handleQuickView}
+                  onSwapSuccess={handleSwapSuccess}
+                  onSwapStatusChange={handleSwapStatusChange}
                 />
 
                 {displayMode === "pagination" ? (

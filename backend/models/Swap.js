@@ -28,7 +28,7 @@ const offeredItemSchema = new mongoose.Schema({
 });
 
 const swapSchema = new mongoose.Schema({
-  requestId: {                                      //autogenerate
+  requestId: {
     type: String,
     unique: true,
     required: true,
@@ -37,7 +37,7 @@ const swapSchema = new mongoose.Schema({
   requestedItem: {
     itemId: {
       type: String,
-      ref: "Item",                                   //want to change
+      ref: "Item",
       require: true,
     },
     name: {
@@ -50,18 +50,22 @@ const swapSchema = new mongoose.Schema({
     },
     ownerId: {
       type: String,
-      ref: "User", //want to change
+      ref: "User",
       required: true,
     },
     condition: {
       type: String,
-      
+
       required: true,
     },
     description: String,
+    photos: [itemPhotoSchema],
+    coverImage: {
+      type: itemPhotoSchema,
+      default: null,
+    },
   },
 
-  //the one making req(user B)- id & name
   requesterId: {
     type: String,
     ref: "User",
@@ -72,17 +76,14 @@ const swapSchema = new mongoose.Schema({
     required: true,
   },
 
-  // swap details
   swapType: {
     type: String,
     enum: ["item-for-item", "swap-with-cash"],
     required: true,
   },
 
-  //for itemforitem swaps
   offeredItem: offeredItemSchema,
 
-  //for swap with cash
   cashDetails: {
     amount: {
       type: Number,
@@ -113,44 +114,61 @@ const swapSchema = new mongoose.Schema({
   },
 
   //status tracking
-  status:{
-    type:String,
-    enum:["pending","accepted","rejected","completed","cancelled"],
-    default:"pending",
+  status: {
+    type: String,
+    enum: ["pending", "accepted", "rejected", "completed", "cancelled"],
+    default: "pending",
   },
 
   //timestamps
-  createdAt:{
-    type:Date,
-    default:Date.now,
-
+  createdAt: {
+    type: Date,
+    default: Date.now,
   },
-  updateAt:{
-    type:Date,
-    default:Date.now,
+  updateAt: {
+    type: Date,
+    default: Date.now,
   },
 
-  // details
-  completedAt:Date,
-  completionNotes:String,
+  completionConfirmedBy: {
+    requester: {
+      type: Boolean,
+      default: false,
+    },
+    owner: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  completionRequestedAt: {
+    type: Date,
+    default: null,
+  },
+  bothConfirmedAt: {
+    type: Date,
+    default: null,
+  },
+
+  completedAt: Date,
+  completionNotes: String,
 });
 
-  //update, updateAt timestamp before saving
-  swapSchema.pre("save", function(next){
-    this.updateAt=Date.now();
-  });
+swapSchema.pre("save", function (next) {
+  this.updateAt = Date.now();
+});
 
-  //gen reqid before validation
-  swapSchema.pre("validate",function(next){
-    if(!this.requestId){
-        const date=new Date();
-        const year=date.getFullYear().toString().slice(-2);
-        const month=(date.getMonth()+1).toString().padStart(2,"0");
-        const day=date.getDate().toString().padStart(2,"0");
-        const random=Math.floor(Math.random()*10000).toString().padStart(2,"0")
-        this.requestId=`SWP-${year}${month}${day}-${random}`;                         //auto gen like (SWP-260215-1234)
-    }
-  });
+swapSchema.pre("validate", function (next) {
+  if (!this.requestId) {
+    const date = new Date();
+    const year = date.getFullYear().toString().slice(-2);
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, "0");
+    const random = Math.floor(Math.random() * 10000)
+      .toString()
+      .padStart(2, "0");
+    this.requestId = `SWP-${year}${month}${day}-${random}`;
+  }
+});
 const Swap = mongoose.model("Swap", swapSchema);
 
 export default Swap;
