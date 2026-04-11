@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://swapnest-api.onrender.com/",
+  // Add /api to the end of the URL
+  baseURL: "https://swapnest-api.onrender.com/api",
 });
 
 // Automatically attach the JWT token to every request
