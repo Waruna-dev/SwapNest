@@ -1,6 +1,11 @@
+import { Link, useLocation } from 'react-router-dom';
+
 const Footer = () => {
+  const location = useLocation();
+  const navTarget = (hash) => (location.pathname === "/" ? hash : `/${hash}`);
+
   return (
-    <footer className="bg-primary text-on-primary font-body w-full rounded-t-[3rem] mt-10 overflow-hidden reveal-on-scroll opacity-0 translate-y-12 transition-all duration-1000 ease-out">
+    <footer className="bg-primary text-on-primary font-body w-full rounded-t-[3rem] mt-10 overflow-hidden">
       <div className="flex flex-col md:flex-row justify-between items-start w-full px-8 md:px-16 py-20 max-w-7xl mx-auto gap-12">
         
         <div className="mb-8 md:mb-0 max-w-sm">
@@ -19,15 +24,15 @@ const Footer = () => {
         <div className="grid grid-cols-2 gap-12 md:gap-24 w-full md:w-auto">
           <div className="flex flex-col gap-4">
             <h4 className="text-on-primary font-headline font-bold tracking-widest text-xs uppercase mb-2">Resources</h4>
-            <a className="text-on-primary-container hover:text-on-primary transition-colors font-medium" href="#how-it-works">How it Works</a>
-            <a className="text-on-primary-container hover:text-on-primary transition-colors font-medium" href="#impact">Sustainability Report</a>
-            <a className="text-on-primary-container hover:text-on-primary transition-colors font-medium" href="#community">Local Hubs</a>
+            <a className="text-on-primary-container hover:text-on-primary transition-colors font-medium" href={navTarget("#how-it-works")}>How it Works</a>
+            <a className="text-on-primary-container hover:text-on-primary transition-colors font-medium" href={navTarget("#impact")}>Sustainability Report</a>
+            <a className="text-on-primary-container hover:text-on-primary transition-colors font-medium" href={navTarget("#community")}>Local Hubs</a>
           </div>
           <div className="flex flex-col gap-4">
             <h4 className="text-on-primary font-headline font-bold tracking-widest text-xs uppercase mb-2">Company</h4>
             <a className="text-on-primary-container hover:text-on-primary transition-colors font-medium" href="#">Privacy Policy</a>
             <a className="text-on-primary-container hover:text-on-primary transition-colors font-medium" href="#">Community Guidelines</a>
-            <a className="text-on-primary-container hover:text-on-primary transition-colors font-medium" href="#">Contact Us</a>
+            <Link className="text-on-primary-container hover:text-on-primary transition-colors font-medium" to="/contact">Contact Us</Link>
           </div>
         </div>
         

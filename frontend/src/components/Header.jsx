@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import API from '../services/api';
 
 const Header = () => {
+  const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [profilePic, setProfilePic] = useState('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80');
+  const navTarget = (hash) => (location.pathname === "/" ? hash : `/${hash}`);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -43,10 +45,11 @@ const Header = () => {
         </Link>
         
         <div className="hidden md:flex items-center gap-8 font-headline font-bold text-sm tracking-tight">
-          <a className="text-secondary border-b-2 border-secondary pb-1" href="#discover">Discover</a>
-          <a className="text-primary/80 hover:text-primary transition-colors" href="#how-it-works">How it Works</a>
-          <a className="text-primary/80 hover:text-primary transition-colors" href="#impact">Impact</a>
-          <a className="text-primary/80 hover:text-primary transition-colors" href="#community">Community</a>
+          <a className="text-secondary border-b-2 border-secondary pb-1" href={navTarget("#discover")}>Discover</a>
+          <a className="text-primary/80 hover:text-primary transition-colors" href={navTarget("#how-it-works")}>How it Works</a>
+          <a className="text-primary/80 hover:text-primary transition-colors" href={navTarget("#impact")}>Impact</a>
+          <a className="text-primary/80 hover:text-primary transition-colors" href={navTarget("#community")}>Community</a>
+          <Link className="text-primary/80 hover:text-primary transition-colors" to="/contact">Contact</Link>
         </div>
         
         <div className="hidden md:flex items-center gap-6">
@@ -77,9 +80,10 @@ const Header = () => {
 
       <div className={`md:hidden absolute top-full left-0 w-full bg-surface-container-low border-b border-outline-variant/20 shadow-xl transition-all duration-300 overflow-hidden ${isMobileMenuOpen ? 'max-h-[400px] py-6' : 'max-h-0 py-0'}`}>
         <div className="flex flex-col gap-6 px-6">
-          <a href="#discover" className="text-secondary font-headline font-bold text-lg">Discover</a>
-          <a href="#how-it-works" className="text-primary font-headline font-bold text-lg">How it Works</a>
-          <a href="#community" className="text-primary font-headline font-bold text-lg">Community</a>
+          <a href={navTarget("#discover")} className="text-secondary font-headline font-bold text-lg">Discover</a>
+          <a href={navTarget("#how-it-works")} className="text-primary font-headline font-bold text-lg">How it Works</a>
+          <a href={navTarget("#community")} className="text-primary font-headline font-bold text-lg">Community</a>
+          <Link to="/contact" className="text-primary font-headline font-bold text-lg">Contact</Link>
           <div className="h-px bg-outline-variant/20"></div>
           
           {isLoggedIn ? (

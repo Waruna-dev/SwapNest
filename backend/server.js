@@ -25,6 +25,7 @@ import swapRoutes from "./routes/swapRoutes.js";
 import volunteerRoutes from "./routes/VolunteerRoutes.js";
 import pickupRoutes from "./routes/PickupRoutes.js";
 import centerRoutes from "./routes/CenterRoutes.js";
+import contactRoutes from "./routes/contactRoutes.js";
 
 // Connect to MongoDB
 connectDB();
@@ -58,6 +59,7 @@ app.use("/api/swaps", swapRoutes);
 app.use("/api/volunteers", volunteerRoutes);
 app.use("/api/pickups", pickupRoutes);
 app.use("/api/centers", centerRoutes);
+app.use("/api/contact", contactRoutes);
 
 // TEST ROUTE (Combined)
 app.get("/", (req, res) => {

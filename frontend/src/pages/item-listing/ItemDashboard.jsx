@@ -425,7 +425,7 @@ function ItemDashboard({ ownerOnly = false }) {
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f5ede2_0%,#faf6ef_36%,#e8f1ec_100%)] text-[#0a3327]">
-      {/* <DashboardNavbar /> */}
+      <DashboardNavbar />
       <main className="relative z-10 mx-auto max-w-[1400px] px-4 py-8 md:px-8">
         <DashboardSummaryCards summary={summary} formatPrice={formatPrice} />
 
