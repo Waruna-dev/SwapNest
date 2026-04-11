@@ -222,7 +222,7 @@ const Dashboard = () => {
               My Swaps
             </button>
             <Link to="/item/gallery" className="text-primary/80 hover:text-primary transition-colors">Marketplace</Link>
-            <Link to="/messages" className="text-primary/80 hover:text-primary transition-colors">Messages</Link>
+            
           </div>
           
           <div className="flex items-center gap-4">
