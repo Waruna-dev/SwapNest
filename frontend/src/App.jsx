@@ -13,6 +13,7 @@ import Swapform from "./components/swap/SwapForm";
 import ItemAddNewItems from "./pages/item-listing/ItemAddNewItem";
 import ItemGalleryPage from "./pages/item-gallery/ItemGalleryPage";
 import ItemDashboard1 from "./pages/item-listing/ItemDashboard";
+import ItemLocation from "./pages/item-ocation/itemLocation";
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import ContactUs from './pages/ContactUs';

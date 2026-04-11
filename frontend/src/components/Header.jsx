@@ -14,6 +14,7 @@ const Header = () => {
 
   // Helper to get the first letter of the user's name
   const userInitial = userName ? userName.charAt(0).toUpperCase() : 'U';
+  const navTarget = (sectionId) => (location.pathname === '/' ? sectionId : `/${sectionId}`);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
