@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createItem } from "../../services/item/itemApi";
 
@@ -8,6 +8,7 @@ import ItemFormSection from "../../components/item-listing/ItemFormSection";
 import StatusDialog from "../../components/item-listing/StatusDialog";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
+import SimpleVolunteerHelp from "../../Component/Volunteer/SimpleVolunteerHelp";
 
 // Custom Hooks
 import { useItemForm } from "../../hooks/useItemForm";
@@ -15,6 +16,8 @@ import { useLocationPicker } from "../../hooks/useLocationPicker";
 
 const ItemAddNewItem = () => {
   const navigate = useNavigate(); // used for page navigation
+  const [showVolunteerHelp, setShowVolunteerHelp] = useState(false);
+  const [createdItemData, setCreatedItemData] = useState(null);
 
   // ===========================
   // FORM STATE (Custom Hook)
@@ -120,11 +123,17 @@ const ItemAddNewItem = () => {
       const response = await createItem(payload);
       const createdItem = response.data;
 
-      // SUCCESS MESSAGE
-      setStatus({
-        type: "success",
-        message: `Item created successfully with ID ${createdItem.itemId}.`,
-      });
+      // Check if mode is Free - if so, show volunteer popup instead of success dialog
+      if (formData.mode === "Free") {
+        setCreatedItemData(createdItem);
+        setShowVolunteerHelp(true);
+      } else {
+        // SUCCESS MESSAGE for other modes
+        setStatus({
+          type: "success",
+          message: `Item created successfully with ID ${createdItem.itemId}.`,
+        });
+      }
 
       // reset form after success
       resetForm();
@@ -139,6 +148,23 @@ const ItemAddNewItem = () => {
     } finally {
       setIsSubmitting(false); // stop loading
     }
+  };
+
+  // ===========================
+  // VOLUNTEER POPUP HANDLERS
+  // ===========================
+  const handleVolunteerHelpSuccess = () => {
+    // Close popup and navigate to items page
+    setShowVolunteerHelp(false);
+    setCreatedItemData(null);
+    navigate("/item/gallery");
+  };
+
+  const handleVolunteerHelpClose = () => {
+    // Close popup and navigate to items page
+    setShowVolunteerHelp(false);
+    setCreatedItemData(null);
+    navigate("/item/gallery");
   };
 
   // ===========================
@@ -207,9 +233,16 @@ const ItemAddNewItem = () => {
         />
       </main>
 
-      <div className="relative z-10">
+<div className="relative z-10">
         <Footer />
       </div>
+      {/* VOLUNTEER HELP POPUP - For Free mode items */}
+      <SimpleVolunteerHelp
+        isOpen={showVolunteerHelp}
+        onClose={handleVolunteerHelpClose}
+        itemData={createdItemData}
+        onSuccess={handleVolunteerHelpSuccess}
+      />
     </div>
   );
 };

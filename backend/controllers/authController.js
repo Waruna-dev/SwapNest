@@ -332,10 +332,31 @@ const resetPassword = asyncHandler(async (req, res) => {
     res.status(200).json({ message: 'Password reset successful' });
 });
 
+// @desc    Get user location data
+// @route   GET /api/users/location
+// @access  Private
+const getUserLocation = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user.id).select('address city district location');
+    
+    if (!user) {
+        res.status(404);
+        throw new Error('User not found');
+    }
+
+    res.status(200).json({
+        address: user.address || '',
+        city: user.city || '',
+        district: user.district || '',
+        coordinates: user.location.coordinates || [0, 0],
+        hasLocation: !!(user.address && user.city && user.district)
+    });
+});
+
 export { 
     registerUser, 
     loginUser, 
     getMe, 
+    getUserLocation,
     updateProfile, 
     updatePassword, 
     deleteUser, 
