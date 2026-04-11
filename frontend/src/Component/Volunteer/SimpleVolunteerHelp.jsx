@@ -24,8 +24,14 @@ export default function SimpleVolunteerHelp({
     userCity: 'Colombo',
     userDistrict: 'Western Province',
     pickupNotes: '',
-    userNotes: ''
+    userNotes: '',
+    deliveryType: 'delivery', // New field for pickup/delivery selection
+    locationCoordinates: { type: 'Point', coordinates: [0, 0] } // New field for GPS coordinates
   });
+
+  const [useCurrentLocation, setUseCurrentLocation] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [userLocationAvailable, setUserLocationAvailable] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -58,9 +64,42 @@ export default function SimpleVolunteerHelp({
           userName: userData.username || prev.userName,
           userEmail: userData.email || prev.userEmail
         }));
+
+        // Also try to load user's saved location
+        await loadUserLocation();
       }
     } catch (err) {
       console.error('Error loading user data:', err);
+    }
+  };
+
+  const loadUserLocation = async () => {
+    try {
+      console.log('Loading user location...');
+      const response = await API.get('/users/location');
+      const locationData = response.data;
+      
+      console.log('User location response:', locationData);
+      
+      if (locationData.hasLocation) {
+        console.log('User has saved location, auto-filling...');
+        setUserLocationAvailable(true);
+        setFormData(prev => ({
+          ...prev,
+          userAddress: locationData.address,
+          userCity: locationData.city,
+          userDistrict: locationData.district,
+          locationCoordinates: {
+            type: 'Point',
+            coordinates: locationData.coordinates
+          }
+        }));
+      } else {
+        console.log('No saved location found for user');
+      }
+    } catch (error) {
+      console.error('Error fetching user location:', error);
+      // Don't set error state here, just log it - user can still use current location
     }
   };
 
@@ -72,10 +111,128 @@ export default function SimpleVolunteerHelp({
     }));
   };
 
+  const handleDeliveryTypeChange = (e) => {
+    setFormData(prev => ({ ...prev, deliveryType: e.target.value }));
+  };
+
+  const getCurrentLocation = () => {
+    console.log('Starting location detection...');
+    setLocationLoading(true);
+    setError('');
+    
+    if (!navigator.geolocation) {
+      console.error('Geolocation not supported');
+      setError('Geolocation is not supported by your browser');
+      setLocationLoading(false);
+      return;
+    }
+
+    console.log('Requesting current position...');
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        console.log('Position obtained:', position);
+        const { latitude, longitude } = position.coords;
+        console.log('Coordinates:', { latitude, longitude });
+        
+        try {
+          console.log('Starting reverse geocoding...');
+          // Reverse geocoding to get address from coordinates
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+          );
+          const data = await response.json();
+          console.log('Geocoding response:', data);
+          
+          if (data && data.address) {
+            const address = data.address;
+            console.log('Address data:', address);
+            
+            const formattedAddress = `${address.road || ''} ${address.house_number || ''}`.trim() || 'Current Location';
+            const city = address.city || address.town || address.village || '';
+            const district = address.county || address.state || '';
+            
+            console.log('Formatted location:', { formattedAddress, city, district });
+            
+            setFormData(prev => ({
+              ...prev,
+              userAddress: formattedAddress,
+              userCity: city,
+              userDistrict: district,
+              locationCoordinates: {
+                type: 'Point',
+                coordinates: [longitude, latitude]
+              }
+            }));
+            
+            console.log('Location successfully updated in form');
+          } else {
+            console.warn('No address data found in geocoding response');
+            // Still set coordinates even if address lookup fails
+            setFormData(prev => ({
+              ...prev,
+              locationCoordinates: {
+                type: 'Point',
+                coordinates: [longitude, latitude]
+              }
+            }));
+          }
+        } catch (error) {
+          console.error('Error getting address from coordinates:', error);
+          setError('Could not get address from your location, but coordinates were captured');
+          // Still set coordinates even if address lookup fails
+          setFormData(prev => ({
+            ...prev,
+            locationCoordinates: {
+              type: 'Point',
+              coordinates: [longitude, latitude]
+            }
+          }));
+        } finally {
+          setLocationLoading(false);
+        }
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        let errorMessage = 'Could not get your current location';
+        
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Location access denied. Please enable location permissions.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Location information is unavailable.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'Location request timed out.';
+            break;
+          default:
+            errorMessage = 'An unknown error occurred while getting location.';
+            break;
+        }
+        
+        setError(errorMessage);
+        setLocationLoading(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000 // Accept cached location up to 1 minute old
+      }
+    );
+  };
+
+  const handleUseCurrentLocationToggle = () => {
+    if (!useCurrentLocation) {
+      getCurrentLocation();
+    }
+    setUseCurrentLocation(!useCurrentLocation);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!selectedCenter) {
+    // Validate center selection only for pickup
+    if (formData.deliveryType === 'pickup' && !selectedCenter) {
       setError('Please select a pickup center');
       return;
     }
@@ -248,28 +405,77 @@ export default function SimpleVolunteerHelp({
             </div>
           </div>
 
-          {/* Pickup Details */}
-          <div className="bg-orange-100 rounded-xl p-6">
-            <h3 className="text-lg font-semibold mb-4 text-orange-900">Pickup Details</h3>
+          {/* Delivery Type - Auto-selected as Delivery */}
+          <div className="bg-blue-50 rounded-xl p-6">
+            <h3 className="text-lg font-semibold mb-4 text-blue-900">Delivery Type</h3>
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-orange-800 mb-1">
-                  Select Pickup Center *
-                </label>
-                <select
-                  value={selectedCenter}
-                  onChange={(e) => setSelectedCenter(e.target.value)}
-                  required
-                  className="w-full px-4 py-2 border border-orange-400 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-orange-600"
-                >
-                  <option value="">Choose a center...</option>
-                  {centers.map(center => (
-                    <option key={center._id} value={center._id}>
-                      {center.centerName} - {center.city}, {center.district}
-                    </option>
-                  ))}
-                </select>
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center">
+                  <div className="w-2 h-2 rounded-full bg-white"></div>
+                </div>
+                <span className="text-sm font-medium text-blue-800">Delivery (Automatically selected)</span>
               </div>
+              <p className="text-xs text-blue-600 italic">
+                Free delivery request - volunteer will deliver the item to your location
+              </p>
+            </div>
+          </div>
+
+          {/* Location Information */}
+          <div className="bg-green-50 rounded-xl p-6">
+            <h3 className="text-lg font-semibold mb-4 text-green-900">Location Information</h3>
+            <div className="space-y-4">
+              {/* Auto-fill indicator */}
+              {userLocationAvailable && !useCurrentLocation && (
+                <div className="p-3 bg-green-100 border border-green-300 rounded-md">
+                  <p className="text-green-800 text-sm">
+                    Your saved location is available and auto-filled
+                  </p>
+                </div>
+              )}
+
+              {/* Current Location Toggle */}
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="useCurrentLocation"
+                  checked={useCurrentLocation}
+                  onChange={handleUseCurrentLocationToggle}
+                  className="rounded w-4 h-4 text-green-600"
+                />
+                <label htmlFor="useCurrentLocation" className="text-sm text-green-800 cursor-pointer">
+                  {locationLoading ? 'Getting location...' : 'Use current location'}
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Pickup/Delivery Details */}
+          <div className="bg-orange-100 rounded-xl p-6">
+            <h3 className="text-lg font-semibold mb-4 text-orange-900">
+              {formData.deliveryType === 'delivery' ? 'Delivery Details' : 'Pickup Details'}
+            </h3>
+            <div className="space-y-4">
+              {formData.deliveryType === 'pickup' && (
+                <div>
+                  <label className="block text-sm font-medium text-orange-800 mb-1">
+                    Select Pickup Center *
+                  </label>
+                  <select
+                    value={selectedCenter}
+                    onChange={(e) => setSelectedCenter(e.target.value)}
+                    required
+                    className="w-full px-4 py-2 border border-orange-400 rounded-lg focus:ring-2 focus:ring-orange-600 focus:border-orange-600"
+                  >
+                    <option value="">Choose a center...</option>
+                    {centers.map(center => (
+                      <option key={center._id} value={center._id}>
+                        {center.centerName} - {center.city}, {center.district}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-orange-800 mb-1">
@@ -301,6 +507,7 @@ export default function SimpleVolunteerHelp({
             </div>
           </div>
 
+          
           {/* Messages */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">

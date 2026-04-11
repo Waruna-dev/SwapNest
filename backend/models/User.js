@@ -37,6 +37,30 @@ const UserSchema = new mongoose.Schema({
     profilePic: {
         type: String,
         default: '' 
+    },
+    // Location information
+    address: {
+        type: String,
+        default: ''
+    },
+    city: {
+        type: String,
+        default: ''
+    },
+    district: {
+        type: String,
+        default: ''
+    },
+    location: {
+        type: {
+            type: String,
+            enum: ['Point'],
+            default: 'Point'
+        },
+        coordinates: {
+            type: [Number],
+            default: [0, 0] // [longitude, latitude]
+        }
     }
 }, {
     timestamps: true

@@ -7,6 +7,7 @@ import {
   loginUser, 
   logoutUser,
   getMe, 
+  getUserLocation,
   updateProfile,
   updatePassword,
   deleteUser,
@@ -29,6 +30,7 @@ router.post('/reset-password/:token', resetPassword);   // <-- Submit new passwo
 
 // --- PROTECTED ROUTES (All logged-in users: Users, Volunteers, Admins) ---
 router.get('/me', protect, getMe);
+router.get('/location', protect, getUserLocation);
 router.put('/profile', protect, upload.single('profileImage'), updateProfile);
 router.put('/password', protect, updatePassword);
 router.post('/logout', protect, logoutUser); // Moved logout here (usually standard users can log out, not just admins)

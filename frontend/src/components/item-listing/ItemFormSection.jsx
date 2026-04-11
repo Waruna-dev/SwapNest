@@ -13,7 +13,7 @@ const categoryOptions = [
   "Sports",
 ];
 
-const modeOptions = ["Swap", "Sell", "Swap + Sell"];
+const modeOptions = ["Swap", "Sell", "Swap + Sell", "Free"];
 const conditionOptions = ["New", "Like New", "Used", "Vintage", "Refurbished"];
 
 const ItemFormSection = ({
@@ -33,6 +33,7 @@ const ItemFormSection = ({
   handleLocationSearch,
 }) => {
   const isSwapOnly = formData.mode === "Swap";
+  const shouldHidePrice = formData.mode === "Swap" || formData.mode === "Free";
   const [invalidFields, setInvalidFields] = useState({});
 
   const getFieldClassName = (fieldName, baseClassName) =>
@@ -170,7 +171,7 @@ const ItemFormSection = ({
             </select>
           </div>
 
-          {!isSwapOnly && (
+          {!shouldHidePrice && (
             <div className="space-y-2">
               <label className="ml-1 text-[11px] font-bold uppercase tracking-[0.28em] text-[#0a3327]/55">
                 Price

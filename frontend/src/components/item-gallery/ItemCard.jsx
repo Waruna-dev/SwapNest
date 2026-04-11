@@ -7,9 +7,11 @@ import {
 } from "../../utils/itemGalleryUtils";
 import { IconCart, IconHeart, IconMapPin, IconSwap } from "./icons";
 import SwapForm from "../../components/swap/SwapForm";
+import SimpleVolunteerHelp from "../../Component/Volunteer/SimpleVolunteerHelp";
 
 function ItemCard({ item, isFavorite, onToggleFavorite, onQuickView }) {
   const [showSwapModal, setShowSwapModal] = useState(false);
+  const [showVolunteerHelp, setShowVolunteerHelp] = useState(false);
   
   const locationLabel = getLocationLabel(item);
   const categoryLabel = item.category || "General";
@@ -57,6 +59,23 @@ function ItemCard({ item, isFavorite, onToggleFavorite, onQuickView }) {
     }
     console.log("Buy item:", item);
     alert("Purchase feature coming soon!");
+  };
+
+  // Handle Free Delivery button click - open volunteer help modal
+  const handleFreeDeliveryClick = () => {
+    if (!currentUser._id) {
+      alert("Please login to request free delivery");
+      return;
+    }
+    setShowVolunteerHelp(true);
+  };
+
+  const handleVolunteerHelpSuccess = () => {
+    setShowVolunteerHelp(false);
+  };
+
+  const handleVolunteerHelpClose = () => {
+    setShowVolunteerHelp(false);
   };
 
   return (
@@ -178,13 +197,7 @@ function ItemCard({ item, isFavorite, onToggleFavorite, onQuickView }) {
               <button
                 type="button"
                 className="rounded-full border border-[#d4d4d8] bg-white px-3 py-2 text-xs font-semibold text-[#0b3b30] transition hover:border-[#0b3b30] hover:bg-[#eff6f3]"
-                onClick={() => {
-                  if (!currentUser._id) {
-                    alert("Please login to request free delivery");
-                    return;
-                  }
-                  alert("Free delivery feature coming soon!");
-                }}
+                onClick={handleFreeDeliveryClick}
               >
                 Free Delivery
               </button>
@@ -211,6 +224,20 @@ function ItemCard({ item, isFavorite, onToggleFavorite, onQuickView }) {
           requesterName={currentUser.username}
           onClose={() => setShowSwapModal(false)}
           onSuccess={handleSwapSuccess}
+        />
+      )}
+
+      {/* Volunteer Help Modal */}
+      {showVolunteerHelp && (
+        <SimpleVolunteerHelp
+          isOpen={showVolunteerHelp}
+          onClose={handleVolunteerHelpClose}
+          onSuccess={handleVolunteerHelpSuccess}
+          itemData={{
+            itemId: item._id || item.itemId,
+            title: item.title,
+            category: item.category
+          }}
         />
       )}
     </>

@@ -41,11 +41,19 @@ const simpleVolunteerHelpSchema = new mongoose.Schema({
     required: true
   },
   
-  // Pickup details
+  // Delivery details
+  deliveryType: {
+    type: String,
+    enum: ['pickup', 'delivery'],
+    required: true,
+    default: 'pickup'
+  },
   centerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Center',
-    required: true
+    required: function() {
+      return this.deliveryType === 'pickup';
+    }
   },
   pickupNotes: {
     type: String,
@@ -54,6 +62,19 @@ const simpleVolunteerHelpSchema = new mongoose.Schema({
   userNotes: {
     type: String,
     default: ''
+  },
+  
+  // Location details
+  locationCoordinates: {
+    type: {
+      type: String,
+      enum: ['Point'],
+      default: 'Point'
+    },
+    coordinates: {
+      type: [Number],
+      default: [0, 0] // [longitude, latitude]
+    }
   },
   
   // Status and metadata

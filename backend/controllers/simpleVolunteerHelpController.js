@@ -35,15 +35,25 @@ const createVolunteerHelp = async (req, res) => {
       userDistrict,
       centerId,
       pickupNotes,
-      userNotes
+      userNotes,
+      deliveryType,
+      locationCoordinates
     } = req.body;
 
     // Validate required fields
     if (!itemId || !itemTitle || !itemCategory || !userName || !userEmail || 
-        !userPhone || !userAddress || !userCity || !userDistrict || !centerId) {
+        !userPhone || !userAddress || !userCity || !userDistrict || !deliveryType) {
       return res.status(400).json({
         success: false,
-        message: 'All required fields must be provided'
+        message: 'All required fields must be provided including delivery type'
+      });
+    }
+
+    // Validate center requirement for pickup
+    if (deliveryType === 'pickup' && !centerId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Center ID is required for pickup requests'
       });
     }
 
@@ -58,9 +68,11 @@ const createVolunteerHelp = async (req, res) => {
       userAddress,
       userCity,
       userDistrict,
-      centerId,
+      deliveryType: deliveryType || 'pickup',
+      centerId: deliveryType === 'pickup' ? centerId : null,
       pickupNotes: pickupNotes || '',
       userNotes: userNotes || '',
+      locationCoordinates: locationCoordinates || { type: 'Point', coordinates: [0, 0] },
       userId
     });
 
