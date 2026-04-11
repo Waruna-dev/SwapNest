@@ -6,6 +6,15 @@
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "perf:setup": "node performance/setup-test-data.js",
+    "perf:auth": "artillery run performance/auth-performance.yml",
+    "perf:items": "artillery run performance/item-performance.yml",
+    "perf:swaps": "artillery run performance/swap-performance.yml",
+    "perf:centers": "artillery run performance/center-performance.yml",
+    "perf:volunteers": "artillery run performance/volunteer-performance.yml",
+    "perf:pickups": "artillery run performance/pickup-performance.yml",
+    "perf:all": "node performance/run-all-tests.js",
+    "perf:report": "artillery report --output reports/summary.html reports/*.json", 
     "dev": "nodemon server.js",
     "start": "node server.js"
   },
