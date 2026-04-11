@@ -59,6 +59,12 @@ const loginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
 
+    // --- NEW: Restrict Admin Login ---
+    if (user && user.role === 'admin') {
+        res.status(403);
+        throw new Error('Administrators are not permitted to log in via the Standard User portal.');
+    }
+
     if (user && (await bcrypt.compare(password, user.password))) {
         res.json({
             _id: user.id,
@@ -189,6 +195,12 @@ const googleAuth = asyncHandler(async (req, res) => {
     const { email, name, picture } = googleResponse.data;
 
     let user = await User.findOne({ email });
+
+    // --- NEW: Restrict Admin Login via Google ---
+    if (user && user.role === 'admin') {
+        res.status(403);
+        throw new Error('Administrators are not permitted to log in via the Standard User portal.');
+    }
 
     if (!user) {
         const randomPassword = Math.random().toString(36).slice(-12);
