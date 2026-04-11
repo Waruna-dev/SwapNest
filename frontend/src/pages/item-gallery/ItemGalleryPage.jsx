@@ -13,6 +13,8 @@ import FilterSidebar from "../../components/item-gallery/FilterSidebar";
 import ItemGrid from "../../components/item-gallery/ItemGrid";
 import PaginationControls from "../../components/item-gallery/PaginationControls";
 import ItemQuickViewModal from "../../components/item-gallery/ItemQuickViewModal";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
 
 const categoryOptions = [
   "All",
@@ -345,6 +347,9 @@ function ItemGalleryPage() {
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f7efdf_0%,#fbf7ef_38%,#edf5f1_100%)] text-[#0a3327]">
+      <Header />
+
+      <div className="pt-24 md:pt-28">
       <MarketplaceHero
         filters={filters}
         totalItems={totalItems}
@@ -357,6 +362,7 @@ function ItemGalleryPage() {
         onFilterChange={handleFilterChange}
         onRequestLocation={requestNearbyAccess}
       />
+      </div>
 
       <main className="mx-auto w-full max-w-[1850px] px-4 py-10 sm:px-6 xl:px-8 2xl:px-10">
         <div className="grid gap-8 xl:grid-cols-[295px_minmax(0,1fr)]">
@@ -494,6 +500,8 @@ function ItemGalleryPage() {
           onRemoveFavorite={handleRemoveFavorite}
         />
       ) : null}
+
+      <Footer />
     </div>
   );
 }
