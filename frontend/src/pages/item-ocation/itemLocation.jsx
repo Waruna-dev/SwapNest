@@ -15,6 +15,8 @@ import {
   getLocationLabel,
   getPrimaryImage,
 } from "../../utils/itemGalleryUtils";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
 
 const DEFAULT_MAX_PRICE = 500000;
 const CONDITION_OPTIONS = ["New", "Like New", "Used", "Vintage", "Refurbished"];
@@ -506,7 +508,7 @@ const ItemLocation = () => {
           ${
             isSwapItem
               ? `<div style="display:inline-flex; align-items:center; gap:6px; padding:7px 12px; border-radius:999px; background:#dff7ec; color:#166534; font-size:13px; font-weight:700;">
-                  <span style="font-size:14px;">⇄</span>
+                  <span style="font-size:14px;">&#8646;</span>
                   <span>Swap item</span>
                 </div>`
               : `<div style="font-size: 13px; font-weight: 700; color: #b1461a;">${formatPrice(item.price)}</div>`
@@ -540,6 +542,9 @@ const ItemLocation = () => {
     });
 
     if (hasCoordinates) {
+      // Keep Leaflet dimensions in sync after layout/content changes.
+      map.invalidateSize();
+
       if (filteredItems.length) {
         const bounds = L.latLngBounds([[selectedLat, selectedLng]]);
 
@@ -572,45 +577,53 @@ const ItemLocation = () => {
     };
   }, [filteredItems, hasCoordinates, mapInstanceRef, selectedLat, selectedLng]);
 
+  useEffect(() => {
+    const map = mapInstanceRef?.current;
+    if (!map) return;
+
+    const rafId = window.requestAnimationFrame(() => {
+      map.invalidateSize();
+    });
+    const timeoutId = window.setTimeout(() => {
+      map.invalidateSize();
+    }, 180);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [mapInstanceRef, filteredItems.length, hasCoordinates]);
+
   return (
-    <section className="min-h-screen bg-[#f5f1ea] px-4 py-10 text-[#0a3327] md:px-8 2xl:px-10">
-      <div className="mx-auto max-w-[1680px]">
-        <div className="mb-8 max-w-2xl">
-          <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-[#0a3327]/55">
-            Item Location
-          </p>
-          <h1 className="mt-3 font-serif text-4xl leading-tight text-[#0a3327]">
-            Nearby Marketplace Map
-          </h1>
-          <p className="mt-4 text-sm leading-7 text-[#0a3327]/65">
-            Search a place, use your device location, or click directly on the
-            map to find listings around the selected item location.
-          </p>
-        </div>
+    <div className="bg-[#f5f1ea] text-[#0a3327] font-body antialiased selection:bg-secondary-container selection:text-white">
+      <Header />
 
-        <div className="rounded-[32px] border border-[#0a3327]/10 bg-white/90 p-5 shadow-[0_28px_80px_-42px_rgba(10,51,39,0.34)] backdrop-blur md:p-7 xl:p-8">
-          <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
-            <aside className="space-y-4 xl:order-1">
-              <div className="rounded-[32px] border border-[#0b3b30]/10 bg-white/85 p-6 shadow-[0_22px_70px_-42px_rgba(11,59,48,0.44)] backdrop-blur">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#7a8c86]">
-                      Filters
-                    </p>
-                    <h2 className="mt-2 font-headline text-3xl font-bold text-[#082d24]">
-                      Refine results
-                    </h2>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleResetFilters}
-                    className="text-sm font-semibold text-[#b1461a]"
-                  >
-                    Reset
-                  </button>
-                </div>
+      <main className="px-4 pb-10 pt-24 md:px-8 2xl:px-10">
+        <section className="min-h-screen">
+          <div className="mx-auto max-w-[1680px]">
+            <div className="rounded-[32px] border border-[#0a3327]/10 bg-white/90 p-5 shadow-[0_28px_80px_-42px_rgba(10,51,39,0.34)] backdrop-blur md:p-7 xl:p-8">
+              <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
+                <aside className="space-y-4 xl:order-1">
+                  <div className="rounded-[32px] border border-[#0b3b30]/10 bg-white/85 p-6 shadow-[0_22px_70px_-42px_rgba(11,59,48,0.44)] backdrop-blur">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#7a8c86]">
+                          Filters
+                        </p>
+                        <h2 className="mt-2 font-headline text-3xl font-bold text-[#082d24]">
+                          Refine results
+                        </h2>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleResetFilters}
+                        className="text-sm font-semibold text-[#b1461a]"
+                      >
+                        Reset
+                      </button>
+                    </div>
 
-                <div className="mt-6 space-y-7">
+                    <div className="mt-6 space-y-7">
                   <div>
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-semibold text-[#103b31]">
@@ -932,6 +945,9 @@ const ItemLocation = () => {
         </div>
       </div>
 
+        </section>
+      </main>
+
       {showModal ? (
         <ItemQuickViewModal
           item={selectedItem}
@@ -939,8 +955,11 @@ const ItemLocation = () => {
           onClose={closeModal}
         />
       ) : null}
-    </section>
+
+      <Footer />
+    </div>
   );
 };
 
 export default ItemLocation;
+

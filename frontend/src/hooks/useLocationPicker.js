@@ -189,6 +189,8 @@ export const useLocationPicker = (
 
   useEffect(() => {
     let isMounted = true;
+    let resizeTimeoutId = null;
+    let syncMapSize = null;
 
     const initializeMap = async () => {
       if (!mapRef.current || mapInstanceRef.current) return;
@@ -216,6 +218,13 @@ export const useLocationPicker = (
         const marker = L.marker([startLat, startLng], {
           icon: createCustomMarkerIcon(L, markerHtml),
         }).addTo(map);
+
+        syncMapSize = () => {
+          map.invalidateSize();
+        };
+
+        resizeTimeoutId = window.setTimeout(syncMapSize, 0);
+        window.addEventListener("resize", syncMapSize);
 
         mapInstanceRef.current = map;
         markerRef.current = marker;
@@ -280,6 +289,20 @@ export const useLocationPicker = (
 
     return () => {
       isMounted = false;
+      if (resizeTimeoutId) {
+        window.clearTimeout(resizeTimeoutId);
+      }
+      if (syncMapSize) {
+        window.removeEventListener("resize", syncMapSize);
+      }
+
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+
+      markerRef.current = null;
+      hasAppliedInitialLocationRef.current = false;
     };
   }, [initialLocation?.lat, initialLocation?.lng, markerHtml, setFormData]);
 

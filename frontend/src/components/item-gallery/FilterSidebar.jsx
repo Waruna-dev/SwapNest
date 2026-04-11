@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { formatPrice } from "../../utils/itemGalleryUtils";
+import { IconChevron, IconInfinite, IconPagination } from "./icons";
+import SearchBar from "./SearchBar";
 
 const DEFAULT_MAX_PRICE = 500000;
 
@@ -7,11 +9,18 @@ function FilterSidebar({
   filters,
   displayMode,
   locationState,
+  suggestions,
+  sortOptions,
+  categoryOptions,
+  categoryCounts,
   onFilterChange,
   onToggleCondition,
   onReset,
   setDisplayMode,
+  onRequestLocation,
 }) {
+  const [showCategoryMenu, setShowCategoryMenu] = useState(false);
+
   return (
     <aside className="h-fit rounded-[32px] border border-[#0b3b30]/10 bg-white/85 p-6 shadow-[0_22px_70px_-42px_rgba(11,59,48,0.44)] backdrop-blur">
       <div className="flex items-center justify-between">
@@ -33,6 +42,85 @@ function FilterSidebar({
       </div>
 
       <div className="mt-6 space-y-7">
+        <div className="space-y-3">
+          <SearchBar
+            value={filters.search}
+            onChange={(e) => onFilterChange("search", e.target.value)}
+            suggestions={suggestions}
+            onSuggestionClick={(value) => onFilterChange("search", value)}
+          />
+
+          <select
+            value={filters.sort}
+            onChange={(e) => onFilterChange("sort", e.target.value)}
+            className="h-12 w-full rounded-[18px] border border-[#0b3b30]/10 bg-[#f7f1e7] px-4 text-sm text-[#0a3327] outline-none transition focus:border-[#b1461a]"
+          >
+            {sortOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                Sort by {option.label}
+              </option>
+            ))}
+          </select>
+
+          <button
+            type="button"
+            onClick={onRequestLocation}
+            className="flex h-12 w-full items-center justify-center rounded-[18px] bg-[#0b3b30] px-4 text-sm font-semibold text-white transition hover:bg-[#082d24]"
+          >
+            {locationState.status === "loading"
+              ? "Finding you..."
+              : "Nearby search"}
+          </button>
+        </div>
+
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowCategoryMenu((current) => !current)}
+            className="flex w-full items-center justify-between rounded-[20px] border border-[#0b3b30]/10 bg-[#f7f1e7] px-4 py-3 text-left transition hover:bg-[#f2ebdf]"
+          >
+            <div>
+              <p className="text-sm font-semibold text-[#103b31]">Category</p>
+              <p className="mt-1 text-xs uppercase tracking-[0.2em] text-[#7a8c86]">
+                {filters.category}
+              </p>
+            </div>
+
+            <span
+              className={`text-[#21473d] transition-transform ${
+                showCategoryMenu ? "rotate-90" : ""
+              }`}
+            >
+              <IconChevron direction="right" />
+            </span>
+          </button>
+
+          {showCategoryMenu ? (
+            <div className="mt-4 grid gap-3">
+              {categoryOptions.map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => {
+                    onFilterChange("category", option);
+                    setShowCategoryMenu(false);
+                  }}
+                  className={`flex items-center justify-between rounded-[20px] border px-4 py-3 text-sm font-semibold transition ${
+                    filters.category === option
+                      ? "border-[#b1461a]/20 bg-[#fff1e7] text-[#b1461a]"
+                      : "border-[#0b3b30]/10 bg-white text-[#21473d] hover:bg-[#f7f1e7]"
+                  }`}
+                >
+                  <span>{option}</span>
+                  <span className="opacity-70">
+                    ({categoryCounts[option] ?? 0})
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
         <div>
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold text-[#103b31]">Price range</p>
@@ -143,30 +231,39 @@ function FilterSidebar({
 
         <div>
           <p className="text-sm font-semibold text-[#103b31]">Browse mode</p>
-          <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="mt-4 flex gap-3">
             <button
               type="button"
               onClick={() => setDisplayMode("pagination")}
-              className={`rounded-[20px] px-4 py-3 text-sm font-semibold transition ${
+              aria-label="Pagination mode"
+              title="Pagination mode"
+              className={`flex h-14 w-14 items-center justify-center rounded-[18px] border transition ${
                 displayMode === "pagination"
-                  ? "bg-[#0b3b30] text-white"
-                  : "bg-[#f6efe4] text-[#21473d]"
+                  ? "border-[#0b3b30] bg-[#0b3b30] text-white shadow-[0_14px_30px_-18px_rgba(11,59,48,0.7)]"
+                  : "border-[#0b3b30]/10 bg-[#f6efe4] text-[#21473d] hover:bg-[#efe6d8]"
               }`}
             >
-              Pagination
+              <IconPagination />
             </button>
 
             <button
               type="button"
               onClick={() => setDisplayMode("infinite")}
-              className={`rounded-[20px] px-4 py-3 text-sm font-semibold transition ${
+              aria-label="Infinite scroll mode"
+              title="Infinite scroll mode"
+              className={`flex h-14 w-14 items-center justify-center rounded-[18px] border transition ${
                 displayMode === "infinite"
-                  ? "bg-[#b1461a] text-white"
-                  : "bg-[#f6efe4] text-[#21473d]"
+                  ? "border-[#b1461a] bg-[#b1461a] text-white shadow-[0_14px_30px_-18px_rgba(177,70,26,0.7)]"
+                  : "border-[#0b3b30]/10 bg-[#f6efe4] text-[#21473d] hover:bg-[#efe6d8]"
               }`}
             >
-              Infinite scroll
+              <IconInfinite />
             </button>
+          </div>
+
+          <div className="mt-3 flex gap-3 text-xs font-semibold text-[#55716b]">
+            <div className="flex w-14 justify-center">Pages</div>
+            <div className="flex w-14 justify-center">Scroll</div>
           </div>
         </div>
       </div>
