@@ -1,6 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import API from '../../services/api';
 
+// Map component (simplified version - you can replace with a proper map library)
+const LocationMap = ({ address, city, district, coordinates }) => {
+  const [mapUrl, setMapUrl] = useState('');
+  
+  useEffect(() => {
+    if (coordinates && coordinates.length === 2) {
+      // Using OpenStreetMap static map (you can replace with Google Maps or other map service)
+      const [lon, lat] = coordinates;
+      setMapUrl(`https://www.openstreetmap.org/export/embed.html?bbox=${lon-0.01},${lat-0.01},${lon+0.01},${lat+0.01}&layer=mapnik`);
+    } else if (address && city) {
+      // Fallback to address-based map
+      const query = encodeURIComponent(`${address}, ${city}, ${district}`);
+      setMapUrl(`https://www.openstreetmap.org/export/embed.html?bbox=&layer=mapnik&marker=${query}`);
+    }
+  }, [address, city, district, coordinates]);
+
+  if (!mapUrl) {
+    return (
+      <div className="bg-gray-100 rounded-lg h-48 flex items-center justify-center text-gray-500">
+        Location map not available
+      </div>
+    );
+  }
+
+  return (
+    <iframe
+      src={mapUrl}
+      className="w-full h-48 rounded-lg border border-gray-300"
+      style={{ border: 0 }}
+      allowFullScreen=""
+      loading="lazy"
+      referrerPolicy="no-referrer-when-downgrade"
+    />
+  );
+};
+
 export default function VolunteerPickup() {
   const [loading, setLoading] = useState(true);
   const [pickupRequests, setPickupRequests] = useState([]);
@@ -8,6 +44,7 @@ export default function VolunteerPickup() {
   const [selectedCenter, setSelectedCenter] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [deliveryTypeFilter, setDeliveryTypeFilter] = useState('all');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -53,15 +90,38 @@ export default function VolunteerPickup() {
       request.userEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       request.itemTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       request.userAddress?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDeliveryType = deliveryTypeFilter === 'all' || request.deliveryType === deliveryTypeFilter;
+    const matchesStatus = statusFilter === 'all' || request.status === statusFilter;
     
-    return matchesCenter && matchesSearch;
+    return matchesCenter && matchesSearch && matchesDeliveryType && matchesStatus;
   });
 
   const getStatusBadge = (request) => {
-    // You can add status logic here based on your backend data
+    const status = request.status || 'pending';
+    const statusColors = {
+      pending: 'bg-yellow-100 text-yellow-800',
+      assigned: 'bg-blue-100 text-blue-800',
+      completed: 'bg-green-100 text-green-800',
+      cancelled: 'bg-red-100 text-red-800'
+    };
+    
     return (
-      <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
-        Pending
+      <span className={`px-2 py-1 text-xs rounded-full ${statusColors[status] || statusColors.pending}`}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </span>
+    );
+  };
+
+  const getDeliveryTypeBadge = (request) => {
+    const deliveryType = request.deliveryType || 'pickup';
+    const typeColors = {
+      pickup: 'bg-orange-100 text-orange-800',
+      delivery: 'bg-green-100 text-green-800'
+    };
+    
+    return (
+      <span className={`px-2 py-1 text-xs rounded-full ${typeColors[deliveryType] || typeColors.pickup}`}>
+        {deliveryType.charAt(0).toUpperCase() + deliveryType.slice(1)}
       </span>
     );
   };
@@ -90,7 +150,7 @@ export default function VolunteerPickup() {
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Search */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -103,6 +163,22 @@ export default function VolunteerPickup() {
               placeholder="Search by name, email, item, or address..."
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
+          </div>
+
+          {/* Delivery Type Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Delivery Type
+            </label>
+            <select
+              value={deliveryTypeFilter}
+              onChange={(e) => setDeliveryTypeFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="all">All Types</option>
+              <option value="pickup">Pickup</option>
+              <option value="delivery">Delivery</option>
+            </select>
           </div>
 
           {/* Center Filter */}
@@ -169,6 +245,7 @@ export default function VolunteerPickup() {
                   </h3>
                   <div className="flex items-center gap-2 mb-2">
                     {getStatusBadge(request)}
+                    {getDeliveryTypeBadge(request)}
                     <span className="text-sm text-gray-500">
                       Request ID: {request._id?.slice(-8) || `#${index + 1}`}
                     </span>
@@ -203,7 +280,9 @@ export default function VolunteerPickup() {
 
                 {/* Location Information */}
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-2">Pickup Location</h4>
+                  <h4 className="font-medium text-gray-900 mb-2">
+                    {request.deliveryType === 'delivery' ? 'Delivery Location' : 'Pickup Location'}
+                  </h4>
                   <div className="space-y-1 text-sm">
                     <div className="flex">
                       <span className="text-gray-500 w-20">Address:</span>
@@ -216,6 +295,12 @@ export default function VolunteerPickup() {
                     <div className="flex">
                       <span className="text-gray-500 w-20">District:</span>
                       <span className="text-gray-900">{request.userDistrict || 'N/A'}</span>
+                    </div>
+                    <div className="flex">
+                      <span className="text-gray-500 w-20">Map:</span>
+                      <a href={`https://www.google.com/maps/search/?api=1&query=${request.userAddress}`} target="_blank" rel="noopener noreferrer">
+                        <span className="text-gray-900">View on Map</span>
+                      </a>
                     </div>
                   </div>
                 </div>
