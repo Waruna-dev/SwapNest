@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import ManageUsers from './ManageUsers';
 import AdminSwapDashboard from '../../components/swap/AdminSwapDashboard';
+import API from '../../services/api'; // --- NEW: Added API import for secure logout ---
 
 // Placeholders for your future admin components
 const DashboardOverview = () => <div className="p-6">Overview Metrics Coming Soon</div>;
@@ -20,7 +21,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // 1. Authentication Check (Updated to match our AdminLogin logic)
+  // 1. Authentication Check
   useEffect(() => {
     const adminInfo = JSON.parse(localStorage.getItem('adminInfo'));
 
@@ -31,10 +32,20 @@ const AdminDashboard = () => {
     }
   }, [navigate]);
 
-  // 2. Logout Handler
-  const handleLogout = () => {
-    localStorage.removeItem('adminInfo');
-    navigate('/admin/login');
+  // 2. Logout Handler --- UPDATED ---
+  const handleLogout = async () => {
+    try {
+      // Hit the backend logout route if you have one
+      await API.post('/users/logout');
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      // CRITICAL: Clear ALL authentication data from the browser
+      localStorage.removeItem('adminInfo');
+      localStorage.removeItem('swapnest_token');
+      
+      navigate('/admin/login');
+    }
   };
 
   // 3. SwapNest Sidebar Navigation Links
@@ -44,8 +55,7 @@ const AdminDashboard = () => {
     { id: 'items', label: 'Manage Items', icon: <Package size={20} /> },
     { id: 'reports', label: 'Reported Listings', icon: <Flag size={20} /> }, 
     { id: 'settings', label: 'System Settings', icon: <Settings size={20} /> },
-    {id: 'swaps', label: 'Manage Swaps', icon: <RefreshCw size={20} />, component: <AdminSwapDashboard /> },
-
+    { id: 'swaps', label: 'Manage Swaps', icon: <RefreshCw size={20} />, component: <AdminSwapDashboard /> },
   ];
 
   if (!adminUser) return null; // Prevent flickering before redirect
