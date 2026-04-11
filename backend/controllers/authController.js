@@ -248,7 +248,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
 
     // --- DYNAMIC FRONTEND URL ---
     const baseUrl = process.env.NODE_ENV === 'production' 
-      ? 'https://swapnest.me' 
+      ? 'https://swapnest-client.onrender.com' 
       : 'http://localhost:5173';
       
     const resetUrl = `${baseUrl}/reset-password/${resetToken}`;
