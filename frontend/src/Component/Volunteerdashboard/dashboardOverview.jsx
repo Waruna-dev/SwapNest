@@ -182,6 +182,7 @@ export default function DashboardOverview() {
           {error ? <p className="text-red-600 mt-3 text-sm font-bold">{error}</p> : null}
         </div>
 
+        
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <StatCard icon="👥" value={totals.totalVolunteers} label="Total Volunteers" tone="sage" />
           <StatCard icon="🏢" value={totals.totalCenters} label="Total Centers" tone="amber" />
