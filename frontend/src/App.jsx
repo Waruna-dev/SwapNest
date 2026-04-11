@@ -37,6 +37,7 @@ import CenterEdit from "./Component/Volunteerdashboard/centeredit.jsx";
 import VolunteerDashboardVolunteersTable from "./Component/Volunteerdashboard/VolunteerDashboardVolunteersTable";
 import VolunteerEdit from "./Component/Volunteerdashboard/volunteeredit";
 import VolunteerPickup from "./Component/Volunteerdashboard/volunteerpickup";
+import NGODashboard from "./Component/Volunteerdashboard/ngodashboard";
 
 // Item components
 import ItemAddNewItems from "./pages/item-listing/ItemAddNewItem";
@@ -83,6 +84,9 @@ function App() {
             <Route path="pickup" element={<VolunteerPickup />} />
             <Route path="distribution-plan" element={<DistributionPlan />} />
           </Route>
+
+          {/* NGO Volunteer Dashboard */}
+          <Route path="/ngo-dashboard" element={<NGODashboard />} />
 
           {/* Swap module */}
           <Route path="/swapadmin" element={<AdminSwapDashboard />} />
