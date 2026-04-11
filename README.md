@@ -400,25 +400,20 @@ curl -X POST http://localhost:5000/api/items \
 { "suggestions": ["Chair", "Chair Cover"] }
 ```
 
-### 5) Get trending items
-- Method: `GET`
-- Endpoint: `/items/trending`
-- Auth: None
-- Query: `days`, `limit`
 
-### 6) Get item by id
+### 5) Get item by id
 - Method: `GET`
 - Endpoint: `/items/:id`
 - Auth: None
 - Query: `incViews=true|false`
 
-### 7) Get similar items
+### 6) Get similar items
 - Method: `GET`
 - Endpoint: `/items/:id/similar`
 - Auth: None
 - Query: `limit`
 
-### 8) Update item
+### 7) Update item
 - Method: `PUT`
 - Endpoint: `/items/:id`
 - Auth: None (no middleware in current code)
@@ -430,7 +425,7 @@ curl -X POST http://localhost:5000/api/items \
   - `keepImagePublicIds` array
   - `coverIndex`
 
-### 9) Delete item
+### 8) Delete item
 - Method: `DELETE`
 - Endpoint: `/items/:id`
 - Auth: None
