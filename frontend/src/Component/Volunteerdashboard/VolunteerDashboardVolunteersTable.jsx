@@ -128,6 +128,18 @@ export default function VolunteerDashboardVolunteersTable({ onEdit }) {
           json?.message || `Request failed with status ${res.status}`;
         throw new Error(message);
       }
+      
+      // Send WhatsApp message if volunteer is approved
+      if (newStatus === "Accepted") {
+        const volunteer = volunteers.find(v => v._id === id);
+        if (volunteer) {
+          const fullName = `${volunteer.firstName || ""} ${volunteer.lastName || ""}`.trim() || "there";
+          const approvalMessage = `🎉 Congratulations ${fullName}! 🎉\n\nYour volunteer application with SwapNest has been **APPROVED**! ✅\n\nWelcome to our team! You now have full access to the volunteer dashboard where you can:\n• Manage your profile\n• View assignments\n• Track your impact in the community\n• Connect with other volunteers\n\nWe're excited to have you join us in making a difference! 🌟\n\nBest regards,\nSwapNest Team`;
+          
+          sendWhatsApp(volunteer, approvalMessage);
+        }
+      }
+      
       await reload();
       return true;
     } catch (e) {

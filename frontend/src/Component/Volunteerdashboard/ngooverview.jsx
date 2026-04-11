@@ -120,7 +120,7 @@ const NgoOverview = () => {
     <div className="p-8 max-w-6xl mx-auto">
       <div className="text-center mb-12">
         <h2 className="text-4xl font-semibold text-gray-800 mb-2">NGO Overview</h2>
-        <p className="text-lg text-gray-600">Welcome to the volunteer management dashboard</p>
+        <p className="text-lg text-gray-600">Welcome to volunteer management dashboard</p>
         {error && <p className="text-red-600 mt-3 text-sm font-bold">{error}</p>}
       </div>
       
