@@ -259,7 +259,7 @@ const Register = () => {
                   {isLoading ? 'Creating Account...' : 'Create Account'}
                 </button>
                 <p className="text-center text-[10px] text-on-surface-variant/60 mt-4 px-8 leading-relaxed font-medium">
-                  By creating an account, you agree to SwapNest's <a className="underline hover:text-primary transition-colors" href="#">Terms of Service</a> and <a className="underline hover:text-primary transition-colors" href="#">Privacy Policy</a>.
+                  By creating an account, you agree to SwapNest's <a className="underline hover:text-primary transition-colors" href="/terms">Terms of Service</a> and <a className="underline hover:text-primary transition-colors" href="/privacy">Privacy Policy</a>.
                 </p>
               </div>
 
