@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { createItem } from "../../services/item/itemApi";
 
 // UI Components
-import AddItemNavbar from "../../components/item-listing/AddItemNavbar";
 import AddItemPreview from "../../components/item-listing/AddItemPreview";
 import ItemFormSection from "../../components/item-listing/ItemFormSection";
 import StatusDialog from "../../components/item-listing/StatusDialog";
+import Footer from "../../components/Footer";
+import Header from "../../components/Header";
 
 // Custom Hooks
 import { useItemForm } from "../../hooks/useItemForm";
@@ -175,10 +176,10 @@ const ItemAddNewItem = () => {
       </div>
 
       {/* NAVBAR */}
-      <AddItemNavbar />
+      <Header />
 
       {/* MAIN CONTENT */}
-      <main className="relative z-10 mx-auto grid max-w-7xl gap-10 px-6 py-8 md:px-10 lg:grid-cols-[0.92fr_1.08fr] lg:py-12">
+      <main className="relative z-10 mx-auto grid max-w-7xl gap-10 px-6 pb-8 pt-28 md:px-10 lg:grid-cols-[0.92fr_1.08fr] lg:pb-12 lg:pt-32">
         {/* LEFT SIDE → PREVIEW CARD */}
         <AddItemPreview
           formData={formData}
@@ -205,6 +206,10 @@ const ItemAddNewItem = () => {
           handleLocationSearch={handleLocationSearch}
         />
       </main>
+
+      <div className="relative z-10">
+        <Footer />
+      </div>
     </div>
   );
 };

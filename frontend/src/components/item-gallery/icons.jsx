@@ -136,3 +136,39 @@ export function IconClose() {
     </svg>
   );
 }
+
+export function IconPagination() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    >
+      <rect x="4" y="5" width="16" height="14" rx="2" />
+      <path d="M4 10h16" strokeLinecap="round" />
+      <path d="M9 14h1" strokeLinecap="round" />
+      <path d="M12 14h1" strokeLinecap="round" />
+      <path d="M15 14h1" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function IconInfinite() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-5 w-5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    >
+      <path
+        d="M18 8c-2.2 0-3.3 1.4-4.7 3-1.4 1.6-2.5 3-4.7 3A3.3 3.3 0 1 1 8.6 8c2.2 0 3.3 1.4 4.7 3 1.4 1.6 2.5 3 4.7 3A3.3 3.3 0 1 0 18 8Z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

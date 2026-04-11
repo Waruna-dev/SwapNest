@@ -9,7 +9,7 @@ function DashboardNavbar() {
             Item listing admin
           </p>
           <Link
-            to="/items/dashboard"
+            to="/item/dashboard"
             className="font-headline text-3xl font-black tracking-tight text-[#082d24]"
           >
             SwapNest Dashboard
@@ -18,10 +18,16 @@ function DashboardNavbar() {
 
         <div className="flex flex-wrap items-center gap-3">
           <Link
-            to="/items/gallery"
+            to="/item/gallery"
             className="rounded-full border border-[#0b3b30]/10 px-5 py-2.5 text-sm font-semibold text-[#0b3b30] transition hover:bg-white/80"
           >
             Browse items
+          </Link>
+          <Link
+            to="/my-list"
+            className="rounded-full border border-[#0b3b30]/10 px-5 py-2.5 text-sm font-semibold text-[#0b3b30] transition hover:bg-white/80"
+          >
+            My items
           </Link>
           <Link
             to="/item/new"
