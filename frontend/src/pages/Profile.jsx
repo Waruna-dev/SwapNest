@@ -251,7 +251,7 @@ const Profile = () => {
           
           <div className="hidden md:flex items-center gap-8 font-headline font-bold text-sm tracking-tight">
             <Link to="/dashboard" className="text-primary/80 hover:text-primary transition-colors">Dashboard</Link>
-            <Link to="/marketplace" className="text-primary/80 hover:text-primary transition-colors">Marketplace</Link>
+            <Link to="/item/gallery" className="text-primary/80 hover:text-primary transition-colors">Marketplace</Link>
           </div>
           
           <div className="flex items-center gap-4">
