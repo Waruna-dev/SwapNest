@@ -1,287 +1,835 @@
-<p align="center">
-  <img src="https://img.icons8.com/color/200/swap.png" alt="SwapNest Logo" width="150" />
-</p>
+# SwapNest
 
-<h1 align="center">🔄 SwapNest</h1>
+**Classification:** Public-SLIIT
 
-<p align="center">
-  <strong>A community-driven item swapping & volunteer coordination platform</strong>
-</p>
+SwapNest is a full-stack item exchange platform with user authentication, item listings, swap workflows, volunteer registration, pickup scheduling, donation center management, contact submissions, and in-app notifications.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
-  <img src="https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express" />
-  <img src="https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
-  <img src="https://img.shields.io/badge/Cloudinary-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white" alt="Cloudinary" />
-  <img src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white" alt="JWT" />
-</p>
+## 1. System Overview
 
-<p align="center">
-  <img src="https://img.shields.io/badge/status-active-brightgreen?style=flat-square" alt="Status" />
-  <img src="https://img.shields.io/badge/license-ISC-blue?style=flat-square" alt="License" />
-  <img src="https://img.shields.io/badge/version-1.0.0-orange?style=flat-square" alt="Version" />
-</p>
+### Core modules
+- Authentication and user profile management
+- Item listing and marketplace discovery
+- Swap request lifecycle (pending, accepted, rejected, completed, cancelled)
+- Notifications for swap events
+- Pickup / drop-off booking
+- Center (location) management
+- Volunteer management
+- Contact us form with optional attachment
+- Admin authentication and user administration
 
----
+### Tech stack
+- Frontend: React 19 + Vite + Axios + React Router
+- Backend: Node.js + Express 5 + Mongoose
+- Database: MongoDB
+- Media: Cloudinary (items, swaps, profile images)
+- Auth: JWT Bearer tokens
+- Email: Resend (password reset email)
 
-## 📸 Preview
+## 2. Repository Structure
 
-<p align="center">
-  <img src="https://via.placeholder.com/800x400/1a1a2e/e94560?text=SwapNest+%E2%80%93+Swap+Items+Easily" alt="SwapNest Banner" width="100%" />
-</p>
-
----
-
-## 📖 Table of Contents
-
-- [About](#-about)
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Getting Started](#-getting-started)
-- [API Endpoints](#-api-endpoints)
-- [Environment Variables](#-environment-variables)
-- [Contributing](#-contributing)
-- [License](#-license)
-
----
-
-## 🧐 About
-
-**SwapNest** is a full-stack web application that enables users to list items for swapping, request swaps with other users, schedule pickups, and coordinate volunteer activities. The platform supports both **item-for-item** and **swap-with-cash** transactions, making it a flexible community marketplace.
-
-<p align="center">
-  <img src="https://via.placeholder.com/700x300/16213e/0f3460?text=List+%E2%86%92+Swap+%E2%86%92+Pickup+%E2%86%92+Done!" alt="SwapNest Flow" width="80%" />
-</p>
-
----
-
-## ✨ Features
-
-| Feature | Description |
-|---------|-------------|
-| 🔐 **User Authentication** | Secure registration & login with JWT tokens and bcrypt password hashing |
-| 📦 **Item Management** | Create, read, update, and delete item listings with image uploads via Cloudinary |
-| 🔄 **Swap Requests** | Request item-for-item or swap-with-cash exchanges between users |
-| 🚚 **Pickup Scheduling** | Schedule home pickups or drop-off at designated centers |
-| 🤝 **Volunteer System** | Register volunteers with skills, availability, and document uploads |
-| 📍 **Geolocation** | GeoJSON-based location support for items with 2dsphere indexing |
-| 🖼️ **Image Uploads** | Multi-image upload support via Cloudinary and Multer |
-| 🔍 **Text Search** | Full-text search on item titles and descriptions |
-
----
-
-## 🛠️ Tech Stack
-
-<p align="center">
-  <img src="https://skillicons.dev/icons?i=nodejs,express,mongodb,js" alt="Tech Stack Icons" />
-</p>
-
-| Layer | Technology |
-|-------|-----------|
-| **Runtime** | Node.js |
-| **Framework** | Express.js v5 |
-| **Database** | MongoDB with Mongoose v9 |
-| **Authentication** | JWT + bcryptjs |
-| **File Storage** | Cloudinary + Multer |
-| **Validation** | express-validator |
-| **Logging** | Morgan |
-
----
-
-## 📁 Project Structure
-
-```
+```text
 SwapNest/
-├── 📄 README.md
-├── 🎨 3d-sphere/                    # 3D sphere assets
-├── 🖥️ frontend/
-│   ├── pickup.js                    # Pickup scheduling UI
-│   └── Volunteer/
-│       └── Volunteer.js             # Volunteer registration UI
-│
-└── ⚙️ backend/
-    ├── server.js                    # Express app entry point
-    ├── package.json                 # Dependencies & scripts
-    ├── config/
-    │   ├── db.js                    # MongoDB connection
-    │   ├── cloudinary.js            # Cloudinary config
-    │   └── Item.cloudinary.js       # Item-specific Cloudinary config
-    ├── models/
-    │   ├── User.js                  # User schema (auth, roles)
-    │   ├── Item.js                  # Item schema (listings, geo)
-    │   ├── Swap.js                  # Swap request schema
-    │   ├── PickupModel.js           # Pickup scheduling schema
-    │   └── VolunteerModel.js        # Volunteer registration schema
-    ├── controllers/
-    │   ├── authController.js        # Auth logic (register/login)
-    │   ├── itemController.js        # Item CRUD operations
-    │   ├── swapController.js        # Swap request handling
-    │   ├── PickupController.js      # Pickup management
-    │   └── VolunteerController.js   # Volunteer management
-    ├── routes/
-    │   ├── userRoutes.js            # /api/users
-    │   ├── itemRoutes.js            # /api/items
-    │   ├── swapRoutes.js            # /api/swaps
-    │   ├── PickupRoutes.js          # /api/pickups
-    │   └── VolunteerRoutes.js       # /api/volunteers
-    ├── middlewares/
-    │   ├── authMiddleware.js        # JWT verification
-    │   ├── errorMiddleware.js       # Global error handler
-    │   ├── validation.js            # Request validation rules
-    │   ├── upload.js                # Multer file upload config
-    │   ├── item-upload.js           # Item image upload config
-    │   ├── pickupmiddlewares.js     # Pickup-specific middleware
-    │   └── volunteermiddlewares.js  # Volunteer-specific middleware
-    ├── utils/
-    │   └── item-cloudinaryUpload.js # Cloudinary upload helper
-    └── uploads/
-        └── swaps/                   # Local swap image storage
+|-- backend/
+|   |-- config/
+|   |-- controllers/
+|   |-- middlewares/
+|   |-- models/
+|   |-- routes/
+|   |-- utils/
+|   |-- server.js
+|   |-- seedAdmin.js
+|   `-- package.json
+|-- frontend/
+|   |-- src/
+|   |   |-- components/
+|   |   |-- pages/
+|   |   |-- services/
+|   |   `-- App.jsx
+|   `-- package.json
+`-- README.md
 ```
 
----
+## 3. Setup Instructions (Step-by-Step)
 
-## 🚀 Getting Started
+### 3.1 Prerequisites
+- Node.js 18+
+- npm 9+
+- MongoDB (Atlas or local)
+- Cloudinary account
+- Resend account (for reset emails)
 
-### Prerequisites
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Node.js->=18.0.0-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js" />
-  <img src="https://img.shields.io/badge/MongoDB-Atlas%20or%20Local-47A248?style=for-the-badge&logo=mongodb&logoColor=white" alt="MongoDB" />
-</p>
-
-- **Node.js** v18 or higher
-- **MongoDB** (Atlas cloud or local instance)
-- **Cloudinary** account (for image uploads)
-
-### Installation
-
+### 3.2 Clone project
 ```bash
-# 1. Clone the repository
-git clone https://github.com/your-username/SwapNest.git
+git clone <your-repository-url>
 cd SwapNest
+```
 
-# 2. Install backend dependencies
+### 3.3 Install dependencies
+Backend:
+```bash
 cd backend
 npm install
-
-# 3. Create environment file
-cp .env.example .env
-# Edit .env with your configuration (see Environment Variables section)
-
-# 4. Start the development server
-npm run dev
 ```
 
-### Available Scripts
+Frontend:
+```bash
+cd ../frontend
+npm install
+```
 
-| Script | Command | Description |
-|--------|---------|-------------|
-| **Dev** | `npm run dev` | Start with nodemon (hot-reload) |
-| **Start** | `npm start` | Start production server |
-
----
-
-## 🔌 API Endpoints
-
-### 👤 Users — `/api/users`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/users/register` | Register a new user |
-| `POST` | `/api/users/login` | Login & receive JWT token |
-
-### 📦 Items — `/api/items`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/items` | Get all items |
-| `GET` | `/api/items/:id` | Get item by ID |
-| `POST` | `/api/items` | Create a new item listing |
-| `PUT` | `/api/items/:id` | Update an item |
-| `DELETE` | `/api/items/:id` | Delete an item |
-
-### 🔄 Swaps — `/api/swaps`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/swaps` | Get all swap requests |
-| `POST` | `/api/swaps` | Create a swap request |
-| `PUT` | `/api/swaps/:id` | Update swap status |
-| `DELETE` | `/api/swaps/:id` | Cancel a swap request |
-
-### 🚚 Pickups — `/api/pickups`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/pickups` | Get all pickups |
-| `POST` | `/api/pickups` | Schedule a pickup |
-| `PUT` | `/api/pickups/:id` | Update pickup details |
-| `DELETE` | `/api/pickups/:id` | Cancel a pickup |
-
-### 🤝 Volunteers — `/api/volunteers`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/volunteers` | Get all volunteers |
-| `POST` | `/api/volunteers` | Register as a volunteer |
-| `PUT` | `/api/volunteers/:id` | Update volunteer info |
-| `DELETE` | `/api/volunteers/:id` | Remove a volunteer |
-
----
-
-## 🔑 Environment Variables
-
-Create a `.env` file inside the `backend/` directory:
-
+### 3.4 Configure environment variables
+Create `backend/.env`:
 ```env
-# Server
 PORT=5000
+MONGO_URI=mongodb+srv://<username>:<password>@<cluster>/<db>
+JWT_SECRET=replace_with_secure_secret
 
-# MongoDB
-MONGO_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/swapnest
-
-# JWT
-JWT_SECRET=your_jwt_secret_key
-
-# Cloudinary
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
+
+RESEND_API_KEY=your_resend_api_key
+NODE_ENV=development
 ```
 
----
+Create `frontend/.env`:
+```env
+VITE_API_URL=http://localhost:5000/api
+```
 
-## 🤝 Contributing
+Notes:
+- Frontend Google OAuth client id is currently hardcoded in `frontend/src/main.jsx`.
+- Password reset link uses `http://localhost:5173` when `NODE_ENV != production`.
 
-Contributions are welcome! Follow these steps:
-
+### 3.5 Optional: seed admin account
+From `backend/`:
 ```bash
-# 1. Fork the repository
-# 2. Create a feature branch
-git checkout -b feature/amazing-feature
+npm run seed:admin
+```
+Creates:
+- Email: `curator@swapnest.com`
+- Password: `AdminPassword123!`
 
-# 3. Commit your changes
-git commit -m "Add amazing feature"
+### 3.6 Run development servers
+Terminal 1 (backend):
+```bash
+cd backend
+npm run dev
+```
 
-# 4. Push to the branch
-git push origin feature/amazing-feature
+Terminal 2 (frontend):
+```bash
+cd frontend
+npm run dev
+```
 
-# 5. Open a Pull Request
+### 3.7 Default URLs
+- Frontend: `http://localhost:5173`
+- Backend API: `http://localhost:5000/api`
+- Health check: `GET http://localhost:5000/`
+
+## 4. Authentication
+
+### JWT format
+Protected endpoints require:
+```http
+Authorization: Bearer <token>
+```
+
+### Roles
+- `user`
+- `volunteer`
+- `admin`
+
+### Auth routes that are protected in current code
+- `GET /api/users/me`
+- `PUT /api/users/profile`
+- `PUT /api/users/password`
+- `POST /api/users/logout`
+- `DELETE /api/users/:id` (admin or owner)
+- `GET /api/admin/users`
+- `PUT /api/admin/users/:id`
+- `DELETE /api/admin/users/:id`
+
+## 5. API Endpoint Documentation
+
+Base URL: `http://localhost:5000/api`
+
+Response pattern varies by module:
+- Some return raw documents
+- Some return `{ success, message, data }`
+
+---
+
+## 5.1 User Auth and Profile (`/api/users`)
+
+### 1) Register user
+- Method: `POST`
+- Endpoint: `/users/register`
+- Auth: None
+- Body (JSON):
+```json
+{
+  "username": "john",
+  "email": "john@example.com",
+  "password": "Password123!",
+  "role": "user"
+}
+```
+- Success `201`:
+```json
+{
+  "_id": "...",
+  "username": "john",
+  "email": "john@example.com",
+  "role": "user",
+  "token": "<jwt>"
+}
+```
+
+### 2) Login user
+- Method: `POST`
+- Endpoint: `/users/login`
+- Auth: None
+- Body:
+```json
+{ "email": "john@example.com", "password": "Password123!" }
+```
+- Success `200`: user object + `token`
+- Error `403`: admin attempted standard portal login
+
+### 3) Google auth
+- Method: `POST`
+- Endpoint: `/users/google`
+- Auth: None
+- Body:
+```json
+{ "googleAccessToken": "<google_oauth_access_token>" }
+```
+- Success `200`: user object + `token`
+
+### 4) Forgot password
+- Method: `POST`
+- Endpoint: `/users/forgot-password`
+- Auth: None
+- Body:
+```json
+{ "email": "john@example.com" }
+```
+- Success `200`:
+```json
+{ "message": "Token sent to email!" }
+```
+(or generic success if email not found)
+
+### 5) Reset password
+- Method: `POST`
+- Endpoint: `/users/reset-password/:token`
+- Auth: None
+- Body:
+```json
+{ "password": "NewPassword123!" }
+```
+- Success `200`:
+```json
+{ "message": "Password reset successful" }
+```
+
+### 6) Get current user
+- Method: `GET`
+- Endpoint: `/users/me`
+- Auth: Bearer token
+- Success `200`: authenticated user object (without password)
+
+### 7) Update profile
+- Method: `PUT`
+- Endpoint: `/users/profile`
+- Auth: Bearer token
+- Content-Type: `multipart/form-data`
+- Fields:
+  - `username` (optional)
+  - `email` (optional)
+  - `bio` (optional)
+  - `profileImage` (optional file)
+- Success `200`: updated user object
+
+### 8) Update password
+- Method: `PUT`
+- Endpoint: `/users/password`
+- Auth: Bearer token
+- Body:
+```json
+{
+  "oldPassword": "Password123!",
+  "newPassword": "Password456!"
+}
+```
+- Success `200`:
+```json
+{ "message": "Password updated successfully" }
+```
+
+### 9) Logout
+- Method: `POST`
+- Endpoint: `/users/logout`
+- Auth: Bearer token
+- Success `200`:
+```json
+{ "message": "Successfully logged out." }
+```
+
+### 10) Delete user (admin or owner)
+- Method: `DELETE`
+- Endpoint: `/users/:id`
+- Auth: Bearer token (admin or same user)
+- Success `200`:
+```json
+{
+  "message": "User account deleted successfully",
+  "deletedUserId": "..."
+}
 ```
 
 ---
 
-## 📄 License
+## 5.2 Admin (`/api/admin`)
 
-This project is licensed under the **ISC License**.
+### 1) Admin login
+- Method: `POST`
+- Endpoint: `/admin/login`
+- Auth: None
+- Body:
+```json
+{ "email": "curator@swapnest.com", "password": "AdminPassword123!" }
+```
+- Success `200`: admin + JWT
+
+### 2) Get all users
+- Method: `GET`
+- Endpoint: `/admin/users`
+- Auth: Bearer token + admin role
+- Success `200`: array of users (without password)
+
+### 3) Update user by admin
+- Method: `PUT`
+- Endpoint: `/admin/users/:id`
+- Auth: Bearer token + admin role
+- Body:
+```json
+{
+  "username": "newName",
+  "email": "new@example.com",
+  "role": "user",
+  "password": "OptionalNewPassword"
+}
+```
+- Success `200`: updated user (no password)
+
+### 4) Delete user by admin
+- Method: `DELETE`
+- Endpoint: `/admin/users/:id`
+- Auth: Bearer token + admin role
+- Success `200`:
+```json
+{ "message": "User removed successfully" }
+```
 
 ---
 
-<p align="center">
-  <img src="https://img.icons8.com/fluency/48/handshake.png" alt="Handshake" width="40" />
-  <br />
-  <strong>Built with ❤️ by the SwapNest Team</strong>
-  <br />
-  <sub>Swap smarter. Live greener. 🌱</sub>
-</p>
+## 5.3 Items (`/api/items`)
+
+### 1) Create item
+- Method: `POST`
+- Endpoint: `/items`
+- Auth: None (no middleware in current code)
+- Content-Type: `multipart/form-data`
+- Fields:
+  - Required: `title`, `category`, `mode`, `ownerId`
+  - Optional: `description`, `price`, `condition`, `contact`, `lat`, `lng`
+  - Images: `images` (up to 5, max 5MB each)
+- Alternative: send `images` JSON array in body
+- Success `201`: created item document
+
+Example cURL:
+```bash
+curl -X POST http://localhost:5000/api/items \
+  -F "title=Gaming Chair" \
+  -F "category=Furniture" \
+  -F "mode=SWAP" \
+  -F "ownerId=67f..." \
+  -F "price=15000" \
+  -F "images=@chair.jpg"
+```
+
+### 2) Get items list
+- Method: `GET`
+- Endpoint: `/items`
+- Auth: None
+- Query params:
+  - `page`, `limit`
+  - `q` (text search)
+  - `category`, `mode`, `condition`
+  - `minPrice`, `maxPrice`
+  - `sort` = `newest | price_asc | price_desc | popular | relevance`
+  - `includeInactive=true|false`
+  - `includeHidden=true|false`
+- Success `200`:
+```json
+{
+  "items": [],
+  "page": 1,
+  "limit": 12,
+  "totalItems": 0,
+  "totalPages": 0
+}
+```
+
+### 3) Get nearby items
+- Method: `GET`
+- Endpoint: `/items/nearby`
+- Auth: None
+- Query: `lat`, `lng` required; optional `distance`, filters, pagination
+
+### 4) Get title suggestions
+- Method: `GET`
+- Endpoint: `/items/suggestions`
+- Auth: None
+- Query: `q` required, optional `limit`
+- Success:
+```json
+{ "suggestions": ["Chair", "Chair Cover"] }
+```
+
+
+### 5) Get item by id
+- Method: `GET`
+- Endpoint: `/items/:id`
+- Auth: None
+- Query: `incViews=true|false`
+
+### 6) Get similar items
+- Method: `GET`
+- Endpoint: `/items/:id/similar`
+- Auth: None
+- Query: `limit`
+
+### 7) Update item
+- Method: `PUT`
+- Endpoint: `/items/:id`
+- Auth: None (no middleware in current code)
+- Content-Type: `multipart/form-data`
+- Supports:
+  - field updates
+  - image add/replace
+  - `replaceImages=true|false`
+  - `keepImagePublicIds` array
+  - `coverIndex`
+
+### 8) Delete item
+- Method: `DELETE`
+- Endpoint: `/items/:id`
+- Auth: None
+- Query: `soft=true` for soft delete; otherwise hard delete
+
+---
+
+## 5.4 Swaps (`/api/swaps`)
+
+### 1) Create swap request
+- Method: `POST`
+- Endpoint: `/swaps`
+- Auth: None (no middleware in current code)
+- Content-Type: `multipart/form-data`
+- Files: `photos` up to 5 images
+- Required body fields:
+  - `itemId`, `requesterId`, `requesterName`, `swapType`, `agreementAccepted`
+- Optional:
+  - `offeredItem`, `cashDetails`, `messageToOwner`
+- `swapType` values:
+  - `item-for-item`
+  - `swap-with-cash`
+- Success `201`:
+```json
+{
+  "success": true,
+  "message": "Swap request created",
+  "data": { "_id": "...", "status": "pending" }
+}
+```
+
+### 2) Update swap request
+- Method: `PUT`
+- Endpoint: `/swaps/:id`
+- Auth: None
+- Rule: only requester can update and only when status is `pending`
+
+### 3) Update swap photos
+- Method: `PUT`
+- Endpoint: `/swaps/:id/photos`
+- Auth: None
+- Multipart fields:
+  - `requesterId`
+  - `removePhotoIndices` (JSON array string)
+  - `photos` (new files)
+
+### 4) Get all swaps
+- Method: `GET`
+- Endpoint: `/swaps/all`
+- Auth: None (intended admin, but currently open)
+- Query: `status`, `swapType`, `sort=oldest|status`
+
+### 5) Get user swaps
+- Method: `GET`
+- Endpoint: `/swaps/user/:userId`
+- Auth: None
+
+### 6) Get pending requests for owner
+- Method: `GET`
+- Endpoint: `/swaps/pending/:ownerId`
+- Auth: None
+
+### 7) Get swap by id
+- Method: `GET`
+- Endpoint: `/swaps/:id`
+- Auth: None
+
+### 8) Get swaps by item
+- Method: `GET`
+- Endpoint: `/swaps/by-item?itemId=<id>&status=<status>`
+- Auth: None
+- Note: route is currently declared after `/:id`; this may require reordering if it conflicts.
+
+### 9) Update swap status
+- Method: `PUT`
+- Endpoint: `/swaps/:id/status`
+- Auth: None
+- Body:
+```json
+{ "status": "accepted", "notes": "optional" }
+```
+- Allowed status: `accepted`, `rejected`, `completed`, `cancelled`
+
+### 10) Cancel swap request
+- Method: `PUT`
+- Endpoint: `/swaps/:id/cancel`
+- Auth: None
+- Rule: only `pending` swaps can be cancelled
+
+### 11) Delete swap
+- Method: `DELETE`
+- Endpoint: `/swaps/:id`
+- Auth: None
+- Also deletes associated Cloudinary photos
+
+### 12) Request completion confirmation
+- Method: `POST`
+- Endpoint: `/swaps/:id/complete`
+- Auth: None
+- Body:
+```json
+{ "userId": "...", "userRole": "requester" }
+```
+- `userRole`: `requester | owner`
+
+### 13) Get completion status
+- Method: `GET`
+- Endpoint: `/swaps/:id/completion-status`
+- Auth: None
+- Success:
+```json
+{
+  "success": true,
+  "data": {
+    "requesterConfirmed": true,
+    "ownerConfirmed": false,
+    "bothConfirmed": false,
+    "completionRequestedAt": "...",
+    "bothConfirmedAt": null
+  }
+}
+```
+
+---
+
+## 5.5 Notifications (`/api/notifications`)
+
+### 1) Get user notifications
+- Method: `GET`
+- Endpoint: `/notifications/user/:userId`
+- Auth: None
+- Query: `limit`, `unreadOnly=true|false`
+
+### 2) Get unread count
+- Method: `GET`
+- Endpoint: `/notifications/user/:userId/count`
+- Auth: None
+
+### 3) Mark one as read
+- Method: `PUT`
+- Endpoint: `/notifications/:id/read`
+- Auth: None
+
+### 4) Mark all as read
+- Method: `PUT`
+- Endpoint: `/notifications/user/:userId/read-all`
+- Auth: None
+
+### 5) Delete notification
+- Method: `DELETE`
+- Endpoint: `/notifications/:id`
+- Auth: None
+
+---
+
+## 5.6 Pickups (`/api/pickups`)
+
+### 1) Create pickup/center booking
+- Method: `POST`
+- Endpoint: `/pickups`
+- Auth: None
+- Body:
+```json
+{
+  "name": "Jane",
+  "phone": "0771234567",
+  "method": "pickup",
+  "address": "No 10, Main Street",
+  "date": "2026-04-12T10:00:00.000Z",
+  "notes": "Ring the bell"
+}
+```
+- `method` values: `pickup | center`
+- If `method=pickup`, `address` required
+- If `method=center`, `center` required
+
+### 2) Get all pickups
+- Method: `GET`
+- Endpoint: `/pickups`
+- Auth: None (intended admin, but currently open)
+- Query: `method`, `status`, `page`, `limit`
+
+### 3) Get pickup by id
+- Method: `GET`
+- Endpoint: `/pickups/:id`
+- Auth: None
+
+### 4) Update pickup status
+- Method: `PUT`
+- Endpoint: `/pickups/:id/status`
+- Auth: None (intended admin, but currently open)
+- Body:
+```json
+{ "status": "confirmed" }
+```
+- Allowed status: `pending | confirmed | completed | cancelled`
+
+### 5) Delete pickup
+- Method: `DELETE`
+- Endpoint: `/pickups/:id`
+- Auth: None (intended admin, but currently open)
+
+---
+
+## 5.7 Centers (`/api/centers`)
+
+### 1) Get all centers
+- Method: `GET`
+- Endpoint: `/centers`
+- Auth: None
+- Query: `district`, `city`, `status`, `search`
+
+### 2) Create center
+- Method: `POST`
+- Endpoint: `/centers`
+- Auth: None
+- Body (required fields):
+```json
+{
+  "centerName": "Colombo Hub",
+  "centerCode": "CMB001",
+  "district": "Colombo",
+  "city": "Colombo",
+  "address": "No 1, Example Rd",
+  "contactNumber": "0111234567",
+  "email": "hub@example.com",
+  "managerName": "Manager Name",
+  "managerContact": "0771234567",
+  "capacity": 100
+}
+```
+
+### 3) Get center by id
+- Method: `GET`
+- Endpoint: `/centers/:id`
+- Auth: None
+
+### 4) Full update center
+- Method: `PUT`
+- Endpoint: `/centers/:id`
+- Auth: None
+
+### 5) Partial update center
+- Method: `PATCH`
+- Endpoint: `/centers/:id`
+- Auth: None
+
+### 6) Delete center
+- Method: `DELETE`
+- Endpoint: `/centers/:id`
+- Auth: None
+
+### 7) Update volunteer count
+- Method: `PATCH`
+- Endpoint: `/centers/:id/volunteer-count`
+- Auth: None
+- Body:
+```json
+{ "action": "increment" }
+```
+- `action`: `increment` or any other value (decrement fallback)
+
+### 8) Get active centers by district
+- Method: `GET`
+- Endpoint: `/centers/district/:district`
+- Auth: None
+
+---
+
+## 5.8 Volunteers (`/api/volunteers`)
+
+### 1) Get all volunteers
+- Method: `GET`
+- Endpoint: `/volunteers`
+- Auth: None
+
+### 2) Get volunteer by id
+- Method: `GET`
+- Endpoint: `/volunteers/:id`
+- Auth: None
+
+### 3) Add volunteer
+- Method: `POST`
+- Endpoint: `/volunteers`
+- Auth: None
+- Content-Type: `application/json`
+- Minimum required model fields:
+  - `firstName`, `lastName`, `email`, `nic`, `dob`
+
+Example body:
+```json
+{
+  "firstName": "Nimal",
+  "lastName": "Perera",
+  "email": "nimal@example.com",
+  "nic": "200012345678",
+  "dob": "2000-01-15",
+  "district": "Colombo",
+  "skills": ["sorting", "driving"]
+}
+```
+
+### 4) Update volunteer
+- Method: `PUT`
+- Endpoint: `/volunteers/:id`
+- Auth: None
+- Body: any updatable volunteer fields
+
+### 5) Delete volunteer
+- Method: `DELETE`
+- Endpoint: `/volunteers/:id`
+- Auth: None
+- Success: `204 No Content`
+
+---
+
+## 5.9 Contact (`/api/contact`)
+
+### 1) Submit contact message
+- Method: `POST`
+- Endpoint: `/contact`
+- Auth: None
+- Content-Type: `multipart/form-data`
+- Required fields:
+  - `fullName`, `email`, `subject`, `inquiryType`, `message`
+- Optional:
+  - `phoneNumber`
+  - `attachment` (single file, max 5MB)
+- Allowed attachment types:
+  - JPG, PNG, GIF, PDF, DOC, DOCX
+
+Example cURL:
+```bash
+curl -X POST http://localhost:5000/api/contact \
+  -F "fullName=John Doe" \
+  -F "email=john@example.com" \
+  -F "subject=Need help" \
+  -F "inquiryType=support" \
+  -F "message=I cannot upload images" \
+  -F "attachment=@issue.png"
+```
+
+Success `201`:
+```json
+{
+  "message": "Your message has been received.",
+  "submission": {
+    "_id": "...",
+    "fullName": "John Doe"
+  }
+}
+```
+
+## 6. Standard Error Examples
+
+Validation error:
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": [
+    { "field": "district", "message": "Invalid district" }
+  ]
+}
+```
+
+Auth error:
+```json
+{ "message": "Not authorized, token failed" }
+```
+
+Not found error:
+```json
+{ "success": false, "message": "Swap not found" }
+```
+
+## 7. Postman Testing Checklist
+
+1. Register a normal user from `/api/users/register`.
+2. Login and store JWT token.
+3. Use token on protected endpoints (`/api/users/me`, `/api/users/profile`, `/api/admin/users`).
+4. Create item -> create swap -> update swap status.
+5. Verify notifications are generated.
+6. Test pickup + center + volunteer + contact flows.
+
+## 8. Known Notes for Evaluators
+
+- Some endpoints are marked as admin/private in comments but currently do not enforce auth middleware.
+- Route order in `swapRoutes.js` may cause `/by-item` to be shadowed by `/:id` depending on request path matching.
+- Notification model enum does not include `completion_pending`, although controller attempts to create this type.
+
+## 9. Useful Scripts
+
+From `backend/`:
+- `npm run dev` - start backend with nodemon
+- `npm start` - start backend in production mode
+- `npm run seed:admin` - seed initial admin user
+
+From `frontend/`:
+- `npm run dev` - start Vite dev server
+- `npm run build` - build frontend
+- `npm run preview` - preview production build
+- `npm run lint` - lint frontend
+
+## 10. License
+
+ISC

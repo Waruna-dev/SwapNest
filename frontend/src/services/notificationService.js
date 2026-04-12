@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/notifications';
+const API_URL = 'https://swapnest-api.onrender.com/api/notifications';
 
 // Get user notifications
 export const getUserNotifications = async (userId, unreadOnly = false) => {

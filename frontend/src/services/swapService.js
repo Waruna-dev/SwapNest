@@ -1,7 +1,7 @@
 // services/swapService.js
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/swaps';
+const API_URL = 'https://swapnest-api.onrender.com/api/swaps';
 
 // Create swap request with timeout and optimization
 export const createSwap = async (data, photos = null) => {
