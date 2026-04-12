@@ -1,0 +1,24 @@
+config:
+  target: "http://192.168.1.10:5000"
+  phases:
+    - duration: 30
+      arrivalRate: 4
+      name: Warmup
+    - duration: 90
+      arrivalRate: 10
+      name: Volunteer API load
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  - name: Volunteer list and validation flow
+    flow:
+      - get:
+          url: "/api/volunteers"
+      - put:
+          url: "/api/volunteers/invalid-id"
+          json:
+            firstName: "PerfUpdate"
+      - delete:
+          url: "/api/volunteers/invalid-id"

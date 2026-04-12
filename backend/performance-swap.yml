@@ -1,0 +1,22 @@
+config:
+  target: "http://192.168.1.10:5000"
+  phases:
+    - duration: 30
+      arrivalRate: 4
+      name: Warmup
+    - duration: 90
+      arrivalRate: 10
+      name: Swap API load
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  - name: Swap read flow
+    flow:
+      - get:
+          url: "/api/swaps/all"
+      - get:
+          url: "/api/swaps/pending/perf-owner-001"
+      - get:
+          url: "/api/swaps/by-item?itemId=perf-item-001"

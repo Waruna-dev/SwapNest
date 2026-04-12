@@ -1,0 +1,23 @@
+config:
+  target: "http://192.168.1.10:5000"
+  phases:
+    - duration: 30
+      arrivalRate: 5
+      name: Warmup
+    - duration: 60
+      arrivalRate: 12
+      name: Sustained load
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  - name: Auth and heartbeat flow
+    flow:
+      - get:
+          url: "/"
+      - post:
+          url: "/api/users/login"
+          json:
+            email: "perf_user@example.com"
+            password: "WrongPassword123!"

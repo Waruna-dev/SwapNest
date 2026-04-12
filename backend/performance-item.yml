@@ -1,0 +1,34 @@
+config:
+  target: "http://192.168.1.10:5000"
+  phases:
+    - duration: 30
+      arrivalRate: 5
+      name: Warmup
+    - duration: 90
+      arrivalRate: 15
+      name: Item API load
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  - name: Item listing and create flow
+    flow:
+      - get:
+          url: "/api/items?page=1&limit=12&sort=newest"
+      - get:
+          url: "/api/items?category=Electronics&mode=SWAP&minPrice=1000&maxPrice=200000&sort=price_desc"
+      - post:
+          url: "/api/items"
+          json:
+            title: "Perf Item"
+            description: "Performance test listing"
+            price: 75000
+            category: "Electronics"
+            mode: "SWAP"
+            condition: "Good"
+            contact: "0771234567"
+            ownerId: "perf-owner-001"
+            images:
+              - url: "https://example.com/perf-item.jpg"
+                publicId: "perf_item_image_001"
