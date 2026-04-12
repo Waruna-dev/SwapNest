@@ -310,6 +310,21 @@ const updateRequestStatus = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Request not found' });
     }
 
+    // If status is being set to 'completed', also update the corresponding Item to make it inactive
+    if (status === 'completed') {
+      try {
+        const Item = require('../models/Item.js');
+        await Item.updateOne(
+          { itemId: request.itemId },
+          { isActive: false }
+        );
+        console.log(`Item ${request.itemId} marked as inactive due to completed volunteer request`);
+      } catch (itemError) {
+        console.error('Error updating item status:', itemError);
+        // Continue with response even if item update fails
+      }
+    }
+
     res.status(200).json({ success: true, data: request, message: 'Request status updated successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Internal server error', error: error.message });
