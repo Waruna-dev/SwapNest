@@ -119,8 +119,17 @@ const VolunteerDashboardLayout = () => {
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [adminUser, setAdminUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(() => {
+    // Initialize activeTab from sessionStorage or default to 'overview'
+    const savedTab = sessionStorage.getItem('adminActiveTab');
+    return savedTab || 'overview';
+  });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Effect to save activeTab to sessionStorage whenever it changes
+  useEffect(() => {
+    sessionStorage.setItem('adminActiveTab', activeTab);
+  }, [activeTab]);
 
   // 1. Authentication Check (Updated to match our AdminLogin logic)
   useEffect(() => {
@@ -137,13 +146,72 @@ const AdminDashboard = () => {
     setIsMobileMenuOpen(false);
   }, [activeTab]);
 
-  // 2. Logout Handler
+  // 2. Scroll Position Preservation
+  useEffect(() => {
+    // Save scroll position before unmount
+    const handleBeforeUnload = () => {
+      const mainContent = document.querySelector('.admin-main-content');
+      if (mainContent) {
+        const scrollPosition = mainContent.scrollTop;
+        sessionStorage.setItem('adminDashboardScrollPosition', scrollPosition.toString());
+      }
+    };
+
+    // Restore scroll position after mount
+    const restoreScrollPosition = () => {
+      const savedPosition = sessionStorage.getItem('adminDashboardScrollPosition');
+      if (savedPosition) {
+        const position = parseInt(savedPosition, 10);
+        // Try to restore scroll to main content area first, then window
+        const mainContent = document.querySelector('.admin-main-content');
+        if (mainContent) {
+          mainContent.scrollTop = position;
+        } else {
+          window.scrollTo(0, position);
+        }
+        // Clear the saved position after restoration
+        sessionStorage.removeItem('adminDashboardScrollPosition');
+      }
+    };
+
+    // Save scroll position when tab changes
+    const saveCurrentScrollPosition = () => {
+      const mainContent = document.querySelector('.admin-main-content');
+      if (mainContent) {
+        const scrollPosition = mainContent.scrollTop;
+        sessionStorage.setItem(`adminDashboardScrollPosition_${activeTab}`, scrollPosition.toString());
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('scroll', saveCurrentScrollPosition, true);
+    
+    // Restore scroll position after a short delay to ensure content is loaded
+    const timeoutId = setTimeout(() => {
+      const tabSpecificPosition = sessionStorage.getItem(`adminDashboardScrollPosition_${activeTab}`);
+      if (tabSpecificPosition) {
+        const position = parseInt(tabSpecificPosition, 10);
+        const mainContent = document.querySelector('.admin-main-content');
+        if (mainContent) {
+          mainContent.scrollTop = position;
+        }
+      }
+    }, 100);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('scroll', saveCurrentScrollPosition, true);
+      clearTimeout(timeoutId);
+    };
+  }, [activeTab]);
+
+  // 3. Logout Handler
   const handleLogout = () => {
     localStorage.removeItem('adminInfo');
     navigate('/admin/login');
   };
 
-  // 3. SwapNest Sidebar Navigation Links
+  // 4. SwapNest Sidebar Navigation Links
   const navLinks = [
     { id: 'overview', label: 'Platform Overview', icon: <LayoutDashboard size={20} /> },
     { id: 'users', label: 'Manage Users', icon: <Users size={20} /> },
@@ -254,7 +322,7 @@ const AdminDashboard = () => {
         </header>
 
         {/* Dynamic Page Content */}
-        <div className="flex-1 overflow-y-auto bg-gray-50">
+        <div className="flex-1 overflow-y-auto bg-gray-50 admin-main-content">
           {activeTab === 'overview' && <AdminDashboardOverview />}
           {activeTab === 'users' && <ManageUsers />}
           {activeTab === 'volunteers' && <VolunteerDashboardLayout />}
