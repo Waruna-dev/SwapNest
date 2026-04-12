@@ -203,7 +203,7 @@ const Dashboard = () => {
       {/* --- NAVBAR --- */}
       <nav className="sticky top-0 w-full z-50 bg-white/80 backdrop-blur-xl shadow-sm border-b border-outline-variant/10 py-3">
         <div className="flex justify-between items-center px-6 md:px-12 max-w-7xl mx-auto">
-          <Link to="/" className="text-2xl font-bold tracking-tighter text-primary font-serif">
+          <Link to="/" className="text-2xl font-extrabold tracking-tighter text-primary font-headline">
             SwapNest
           </Link>
           

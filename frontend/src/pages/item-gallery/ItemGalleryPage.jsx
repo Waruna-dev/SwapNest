@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   getItem,
   getItems,
@@ -7,12 +7,13 @@ import {
   getSuggestions,
 } from "../../services/item/itemApi";
 
-import MarketplaceHero from "../../components/item-gallery/MarketplaceHero";
 import FavoriteItemsModal from "../../components/item-gallery/FavoriteItemsModal";
 import FilterSidebar from "../../components/item-gallery/FilterSidebar";
 import ItemGrid from "../../components/item-gallery/ItemGrid";
 import PaginationControls from "../../components/item-gallery/PaginationControls";
 import ItemQuickViewModal from "../../components/item-gallery/ItemQuickViewModal";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
 
 const categoryOptions = [
   "All",
@@ -48,6 +49,7 @@ const initialFilters = {
 const cardSkeletons = Array.from({ length: 8 }, (_, index) => index);
 
 function ItemGalleryPage() {
+  const navigate = useNavigate();
   const [filters, setFilters] = useState(initialFilters);
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
@@ -323,40 +325,6 @@ function ItemGalleryPage() {
     setSelectedItem(null);
   };
 
-  const requestNearbyAccess = () => {
-    if (!navigator.geolocation) {
-      setLocationState({
-        status: "error",
-        coords: null,
-        message: "Geolocation is not supported in this browser.",
-      });
-      return;
-    }
-
-    setLocationState({ status: "loading", coords: null, message: "" });
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLocationState({
-          status: "success",
-          coords: position.coords,
-          message: "Nearby listings enabled.",
-        });
-        setFilters((current) => ({ ...current, useNearby: true }));
-      },
-      () => {
-        setLocationState({
-          status: "error",
-          coords: null,
-          message:
-            "Location access was denied. You can still browse all listings.",
-        });
-        setFilters((current) => ({ ...current, useNearby: false }));
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
-    );
-  };
-
   const handleReset = () => {
     setFilters(initialFilters);
     setSuggestions([]);
@@ -365,29 +333,23 @@ function ItemGalleryPage() {
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f7efdf_0%,#fbf7ef_38%,#edf5f1_100%)] text-[#0a3327]">
-      <MarketplaceHero
-        filters={filters}
-        totalItems={totalItems}
-        favoritesCount={favorites.length}
-        suggestions={suggestions}
-        categoryOptions={categoryOptions}
-        categoryCounts={categoryCounts}
-        sortOptions={sortOptions}
-        locationState={locationState}
-        onFilterChange={handleFilterChange}
-        onRequestLocation={requestNearbyAccess}
-      />
+      <Header />
 
-      <main className="mx-auto w-full max-w-[1850px] px-4 py-10 sm:px-6 xl:px-8 2xl:px-10">
+      <main className="mx-auto w-full max-w-[1850px] px-4 pb-10 pt-24 sm:px-6 xl:px-8 2xl:px-10">
         <div className="grid gap-8 xl:grid-cols-[295px_minmax(0,1fr)]">
           <FilterSidebar
             filters={filters}
             displayMode={displayMode}
             locationState={locationState}
+            suggestions={suggestions}
+            sortOptions={sortOptions}
+            categoryOptions={categoryOptions}
+            categoryCounts={categoryCounts}
             onFilterChange={handleFilterChange}
             onToggleCondition={toggleCondition}
             onReset={handleReset}
             setDisplayMode={setDisplayMode}
+            onRequestLocation={() => navigate("/item/location")}
           />
 
           <section>
@@ -516,6 +478,8 @@ function ItemGalleryPage() {
           onRemoveFavorite={handleRemoveFavorite}
         />
       ) : null}
+
+      <Footer />
     </div>
   );
 }

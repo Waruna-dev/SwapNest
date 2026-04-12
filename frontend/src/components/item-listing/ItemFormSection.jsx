@@ -15,6 +15,7 @@ const categoryOptions = [
 
 const modeOptions = ["Swap", "Sell", "Swap + Sell"];
 const conditionOptions = ["New", "Like New", "Used", "Vintage", "Refurbished"];
+const phoneRegex = /^\d{10}$/;
 
 const ItemFormSection = ({
   formData,
@@ -33,34 +34,107 @@ const ItemFormSection = ({
   handleLocationSearch,
 }) => {
   const isSwapOnly = formData.mode === "Swap";
-  const [invalidFields, setInvalidFields] = useState({});
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const getFieldClassName = (fieldName, baseClassName) =>
     `${baseClassName} ${
-      invalidFields[fieldName]
+      fieldErrors[fieldName]
         ? "border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-100"
         : "border-[#0a3327]/8 bg-[#efebe4] focus:border-[#b14716]/25 focus:ring-[#b14716]/10"
     }`;
+
+  const normalizeFieldValue = (name, value) => {
+    if (name === "contact") {
+      return value.replace(/\D/g, "").slice(0, 10);
+    }
+
+    if (name === "price") {
+      const cleanedValue = value.replace(/[^\d.]/g, "");
+      const parts = cleanedValue.split(".");
+
+      if (parts.length > 2) {
+        return `${parts[0]}.${parts.slice(1).join("").slice(0, 2)}`;
+      }
+
+      if (parts[1]) {
+        return `${parts[0]}.${parts[1].slice(0, 2)}`;
+      }
+    }
+
+    return value;
+  };
+
+  const validateField = (name, value) => {
+    const trimmedValue = normalizeFieldValue(name, value).trim();
+
+    if (name === "title" || name === "description") {
+      return trimmedValue ? "" : "This field is required.";
+    }
+
+    if (name === "contact") {
+      if (!trimmedValue) return "Phone number is required.";
+      if (!phoneRegex.test(trimmedValue)) {
+        return "Enter exactly 10 digits.";
+      }
+    }
+
+    if (name === "price" && !isSwapOnly) {
+      if (!trimmedValue) return "Price is required for sell listings.";
+
+      const numericValue = Number(trimmedValue);
+      if (!Number.isFinite(numericValue) || numericValue <= 0) {
+        return "Price must be greater than 0.";
+      }
+    }
+
+    return "";
+  };
 
   const handleFieldChange = (event) => {
     const { name, value } = event.target;
 
     handleChange(event);
 
-    setInvalidFields((current) => ({
+    setFieldErrors((current) => ({
       ...current,
-      [name]: !value.trim(),
+      [name]: validateField(name, value),
     }));
   };
 
   const handleFieldInvalid = (event) => {
-    const { name } = event.target;
+    const { name, value } = event.target;
+    event.preventDefault();
 
-    setInvalidFields((current) => ({
+    setFieldErrors((current) => ({
       ...current,
-      [name]: true,
+      [name]: validateField(name, value),
     }));
   };
+
+  const handleValidatedSubmit = (event) => {
+    const nextErrors = {
+      title: validateField("title", formData.title),
+      description: validateField("description", formData.description),
+      contact: validateField("contact", formData.contact),
+      ...(isSwapOnly ? {} : { price: validateField("price", formData.price) }),
+    };
+
+    setFieldErrors(nextErrors);
+
+    if (Object.values(nextErrors).some(Boolean)) {
+      event.preventDefault();
+      return;
+    }
+
+    handleSubmit(event);
+  };
+
+  const renderFieldError = (fieldName) =>
+    fieldErrors[fieldName] ? (
+      <p className="ml-2 text-sm font-medium text-red-600">
+        {fieldErrors[fieldName]}
+      </p>
+    ) : null;
 
   return (
     <section className="rounded-[36px] border border-[#0a3327]/8 bg-[rgba(255,252,247,0.82)] p-6 shadow-[0_28px_70px_-38px_rgba(10,51,39,0.38)] backdrop-blur-xl md:p-8 lg:p-10">
@@ -74,7 +148,7 @@ const ItemFormSection = ({
         </h2>
       </div>
 
-      <form className="space-y-6" onSubmit={handleSubmit}>
+      <form className="space-y-6" onSubmit={handleValidatedSubmit} noValidate>
         <div className="grid gap-5 md:grid-cols-2">
           <div className="space-y-2 md:col-span-2">
             <label className="ml-1 text-[11px] font-bold uppercase tracking-[0.28em] text-[#0a3327]/55">
@@ -93,6 +167,7 @@ const ItemFormSection = ({
                 "h-16 w-full rounded-[24px] border px-6 text-[#0a3327] outline-none transition placeholder:text-[#0a3327]/32 focus:ring-4",
               )}
             />
+            {renderFieldError("title")}
           </div>
 
           <div className="space-y-2 md:col-span-2">
@@ -112,6 +187,7 @@ const ItemFormSection = ({
                 "w-full rounded-[24px] border px-6 py-5 text-[#0a3327] outline-none transition placeholder:text-[#0a3327]/32 focus:ring-4",
               )}
             />
+            {renderFieldError("description")}
           </div>
 
           <div className="space-y-2">
@@ -176,14 +252,19 @@ const ItemFormSection = ({
                 Price
               </label>
               <input
-                min="0"
                 name="price"
-                type="number"
+                type="text"
+                inputMode="decimal"
                 value={formData.price}
-                onChange={handleChange}
+                onChange={handleFieldChange}
+                onInvalid={handleFieldInvalid}
                 placeholder="120"
-                className="h-16 w-full rounded-[24px] border border-[#0a3327]/8 bg-[#efebe4] px-6 text-[#0a3327] outline-none transition placeholder:text-[#0a3327]/32 focus:border-[#b14716]/25 focus:ring-4 focus:ring-[#b14716]/10"
+                className={getFieldClassName(
+                  "price",
+                  "h-16 w-full rounded-[24px] border px-6 text-[#0a3327] outline-none transition placeholder:text-[#0a3327]/32 focus:ring-4",
+                )}
               />
+              {renderFieldError("price")}
             </div>
           )}
 
@@ -194,16 +275,19 @@ const ItemFormSection = ({
             <input
               required
               name="contact"
-              type="text"
+              type="tel"
+              inputMode="numeric"
+              maxLength="10"
               value={formData.contact}
               onChange={handleFieldChange}
               onInvalid={handleFieldInvalid}
-              placeholder="077 123 4567 or curator@swapnest.com"
+              placeholder="0771234567"
               className={getFieldClassName(
                 "contact",
                 "h-16 w-full rounded-[24px] border px-6 text-[#0a3327] outline-none transition placeholder:text-[#0a3327]/32 focus:ring-4",
               )}
             />
+            {renderFieldError("contact")}
           </div>
 
           <ImageUploader

@@ -63,11 +63,29 @@ export const useItemForm = () => {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
+    let nextValue = value;
+
+    if (name === "contact") {
+      nextValue = value.replace(/\D/g, "").slice(0, 10);
+    }
+
+    if (name === "price") {
+      nextValue = value.replace(/[^\d.]/g, "");
+
+      const parts = nextValue.split(".");
+      if (parts.length > 2) {
+        nextValue = `${parts[0]}.${parts.slice(1).join("")}`;
+      }
+
+      if (parts[1]) {
+        nextValue = `${parts[0]}.${parts[1].slice(0, 2)}`;
+      }
+    }
 
     setFormData((current) => ({
       ...current,
-      [name]: value,
-      ...(name === "mode" && value === "Swap" ? { price: "" } : {}),
+      [name]: nextValue,
+      ...(name === "mode" && nextValue === "Swap" ? { price: "" } : {}),
     }));
   };
 

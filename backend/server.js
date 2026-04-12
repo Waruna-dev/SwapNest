@@ -1,5 +1,6 @@
+import dns from "dns";
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
 import 'dotenv/config';
-
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
@@ -24,6 +25,7 @@ import swapRoutes from "./routes/swapRoutes.js";
 import volunteerRoutes from "./routes/VolunteerRoutes.js";
 import pickupRoutes from "./routes/PickupRoutes.js";
 import centerRoutes from "./routes/CenterRoutes.js";
+import contactRoutes from "./routes/contactRoutes.js";
 import notificationRoutes from './routes/notificationRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 
@@ -52,6 +54,7 @@ app.use('/api/swaps', swapRoutes);
 app.use("/api/volunteers", volunteerRoutes);
 app.use("/api/pickups", pickupRoutes);
 app.use("/api/centers", centerRoutes);
+app.use("/api/contact", contactRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
 
