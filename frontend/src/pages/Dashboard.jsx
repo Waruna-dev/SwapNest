@@ -223,7 +223,6 @@ const Dashboard = () => {
             </button>
             <Link to="/item/gallery" className="text-primary/80 hover:text-primary transition-colors">Marketplace</Link>
 <Link to="/volunteer" className="text-primary/80 hover:text-primary transition-colors">Volunteer</Link>
-            <Link to="/messages" className="text-primary/80 hover:text-primary transition-colors">Messages</Link>
           </div>
           
           <div className="flex items-center gap-4">
@@ -279,7 +278,6 @@ const Dashboard = () => {
                   <button onClick={() => { setActiveNav('my-swaps'); setIsMobileMenuOpen(false); }} className="text-primary font-headline font-bold text-lg text-left">My Swaps</button>
                   <Link to="/item/gallery" className="text-primary font-headline font-bold text-lg">Marketplace</Link>
                   <Link to="/volunteer" className="text-primary font-headline font-bold text-lg">Volunteer</Link>
-                  <Link to="/messages" className="text-primary font-headline font-bold text-lg">Messages</Link>
                   <Link to="/item/form" className="w-full bg-secondary text-white px-4 py-3 rounded-xl font-bold text-sm mt-2 flex items-center justify-center gap-2">
                     <span className="material-symbols-outlined text-[18px]">add</span> List Item
                   </Link>

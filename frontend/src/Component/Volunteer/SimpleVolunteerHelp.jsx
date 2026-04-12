@@ -69,14 +69,16 @@ export default function SimpleVolunteerHelp({
         const response = await API.get('/users/me');
         const userData = response.data;
         
-        setFormData(prev => ({
-          ...prev,
-          userName: userData.username || prev.userName,
-          userEmail: userData.email || prev.userEmail
-        }));
+        if (userData) {
+          setFormData(prev => ({
+            ...prev,
+            userName: userData.username || prev.userName,
+            userEmail: userData.email || prev.userEmail
+          }));
 
-        // Also try to load user's saved location
-        await loadUserLocation();
+          // Also try to load user's saved location
+          await loadUserLocation();
+        }
       }
     } catch (err) {
       console.error('Error loading user data:', err);
@@ -91,7 +93,7 @@ export default function SimpleVolunteerHelp({
       
       console.log('User location response:', locationData);
       
-      if (locationData.hasLocation) {
+      if (locationData && locationData.hasLocation) {
         console.log('User has saved location, auto-filling...');
         setUserLocationAvailable(true);
         setFormData(prev => ({
@@ -110,6 +112,10 @@ export default function SimpleVolunteerHelp({
     } catch (error) {
       console.error('Error fetching user location:', error);
       // Don't set error state here, just log it - user can still use current location
+      // Silently handle 500 errors so form doesn't break
+      if (error.response?.status === 500) {
+        console.warn('User location API is down, skipping location auto-fill');
+      }
     }
   };
 
@@ -241,6 +247,13 @@ export default function SimpleVolunteerHelp({
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Check token before submitting
+    const token = localStorage.getItem('swapnest_token');
+    if (!token) {
+      setError('Please log in to submit a volunteer request');
+      return;
+    }
+
     // Validate center selection only for pickup
     if (formData.deliveryType === 'pickup' && !selectedCenter) {
       setError('Please select a pickup center');
@@ -267,6 +280,7 @@ export default function SimpleVolunteerHelp({
       };
 
       console.log('Submitting volunteer help request:', requestData);
+      console.log('Token being used:', token ? 'Present' : 'Missing');
 
       const response = await API.post('/simple-volunteer-help', requestData);
       
@@ -281,7 +295,17 @@ export default function SimpleVolunteerHelp({
       }
     } catch (err) {
       console.error('Error submitting request:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to submit request. Please try again.');
+      
+      if (err.response?.status === 401) {
+        setError('Authentication expired. Please log in again and try.');
+        // Clear invalid token
+        localStorage.removeItem('swapnest_token');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+      } else {
+        setError(err.response?.data?.message || err.message || 'Failed to submit request. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -420,16 +444,16 @@ export default function SimpleVolunteerHelp({
             <h3 className="text-lg font-semibold mb-4 text-blue-900">Delivery Type</h3>
             <div className="space-y-4">
               {itemData?.mode === "Free" ? (
-                // Free mode - Only show Pickup center option
+                // Free mode - Only show Delivery option
                 <div className="border rounded-lg p-4 bg-blue-100 border-blue-500">
                   <div className="flex items-center gap-3">
                     <div className="w-4 h-4 rounded-full bg-blue-600 flex items-center justify-center">
                       <div className="w-2 h-2 rounded-full bg-white"></div>
                     </div>
-                    <span className="text-sm font-medium text-blue-800">Pickup center (Free mode)</span>
+                    <span className="text-sm font-medium text-blue-800">Delivery (Free mode)</span>
                   </div>
                   <p className="text-xs text-blue-600 italic">
-                    Free pickup center request - volunteer will deliver the item to pickup center location
+                    Free delivery request - volunteer will pick up your item and deliver it to center location
                   </p>
                 </div>
               ) : (

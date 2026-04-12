@@ -618,6 +618,9 @@ export default function VolunteerPickup() {
                     <span className="text-sm text-gray-500">
                       Request ID: {request._id?.slice(-8) || `#${index + 1}`}
                     </span>
+                    <span className="text-sm text-gray-500">
+                      | Item ID: {request.itemId || 'N/A'}
+                    </span>
                   </div>
                 </div>
                 <div className="text-right">
@@ -710,11 +713,51 @@ export default function VolunteerPickup() {
                       🔍 Find in Center Received Table
                     </button>
                   ) : (() => {
-                    const linkedReceivedItem = pickupRequests.find(r => 
-                      r.itemId === request.itemId && 
-                      (r.status === 'center_received' || r.status === 'completed') && 
-                      r.deliveryType !== 'pickup'
+                    // Find items that have been received at center with matching item ID
+                    const centerReceivedItems = pickupRequests.filter(r => 
+                      (r.status === 'center_received' || r.status === 'completed')
                     );
+                    
+                    // Enhanced item ID matching logic
+                    const linkedReceivedItem = centerReceivedItems.find(r => {
+                      // Normalize both item IDs for comparison
+                      const normalizeId = (id) => {
+                        if (!id) return null;
+                        if (typeof id === 'string') return id;
+                        if (id._id) return id._id;
+                        if (id.toString) return id.toString();
+                        return String(id);
+                      };
+                      
+                      const rItemId = normalizeId(r.itemId);
+                      const requestItemId = normalizeId(request.itemId);
+                      
+                      const isMatch = rItemId && requestItemId && rItemId === requestItemId;
+                      
+                      console.log(`Item ID Match Check:`, {
+                        centerItemId: rItemId,
+                        requestItemId: requestItemId,
+                        isMatch: isMatch,
+                        centerItemStatus: r.status,
+                        centerDeliveryType: r.deliveryType
+                      });
+                      
+                      return isMatch;
+                    });
+                    
+                    // Debug logging to help with troubleshooting
+                    console.log('Pickup Verification Summary:', {
+                      requestItemId: request.itemId,
+                      requestType: request.deliveryType,
+                      totalRequests: pickupRequests.length,
+                      centerReceivedItems: centerReceivedItems.length,
+                      foundMatch: !!linkedReceivedItem,
+                      matchingItem: linkedReceivedItem ? {
+                        itemId: linkedReceivedItem.itemId,
+                        status: linkedReceivedItem.status,
+                        deliveryType: linkedReceivedItem.deliveryType
+                      } : null
+                    });
                     
                     if (linkedReceivedItem) {
                       const cName = getCenterName(linkedReceivedItem.centerId?._id || linkedReceivedItem.assignedCenterId?._id);
