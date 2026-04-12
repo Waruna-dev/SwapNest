@@ -13,7 +13,7 @@ const categoryOptions = [
   "Sports",
 ];
 
-const modeOptions = ["Swap", "Sell", "Swap + Sell"];
+const modeOptions = ["Swap", "Sell", "Swap + Sell", "Free"];
 const conditionOptions = ["New", "Like New", "Used", "Vintage", "Refurbished"];
 const phoneRegex = /^\d{10}$/;
 
@@ -34,7 +34,10 @@ const ItemFormSection = ({
   handleLocationSearch,
 }) => {
   const isSwapOnly = formData.mode === "Swap";
-  const [fieldErrors, setFieldErrors] = useState({});
+  const shouldSkipPrice = formData.mode === "Swap" || formData.mode === "Free";
+const [fieldErrors, setFieldErrors] = useState({});
+  const shouldHidePrice = formData.mode === "Swap" || formData.mode === "Free";
+  const [invalidFields, setInvalidFields] = useState({});
 
   const getFieldClassName = (fieldName, baseClassName) =>
     `${baseClassName} ${
@@ -78,7 +81,7 @@ const ItemFormSection = ({
       }
     }
 
-    if (name === "price" && !isSwapOnly) {
+    if (name === "price" && !shouldSkipPrice) {
       if (!trimmedValue) return "Price is required for sell listings.";
 
       const numericValue = Number(trimmedValue);
@@ -116,7 +119,7 @@ const ItemFormSection = ({
       title: validateField("title", formData.title),
       description: validateField("description", formData.description),
       contact: validateField("contact", formData.contact),
-      ...(isSwapOnly ? {} : { price: validateField("price", formData.price) }),
+      ...(shouldSkipPrice ? {} : { price: validateField("price", formData.price) }),
     };
 
     setFieldErrors(nextErrors);
@@ -246,7 +249,7 @@ const ItemFormSection = ({
             </select>
           </div>
 
-          {!isSwapOnly && (
+          {!shouldHidePrice && (
             <div className="space-y-2">
               <label className="ml-1 text-[11px] font-bold uppercase tracking-[0.28em] text-[#0a3327]/55">
                 Price

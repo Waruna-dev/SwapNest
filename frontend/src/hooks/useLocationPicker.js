@@ -247,12 +247,12 @@ export const useLocationPicker = (
 
           try {
             const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`,
+              `http://localhost:5000/api/geocoding/reverse?lat=${lat}&lon=${lng}`,
             );
             const results = await response.json();
 
-            if (results?.display_name) {
-              const address = results.display_name;
+            if (results?.success && results?.data?.display_name) {
+              const address = results.data.display_name;
               setSelectedAddress(address);
               setLocationSearch(address);
               setLocationState({
@@ -371,11 +371,11 @@ export const useLocationPicker = (
 
         try {
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${nextPosition.lat}&lon=${nextPosition.lng}`,
+            `http://localhost:5000/api/geocoding/reverse?lat=${nextPosition.lat}&lon=${nextPosition.lng}`,
           );
           const results = await response.json();
           const address =
-            results?.display_name || "Current device location selected";
+            results?.success && results?.data?.display_name ? results.data.display_name : "Current device location selected";
           setSelectedAddress(address);
           setLocationSearch(address);
         } catch {
@@ -416,12 +416,12 @@ export const useLocationPicker = (
 
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(
+        `http://localhost:5000/api/geocoding/search?q=${encodeURIComponent(
           query,
         )}&limit=1`,
       );
       const results = await response.json();
-      const firstResult = results?.[0];
+      const firstResult = results?.success && results?.data?.[0] ? results.data[0] : null;
 
       if (!firstResult) {
         setLocationState({

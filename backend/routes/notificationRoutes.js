@@ -1,12 +1,16 @@
 import express from 'express';
 const router = express.Router();
 import {
+  createNotification,
   getUserNotifications,
   markAsRead,
   markAllAsRead,
   deleteNotification,
   getUnreadCount,
 } from '../controllers/notificationController.js';
+
+// Create a new notification
+router.post('/', createNotification);
 
 // Get user notifications
 router.get('/user/:userId', getUserNotifications);
