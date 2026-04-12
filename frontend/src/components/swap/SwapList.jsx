@@ -35,6 +35,12 @@ const SwapList = ({ userId }) => {
   const [showCancelPopup, setShowCancelPopup] = useState(false);
   const [cancelSwapId, setCancelSwapId] = useState(null);
 
+  // Accept/Reject popup states
+  const [showAcceptPopup, setShowAcceptPopup] = useState(false);
+  const [showRejectPopup, setShowRejectPopup] = useState(false);
+  const [pendingSwapId, setPendingSwapId] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+
   useEffect(() => {
     fetchSwaps();
   }, [userId, activeTab]);
@@ -187,27 +193,43 @@ const SwapList = ({ userId }) => {
     setDateFilter("all");
   };
 
-  const handleAccept = async (swapId) => {
-    if (window.confirm("Accept this swap request?")) {
-      try {
-        await updateSwapStatus(swapId, "accepted");
-        fetchSwaps();
-        alert("✅ Swap accepted");
-      } catch {
-        alert("Failed to accept swap");
-      }
+  const handleAcceptClick = (swapId) => {
+    setPendingSwapId(swapId);
+    setShowAcceptPopup(true);
+  };
+
+  const handleConfirmAccept = async () => {
+    setIsProcessing(true);
+    try {
+      await updateSwapStatus(pendingSwapId, "accepted");
+      setShowAcceptPopup(false);
+      fetchSwaps();
+    } catch {
+      setError("Failed to accept swap");
+      setShowAcceptPopup(false);
+    } finally {
+      setIsProcessing(false);
+      setPendingSwapId(null);
     }
   };
 
-  const handleReject = async (swapId) => {
-    if (window.confirm("Reject this swap request?")) {
-      try {
-        await updateSwapStatus(swapId, "rejected");
-        fetchSwaps();
-        alert("❌ Swap rejected");
-      } catch {
-        alert("Failed to reject swap");
-      }
+  const handleRejectClick = (swapId) => {
+    setPendingSwapId(swapId);
+    setShowRejectPopup(true);
+  };
+
+  const handleConfirmReject = async () => {
+    setIsProcessing(true);
+    try {
+      await updateSwapStatus(pendingSwapId, "rejected");
+      setShowRejectPopup(false);
+      fetchSwaps();
+    } catch {
+      setError("Failed to reject swap");
+      setShowRejectPopup(false);
+    } finally {
+      setIsProcessing(false);
+      setPendingSwapId(null);
     }
   };
 
@@ -225,7 +247,6 @@ const SwapList = ({ userId }) => {
     }
   };
 
-
   const handleCancelClick = (swapId) => {
     setCancelSwapId(swapId);
     setShowCancelPopup(true);
@@ -236,7 +257,6 @@ const SwapList = ({ userId }) => {
       await cancelSwap(cancelSwapId);
       fetchSwaps();
       setShowCancelPopup(false);
-   
     } catch (err) {
       alert("Failed to cancel swap: " + err.message);
     }
@@ -251,7 +271,6 @@ const SwapList = ({ userId }) => {
     setShowUpdateForm(false);
     setSwapToUpdate(null);
     fetchSwaps();
-    alert("✅ Swap updated!");
   };
 
   const handleViewDetails = (swap) => {
@@ -323,7 +342,7 @@ const SwapList = ({ userId }) => {
     pending: swaps.filter((s) => s.status === "pending").length,
     accepted: swaps.filter((s) => s.status === "accepted").length,
     completed: swaps.filter((s) => s.status === "completed").length,
-    rejected:swaps.filter((s)=> s.status==="rejected").length,
+    rejected: swaps.filter((s) => s.status === "rejected").length,
   };
 
   const hasActiveFilters =
@@ -406,43 +425,43 @@ const SwapList = ({ userId }) => {
 
         <div className="max-w-[1400px] mx-auto px-4 py-6">
           <div className="grid grid-cols-4 gap-4 mb-6">
-  <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
-    <div className="flex items-center justify-between">
-      <span className="text-sm text-gray-700 font-medium">Total Swaps</span>
-      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-      </svg>
-    </div>
-    <p className="text-3xl font-bold text-gray-900 mt-2">{stats.total}</p>
-  </div>
-  <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
-    <div className="flex items-center justify-between">
-  <span className="text-sm text-gray-700 font-medium">Rejected</span>
-  <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-  </svg>
-</div>
-    <p className="text-3xl font-bold text-gray-900 mt-2">{stats.rejected}</p>
-  </div>
-  <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
-    <div className="flex items-center justify-between">
-      <span className="text-sm text-gray-700 font-medium">Accepted</span>
-      <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    </div>
-    <p className="text-3xl font-bold text-gray-900 mt-2">{stats.accepted}</p>
-  </div>
-  <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
-    <div className="flex items-center justify-between">
-      <span className="text-sm text-gray-700 font-medium">Completed</span>
-      <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-      </svg>
-    </div>
-    <p className="text-3xl font-bold text-gray-900 mt-2">{stats.completed}</p>
-  </div>
-</div>
+            <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-700 font-medium">Total Swaps</span>
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+              </div>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{stats.total}</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-700 font-medium">Rejected</span>
+                <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{stats.rejected}</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-700 font-medium">Accepted</span>
+                <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{stats.accepted}</p>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-700 font-medium">Completed</span>
+                <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{stats.completed}</p>
+            </div>
+          </div>
 
           <div className="flex gap-2 mb-6 bg-white rounded-xl p-1 border border-gray-200 w-fit shadow-sm">
             {tabs.map((tab) => (
@@ -710,14 +729,11 @@ const SwapList = ({ userId }) => {
                           key={swap._id}
                           className="hover:bg-gray-50 transition-colors"
                         >
-                          {/* Request ID */}
                           <td className="px-4 py-3">
                             <span className="font-mono text-sm text-primary font-medium bg-primary-fixed/30 px-2 py-1 rounded-md">
                               {swap.requestId}
                             </span>
                           </td>
-
-                          {/* Requested Item */}
                           <td className="px-4 py-3">
                             <div>
                               <p className="text-sm font-medium text-gray-900">
@@ -730,7 +746,6 @@ const SwapList = ({ userId }) => {
                               )}
                             </div>
                           </td>
-
                           <td className="px-4 py-3">
                             {swap.swapType === "item-for-item" &&
                             swap.offeredItem ? (
@@ -755,7 +770,6 @@ const SwapList = ({ userId }) => {
                               </span>
                             )}
                           </td>
-
                           <td className="px-4 py-3">
                             <div className="space-y-1">
                               <div className="flex items-center gap-1 text-xs">
@@ -782,7 +796,6 @@ const SwapList = ({ userId }) => {
                               </div>
                             </div>
                           </td>
-
                           <td className="px-4 py-3">
                             <span
                               className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusColor(swap.status)}`}
@@ -798,7 +811,6 @@ const SwapList = ({ userId }) => {
                               </p>
                             )}
                           </td>
-
                           <td className="px-4 py-3">
                             <p className="text-sm text-gray-600">
                               {new Date(swap.createdAt).toLocaleDateString(
@@ -820,7 +832,6 @@ const SwapList = ({ userId }) => {
                               )}
                             </p>
                           </td>
-
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-2">
                               <button
@@ -877,7 +888,7 @@ const SwapList = ({ userId }) => {
                               {isOwner && isPending && (
                                 <>
                                   <button
-                                    onClick={() => handleAccept(swap._id)}
+                                    onClick={() => handleAcceptClick(swap._id)}
                                     className="p-1.5 rounded-lg bg-green-50 hover:bg-green-100 text-green-600 transition-colors"
                                     title="Accept"
                                   >
@@ -896,7 +907,7 @@ const SwapList = ({ userId }) => {
                                     </svg>
                                   </button>
                                   <button
-                                    onClick={() => handleReject(swap._id)}
+                                    onClick={() => handleRejectClick(swap._id)}
                                     className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition-colors"
                                     title="Reject"
                                   >
@@ -990,7 +1001,125 @@ const SwapList = ({ userId }) => {
         )}
       </div>
 
-      {/* Beautiful Cancel Confirmation Popup */}
+      {/* Accept Confirmation Popup */}
+      {showAcceptPopup && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform animate-fadeInUp">
+            <div className="p-6">
+              <div className="flex items-center justify-center mb-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-8 h-8 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-center text-gray-900 mb-2">
+                Accept Swap Request?
+              </h3>
+              <p className="text-gray-600 text-center mb-6">
+                Are you sure you want to accept this swap request? This action will confirm the swap and notify the requester.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowAcceptPopup(false)}
+                  disabled={isProcessing}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmAccept}
+                  disabled={isProcessing}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isProcessing ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Processing...
+                    </>
+                  ) : (
+                    "Yes, Accept"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject Confirmation Popup */}
+      {showRejectPopup && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform animate-fadeInUp">
+            <div className="p-6">
+              <div className="flex items-center justify-center mb-4">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-8 h-8 text-red-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-center text-gray-900 mb-2">
+                Reject Swap Request?
+              </h3>
+              <p className="text-gray-600 text-center mb-6">
+                Are you sure you want to reject this swap request? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowRejectPopup(false)}
+                  disabled={isProcessing}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmReject}
+                  disabled={isProcessing}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isProcessing ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Processing...
+                    </>
+                  ) : (
+                    "Yes, Reject"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Confirmation Popup */}
       {showCancelPopup && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform animate-fadeInUp">

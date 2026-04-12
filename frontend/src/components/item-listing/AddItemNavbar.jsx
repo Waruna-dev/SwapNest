@@ -13,7 +13,7 @@ const AddItemNavbar = () => {
 
         <div className="flex items-center gap-3">
           <Link
-            to="/items/gallery"
+            to="/item/gallery"
             className="rounded-full border border-[#0a3327]/10 px-5 py-2.5 text-sm font-semibold text-[#0a3327]/70 transition hover:border-[#0a3327]/20 hover:text-[#0a3327]"
           >
             Browse Items

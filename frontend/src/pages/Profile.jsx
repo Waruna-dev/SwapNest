@@ -255,9 +255,9 @@ const Profile = () => {
           </div>
           
           <div className="flex items-center gap-4">
-            <button className="hidden md:flex bg-secondary text-on-secondary px-5 py-2 rounded-full font-headline font-bold text-xs hover:scale-105 active:scale-95 transition-transform shadow-md items-center gap-1">
+            <Link to="/item/new" className="hidden md:flex bg-secondary text-on-secondary px-5 py-2 rounded-full font-headline font-bold text-xs hover:scale-105 active:scale-95 transition-transform shadow-md items-center gap-1">
               <span className="material-symbols-outlined text-[16px]">add</span> List Item
-            </button>
+            </Link>
             
             <div className="relative" ref={profileMenuRef}>
               <div 
@@ -294,9 +294,9 @@ const Profile = () => {
                   <Link to="/dashboard" className="text-primary font-headline font-bold text-lg">Dashboard</Link>
                   <Link to="/marketplace" className="text-primary font-headline font-bold text-lg">Marketplace</Link>
                   <Link to="/messages" className="text-primary font-headline font-bold text-lg">Messages</Link>
-                  <button className="w-full bg-secondary text-on-secondary px-4 py-3 rounded-xl font-headline font-bold text-sm mt-2 flex items-center justify-center gap-2">
+                  <Link to="/item/new" className="w-full bg-secondary text-on-secondary px-4 py-3 rounded-xl font-headline font-bold text-sm mt-2 flex items-center justify-center gap-2">
                     <span className="material-symbols-outlined text-[18px]">add</span> List Item
-                  </button>
+                  </Link>
                 </div>
               )}
             </div>

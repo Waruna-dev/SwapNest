@@ -1,4 +1,3 @@
-// frontend/src/components/swap/AdminSwapDashboard.jsx
 import React, { useState, useEffect } from "react";
 import { getAllSwaps, deleteSwap } from "../../services/swapService";
 import StatusBadge from "../common/StatusBadge";
@@ -121,15 +120,13 @@ const AdminSwapDashboard = () => {
     <div className="bg-gray-50 min-h-screen">
       <div className="p-6 max-w-[1600px] mx-auto">
         
-        {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-1">Manage Swaps</h1>
           <p className="text-gray-500 text-sm">Track and manage all user swap requests in real-time</p>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
-          {/* Total Swaps */}
+       
           <div className="bg-white rounded-lg p-5 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between mb-3">
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -143,7 +140,6 @@ const AdminSwapDashboard = () => {
             </div>
           </div>
 
-          {/* Pending */}
           <div className="bg-white rounded-lg p-5 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between mb-3">
               <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -157,7 +153,6 @@ const AdminSwapDashboard = () => {
             </div>
           </div>
 
-          {/* Accepted */}
           <div className="bg-white rounded-lg p-5 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between mb-3">
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -171,7 +166,6 @@ const AdminSwapDashboard = () => {
             </div>
           </div>
 
-          {/* Completed */}
           <div className="bg-white rounded-lg p-5 shadow-sm border border-gray-200">
             <div className="flex items-center justify-between mb-3">
               <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -186,7 +180,7 @@ const AdminSwapDashboard = () => {
           </div>
         </div>
 
-        {/* Search and Filters */}
+       
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
           <div className="p-4 border-b border-gray-200">
             <div className="flex flex-col sm:flex-row gap-3">
@@ -235,7 +229,6 @@ const AdminSwapDashboard = () => {
               </div>
             </div>
 
-            {/* Filters Panel */}
             {showFilters && (
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -297,7 +290,6 @@ const AdminSwapDashboard = () => {
             )}
           </div>
 
-          {/* Table */}
           {loading ? (
             <div className="flex justify-center items-center py-20">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
@@ -390,7 +382,6 @@ const AdminSwapDashboard = () => {
         Previous
       </button>
       
-      {/* Page Numbers */}
       {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
         let pageNum;
         if (totalPages <= 5) {
@@ -431,7 +422,6 @@ const AdminSwapDashboard = () => {
           )}
         </div>
 
-        {/* Modal */}
         {showModal && selectedSwap && (
           <SwapDetailsModal 
             swap={selectedSwap} 

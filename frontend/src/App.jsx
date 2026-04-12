@@ -13,8 +13,11 @@ import Swapform from "./components/swap/SwapForm";
 import ItemAddNewItems from "./pages/item-listing/ItemAddNewItem";
 import ItemGalleryPage from "./pages/item-gallery/ItemGalleryPage";
 import ItemDashboard1 from "./pages/item-listing/ItemDashboard";
+import MyItems from "./pages/item-listing/MyItems";
+import ItemLocation from "./pages/item-ocation/itemLocation";
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import ContactUs from './pages/ContactUs';
 
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -33,11 +36,19 @@ function App() {
           <Route path="/register" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/contact" element={<ContactUs />} />
+            
+            {/*Item routes*/}
+          <Route path="/item/new" element={<ItemAddNewItems />} />
+          <Route path="/item/gallery" element={<ItemGalleryPage />} />
+          <Route path="/item/dashboard" element={<ItemDashboard1 />} />
+          <Route path="/item/location" element={<ItemLocation />} />
 
 
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/my-list" element={<MyItems />} />
             
           </Route>
 
