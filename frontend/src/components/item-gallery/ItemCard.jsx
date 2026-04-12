@@ -7,7 +7,7 @@ import {
 } from "../../utils/itemGalleryUtils";
 import { IconCart, IconHeart, IconMapPin, IconSwap } from "./icons";
 import SwapForm from "../../components/swap/SwapForm";
-import SimpleVolunteerHelp from "../../Component/Volunteer/SimpleVolunteerHelp";
+import SimpleVolunteerHelp from "../../components/Volunteer/SimpleVolunteerHelp";
 
 function ItemCard({ item, isFavorite, onToggleFavorite, onQuickView }) {
   const [showSwapModal, setShowSwapModal] = useState(false);
@@ -234,7 +234,7 @@ function ItemCard({ item, isFavorite, onToggleFavorite, onQuickView }) {
           onClose={handleVolunteerHelpClose}
           onSuccess={handleVolunteerHelpSuccess}
           itemData={{
-            itemId: item._id || item.itemId,
+            itemId: item.itemId, // Always use itemId from item table for consistency
             title: item.title,
             category: item.category
           }}

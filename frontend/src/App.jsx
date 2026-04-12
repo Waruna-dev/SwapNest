@@ -23,22 +23,22 @@ import Swapform from "./components/swap/SwapForm";
 import SwapList from "./components/swap/SwapList";
 
 // Volunteer components
-import Pickup from "./Component/Volunteer/pickup";
-import Center from "./Component/Volunteer/center";
-import Volunteer from "./Component/Volunteer/volunteer";
-import VolunteerPage from "./Component/Volunteer/Volunteerpage";
-import DistributionPlan from "./Component/Volunteer/distributionPlan";
+import Pickup from "./components/Volunteer/pickup";
+import Center from "./components/Volunteer/center";
+import Volunteer from "./components/Volunteer/volunteer";
+import VolunteerPage from "./components/Volunteer/Volunteerpage";
+import DistributionPlan from "./components/Volunteer/distributionPlan";
 
 // Volunteer Dashboard components
-import VolunteerDashboard from "./Component/Volunteerdashboard/volunteerdashboard";
-import DashboardOverview from "./Component/Volunteerdashboard/dashboardOverview";
-import DashboardCenters from "./Component/Volunteerdashboard/dashboardcenters";
-import CenterEdit from "./Component/Volunteerdashboard/centeredit.jsx";
-import VolunteerDashboardVolunteersTable from "./Component/Volunteerdashboard/VolunteerDashboardVolunteersTable";
-import VolunteerEdit from "./Component/Volunteerdashboard/volunteeredit";
-import VolunteerPickup from "./Component/Volunteerdashboard/volunteerpickup";
-import DeliveryAll from "./Component/Volunteerdashboard/DeliveryAll";
-import NGODashboard from "./Component/Volunteerdashboard/ngodashboard";
+import VolunteerDashboard from "./components/Volunteerdashboard/volunteerdashboard";
+import DashboardOverview from "./components/Volunteerdashboard/dashboardOverview";
+import DashboardCenters from "./components/Volunteerdashboard/dashboardcenters";
+import CenterEdit from "./components/Volunteerdashboard/centeredit.jsx";
+import VolunteerDashboardVolunteersTable from "./components/Volunteerdashboard/VolunteerDashboardVolunteersTable";
+import VolunteerEdit from "./components/Volunteerdashboard/volunteeredit";
+import VolunteerPickup from "./components/Volunteerdashboard/volunteerpickup";
+import DeliveryAll from "./components/Volunteerdashboard/DeliveryAll";
+import NGODashboard from "./components/Volunteerdashboard/ngodashboard";
 
 // Item components
 import ItemAddNewItems from "./pages/item-listing/ItemAddNewItem";

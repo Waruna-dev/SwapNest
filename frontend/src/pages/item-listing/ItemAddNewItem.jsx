@@ -8,7 +8,7 @@ import ItemFormSection from "../../components/item-listing/ItemFormSection";
 import StatusDialog from "../../components/item-listing/StatusDialog";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
-import SimpleVolunteerHelp from "../../Component/Volunteer/SimpleVolunteerHelp";
+import SimpleVolunteerHelp from "../../components/Volunteer/SimpleVolunteerHelp";
 
 // Custom Hooks
 import { useItemForm } from "../../hooks/useItemForm";

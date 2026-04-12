@@ -7,13 +7,13 @@ import {
 } from 'lucide-react';
 import ManageUsers from './ManageUsers';
 import AdminSwapDashboard from '../../components/swap/AdminSwapDashboard';
-import DashboardOverview from '../../Component/Volunteerdashboard/dashboardOverview';
-import VolunteerDashboardVolunteersTable from '../../Component/Volunteerdashboard/VolunteerDashboardVolunteersTable';
-import DashboardCenters from '../../Component/Volunteerdashboard/dashboardcenters';
-import VolunteerPickup from '../../Component/Volunteerdashboard/volunteerpickup';
-import DistributionPlan from '../../Component/Volunteer/distributionPlan';
-import CenterEdit from '../../Component/Volunteerdashboard/centeredit';
-import VolunteerEdit from '../../Component/Volunteerdashboard/volunteeredit';
+import DashboardOverview from '../../components/Volunteerdashboard/dashboardOverview';
+import VolunteerDashboardVolunteersTable from '../../components/Volunteerdashboard/VolunteerDashboardVolunteersTable';
+import DashboardCenters from '../../components/Volunteerdashboard/dashboardcenters';
+import VolunteerPickup from '../../components/Volunteerdashboard/volunteerpickup';
+import DistributionPlan from '../../components/Volunteer/distributionPlan';
+import CenterEdit from '../../components/Volunteerdashboard/centeredit';
+import VolunteerEdit from '../../components/Volunteerdashboard/volunteeredit';
 
 // Placeholders for your future admin components
 const AdminDashboardOverview = () => <div className="p-6">Overview Metrics Coming Soon</div>;
