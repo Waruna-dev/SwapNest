@@ -2,25 +2,22 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Users, LayoutDashboard, Package, Settings, 
-  LogOut, Menu, X, Bell, RefreshCw, Flag 
+  Users, Package, LogOut, Menu, X, Bell, RefreshCw 
 } from 'lucide-react';
 import ManageUsers from './ManageUsers';
 import AdminSwapDashboard from '../../components/swap/AdminSwapDashboard';
+import API from '../../services/api';
 
 // Placeholders for your future admin components
-const DashboardOverview = () => <div className="p-6">Overview Metrics Coming Soon</div>;
 const ManageItems = () => <div className="p-6">Swap Items Grid Coming Soon</div>;
-const ReportedListings = () => <div className="p-6">Reported Content Coming Soon</div>;
-const SystemSettings = () => <div className="p-6">Platform Settings Coming Soon</div>;
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [adminUser, setAdminUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('users'); // --- CHANGED: Default is now 'users' ---
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // 1. Authentication Check (Updated to match our AdminLogin logic)
+  // 1. Authentication Check
   useEffect(() => {
     const adminInfo = JSON.parse(localStorage.getItem('adminInfo'));
 
@@ -32,20 +29,24 @@ const AdminDashboard = () => {
   }, [navigate]);
 
   // 2. Logout Handler
-  const handleLogout = () => {
-    localStorage.removeItem('adminInfo');
-    navigate('/admin/login');
+  const handleLogout = async () => {
+    try {
+      await API.post('/users/logout');
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      localStorage.removeItem('adminInfo');
+      localStorage.removeItem('swapnest_token');
+      
+      navigate('/admin/login');
+    }
   };
 
-  // 3. SwapNest Sidebar Navigation Links
+  // 3. SwapNest Sidebar Navigation Links --- UPDATED: Removed unwanted tabs ---
   const navLinks = [
-    { id: 'overview', label: 'Platform Overview', icon: <LayoutDashboard size={20} /> },
     { id: 'users', label: 'Manage Users', icon: <Users size={20} /> },
     { id: 'items', label: 'Manage Items', icon: <Package size={20} /> },
-    { id: 'reports', label: 'Reported Listings', icon: <Flag size={20} /> }, 
-    { id: 'settings', label: 'System Settings', icon: <Settings size={20} /> },
-    {id: 'swaps', label: 'Manage Swaps', icon: <RefreshCw size={20} />, component: <AdminSwapDashboard /> },
-
+    { id: 'swaps', label: 'Manage Swaps', icon: <RefreshCw size={20} />, component: <AdminSwapDashboard /> },
   ];
 
   if (!adminUser) return null; // Prevent flickering before redirect
@@ -146,11 +147,9 @@ const AdminDashboard = () => {
 
         {/* Dynamic Page Content */}
         <div className="flex-1 overflow-y-auto bg-gray-50">
-          {activeTab === 'overview' && <DashboardOverview />}
+          {/* --- UPDATED: Removed unwanted components --- */}
           {activeTab === 'users' && <ManageUsers />}
           {activeTab === 'items' && <ManageItems />}
-          {activeTab === 'reports' && <ReportedListings />}
-          {activeTab === 'settings' && <SystemSettings />}
           {activeTab === 'swaps' && <AdminSwapDashboard />}
         </div>
       </main>

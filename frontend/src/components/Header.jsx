@@ -7,11 +7,11 @@ const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   
-  // --- NEW STATES FOR DYNAMIC AVATAR ---
-  const [profilePic, setProfilePic] = useState(null); // Starts as null
-  const [userName, setUserName] = useState(''); // To grab the first letter
+  // --- NEW STATES FOR DYNAMIC AVATAR & ROLE ---
+  const [profilePic, setProfilePic] = useState(null); 
+  const [userName, setUserName] = useState(''); 
+  const [userRole, setUserRole] = useState('user'); // Default to standard user
 
-  // Helper to get the first letter of the user's name
   const userInitial = userName ? userName.charAt(0).toUpperCase() : 'U';
 
   useEffect(() => {
@@ -24,11 +24,12 @@ const Header = () => {
     const checkAuthStatus = async () => {
       const token = localStorage.getItem('swapnest_token');
       if (token) {
-        setIsLoggedIn(true);
         try {
           const response = await API.get('/users/me');
-          // Save the username for the initials
+          
           setUserName(response.data.username || '');
+          setUserRole(response.data.role || 'user'); // Save the role from the backend
+          setIsLoggedIn(true);
           
           if (response.data.profilePic) {
             setProfilePic(response.data.profilePic);
@@ -42,6 +43,14 @@ const Header = () => {
     };
     checkAuthStatus();
   }, []);
+
+  // --- DYNAMIC ROUTING HELPER ---
+  // Returns the correct dashboard link based on who is logged in
+  const getDashboardLink = () => {
+    if (userRole === 'admin') return '/admin/dashboard'; // Change this if your admin route is different
+    if (userRole === 'volunteer') return '/ngo-dashboard';
+    return '/dashboard';
+  };
 
   return (
     <nav className={`fixed top-0 w-full z-50 transition-all duration-500 font-body ${scrolled ? 'bg-white/80 backdrop-blur-xl shadow-sm border-b border-outline-variant/10 py-3' : 'bg-transparent py-5'}`}>
@@ -61,11 +70,12 @@ const Header = () => {
         <div className="hidden md:flex items-center gap-6">
           {isLoggedIn ? (
             <Link 
-              to="/dashboard" 
-              className="w-10 h-10 rounded-full border-2 border-primary/10 overflow-hidden cursor-pointer hover:ring-2 hover:ring-secondary transition-all shadow-md bg-primary flex items-center justify-center text-white font-bold font-headline"
-              title="Go to Dashboard"
+              to={getDashboardLink()} // Uses the dynamic link helper
+              className={`w-10 h-10 rounded-full border-2 overflow-hidden cursor-pointer hover:ring-2 hover:ring-secondary transition-all shadow-md flex items-center justify-center text-white font-bold font-headline ${
+                userRole === 'admin' ? 'bg-error border-error/20' : 'bg-primary border-primary/10'
+              }`}
+              title={userRole === 'admin' ? "Admin Portal" : "Go to Dashboard"}
             >
-              {/* --- DYNAMIC INITIALS LOGIC --- */}
               {profilePic ? (
                 <img src={profilePic} alt="Profile" className="w-full h-full object-cover" />
               ) : (
@@ -97,16 +107,17 @@ const Header = () => {
           <div className="h-px bg-outline-variant/20"></div>
           
           {isLoggedIn ? (
-            <Link to="/dashboard" className="bg-primary text-on-primary px-6 py-3 rounded-xl font-headline font-bold text-center flex items-center justify-center gap-3">
-              {/* --- DYNAMIC INITIALS FOR MOBILE MENU --- */}
-              <div className="w-6 h-6 rounded-full border border-white/20 overflow-hidden bg-secondary flex items-center justify-center text-[10px] text-white">
+            <Link to={getDashboardLink()} className="bg-primary text-on-primary px-6 py-3 rounded-xl font-headline font-bold text-center flex items-center justify-center gap-3">
+              <div className={`w-6 h-6 rounded-full border border-white/20 overflow-hidden flex items-center justify-center text-[10px] text-white ${
+                userRole === 'admin' ? 'bg-error' : 'bg-secondary'
+              }`}>
                 {profilePic ? (
                   <img src={profilePic} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                   <span>{userInitial}</span>
                 )}
               </div>
-              Go to Dashboard
+              {userRole === 'admin' ? "Admin Portal" : "Go to Dashboard"}
             </Link>
           ) : (
             <>
